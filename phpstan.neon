@@ -1,0 +1,5 @@
+# vim: ft=yaml
+parameters:
+  level: 7
+  paths:
+    - src
