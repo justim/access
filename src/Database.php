@@ -235,10 +235,17 @@ class Database
     /**
      * Execute a raw query
      *
-     * @param Query\Raw $query
+     * Has no return value, not suited for select queries
+     *
+     * @param Query $query
+     * @throws Exception when $query is a Query\Select
      */
-    public function query(Query\Raw $query): void
+    public function query(Query $query): void
     {
+        if ($query instanceof Query\Select) {
+            throw new Exception('Method does not allow select queries, use `select` or `selectOne`');
+        }
+
         $stmt = new Statement($this, $query);
         $gen = $stmt->execute();
 
