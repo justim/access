@@ -316,7 +316,8 @@ abstract class Entity
             case 'bool':
                 return intval($value);
             case 'datetime':
-                return $value
+                return $this
+                    ->fromMutable($value)
                     ->setTimezone(new \DateTimeZone('UTC'))
                     ->format(self::DATETIME_FORMAT);
             case 'json':
@@ -380,5 +381,20 @@ abstract class Entity
             default:
                 return $value;
         }
+    }
+
+    /**
+     * Make mutable date immutable, if needed
+     *
+     * @param \DateTimeInterface $date
+     * @return \DateTimeImmutable
+     */
+    private static function fromMutable(\DateTimeInterface $date): \DateTimeImmutable
+    {
+        if ($date instanceof \DateTimeImmutable) {
+            return $date;
+        }
+
+        return \DateTimeImmutable::createFromMutable($date);
     }
 }
