@@ -278,7 +278,9 @@ class Database
      */
     private function assertValidRepositoryClass(string $repositoryClassName): void
     {
-        if (!is_subclass_of($repositoryClassName, Repository::class)) {
+        if (!is_subclass_of($repositoryClassName, Repository::class) &&
+            $repositoryClassName !== Repository::class
+        ) {
             throw new Exception('Invalid repository');
         }
     }
