@@ -177,36 +177,17 @@ abstract class Query
     {
         $escapedTableName = $this->escapeIdentifier($this->tableName);
 
-        $joins = [];
-        foreach ($this->joins as $join) {
-            $escapedJoinTableName = $this->escapeIdentifier($join['tableName']);
-            $j = '';
-
-            switch ($join['type']) {
-                case self::JOIN_TYPE_LEFT:
-                    $j .= 'LEFT JOIN ';
-                    break;
-                case self::JOIN_TYPE_INNER:
-                    $j .= 'INNER JOIN ';
-                    break;
-            }
-
-            $j .= "{$escapedJoinTableName} AS {$join['alias']} ON {$join['on']}";
-            $joins[] = $j;
-        }
-
         $sqlSelect = "SELECT {$escapedTableName}.*";
         $sqlFrom = " FROM {$escapedTableName}";
-        $sqlAlias = '';
+        $sqlAlias = $this->getAliasSql();
 
         if ($this->alias !== null) {
-            $sqlSelect = "SELECT {$this->alias}.*";
-            $sqlAlias = $this->alias !== null ? " AS {$this->alias}" : '';
+            $sqlSelect = "SELECT {$this->escapeIdentifier($this->alias)}.*";
         }
 
-        $sqlJoins = !empty($joins) ? ' ' . implode(" ", $joins) : '';
-        $sqlWhere = $this->getWhere();
-        $sqlLimit = $this->limit !== null ? " LIMIT {$this->limit}" : '';
+        $sqlJoins = $this->getJoinSql();
+        $sqlWhere = $this->getWhereSql();
+        $sqlLimit = $this->getLimitSql();
 
         return $sqlSelect . $sqlFrom . $sqlAlias . $sqlJoins . $sqlWhere . $sqlLimit;
     }
@@ -226,8 +207,6 @@ abstract class Query
 
     private function getUpdateQuery(): ?string
     {
-        $sqlWhere = $this->getWhere();
-
         $i = 0;
         $fields = implode(
             ', ',
@@ -243,74 +222,174 @@ abstract class Query
             return null;
         }
 
-        $sqlUpdate = 'UPDATE ' .
-            $this->escapeIdentifier($this->tableName);
+        $sqlUpdate = 'UPDATE ' . $this->escapeIdentifier($this->tableName);
+        $sqlAlias = $this->getAliasSql();
         $sqlFields = ' SET ' . $fields;
-        $sqlLimit = $this->limit !== null ? " LIMIT {$this->limit}" : '';
+        $sqlWhere = $this->getWhereSql();
+        $sqlLimit = $this->getLimitSql();
 
-        return $sqlUpdate . $sqlFields . $sqlWhere . $sqlLimit;
+        return $sqlUpdate. $sqlAlias . $sqlFields . $sqlWhere . $sqlLimit;
     }
 
     private function getDeleteQuery(): string
     {
-        $sqlDelete = 'DELETE FROM ' .
-            $this->escapeIdentifier($this->tableName);
-        $sqlWhere = $this->getWhere();
+        $sqlDeleteFrom = 'DELETE FROM ';
 
-        return $sqlDelete . $sqlWhere;
-    }
-
-    private function getWhere()
-    {
-        if (!empty($this->where)) {
-            if (is_array($this->where)) {
-                $whereParts = [];
-
-                foreach ($this->where as $whereKey => $whereValue) {
-                    if ($whereValue === null) {
-                        $whereParts[] = str_replace(
-                            [
-                                '!= ?',
-                                '= ?',
-                            ],
-                            [
-                                'IS NOT NULL',
-                                'IS NULL',
-                            ],
-                            $whereKey
-                        );
-
-                        continue;
-                    } elseif (is_array($whereValue)) {
-                        $whereParts[] = str_replace(
-                            '?',
-                            implode(', ', array_fill(0, count($whereValue), '?')),
-                            $whereKey
-                        );
-
-                        continue;
-                    }
-
-                    $whereParts[] = $whereKey;
-                }
-
-                $where = implode(' AND ', $whereParts);
-                $sqlWhere = " WHERE {$where}";
-            } else {
-                $sqlWhere = " WHERE {$this->where}";
-            }
-
-            return $this->replaceQuestionMarks($sqlWhere, 'w');
+        if ($this->alias !== null) {
+            $sqlDeleteFrom = "DELETE {$this->escapeIdentifier($this->alias)} FROM ";
         }
 
-        return '';
+        $sqlDelete = $sqlDeleteFrom . $this->escapeIdentifier($this->tableName);
+        $sqlAlias = $this->getAliasSql();
+        $sqlJoins = $this->getJoinSql();
+        $sqlWhere = $this->getWhereSql();
+        $sqlLimit = $this->getLimitSql();
+
+        return $sqlDelete . $sqlAlias . $sqlJoins . $sqlWhere . $sqlLimit;
     }
 
-    private function escapeIdentifier($identifier): string
+    /**
+     * Get SQL for alias
+     *
+     * Ex: ' AS t'
+     * Ex: ''
+     *
+     * @return string
+     */
+    private function getAliasSql(): string
+    {
+        $sqlAlias = '';
+
+        if ($this->alias !== null) {
+            $sqlAlias = " AS {$this->escapeIdentifier($this->alias)}";
+        }
+
+        return $sqlAlias;
+    }
+
+    /**
+     * Get SQL for joins
+     *
+     * Ex: ' INNER JOIN `table` AS `t` ON t.ex_id = ex.id'
+     * Ex: ''
+     *
+     * @return string
+     */
+    private function getJoinSql(): string
+    {
+        $joins = array_map(function ($join) {
+            $escapedJoinTableName = $this->escapeIdentifier($join['tableName']);
+            $escapedAlias = $this->escapeIdentifier($join['alias']);
+            $sql = '';
+
+            switch ($join['type']) {
+                case self::JOIN_TYPE_LEFT:
+                    $sql .= 'LEFT JOIN ';
+                    break;
+                case self::JOIN_TYPE_INNER:
+                    $sql .= 'INNER JOIN ';
+                    break;
+            }
+
+            $sql .= "{$escapedJoinTableName} AS {$escapedAlias} ON {$join['on']}";
+
+            return $sql;
+        }, $this->joins);
+
+        $sqlJoins = !empty($joins) ? ' ' . implode(" ", $joins) : '';
+
+        return $sqlJoins;
+    }
+
+    /**
+     * Get SQL for where
+     *
+     * Ex: ' WHERE id = 1'
+     * EX: ''
+     *
+     * @return string
+     */
+    private function getWhereSql(): string
+    {
+        if (empty($this->where)) {
+            return '';
+        }
+
+        if (is_array($this->where)) {
+            $whereParts = [];
+
+            foreach ($this->where as $whereKey => $whereValue) {
+                if ($whereValue === null) {
+                    $whereParts[] = str_replace(
+                        [
+                            '!= ?',
+                            '= ?',
+                        ],
+                        [
+                            'IS NOT NULL',
+                            'IS NULL',
+                        ],
+                        $whereKey
+                    );
+
+                    continue;
+                } elseif (is_array($whereValue)) {
+                    $whereParts[] = str_replace(
+                        '?',
+                        implode(', ', array_fill(0, count($whereValue), '?')),
+                        $whereKey
+                    );
+
+                    continue;
+                }
+
+                $whereParts[] = $whereKey;
+            }
+
+            $where = implode(' AND ', $whereParts);
+            $sqlWhere = " WHERE {$where}";
+        } else {
+            $sqlWhere = " WHERE {$this->where}";
+        }
+
+        return $this->replaceQuestionMarks($sqlWhere, 'w');
+    }
+
+    /**
+     * Get SQL for limit
+     *
+     * Ex: ' LIMIT 10'
+     * Ex: ''
+     *
+     * @return string
+     */
+    private function getLimitSql(): string
+    {
+        $sqlLimit = $this->limit !== null ? " LIMIT {$this->limit}" : '';
+
+        return $sqlLimit;
+    }
+
+    /**
+     * Escape identifier
+     *
+     * MySQL only
+     *
+     * @param string $identifier Identifier to escape
+     * @return string;
+     */
+    private function escapeIdentifier(string $identifier): string
     {
         return '`' . str_replace('`', '``', $identifier) . '`';
     }
 
+    /**
+     * Replace `?` with numbered placeholders
+     *
+     * @param string $sql SQL that needs its `?`'s replaces
+     * @param string $prefix Prefix for numbered placeholders
+     * @return string
+     */
     private function replaceQuestionMarks(string $sql, string $prefix): string
     {
         $i = 0;
