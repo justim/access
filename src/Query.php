@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Entity;
+
 abstract class Query
 {
     protected const SELECT = 'SELECT';
@@ -15,15 +17,60 @@ abstract class Query
     private const JOIN_TYPE_LEFT = 'left-join';
     private const JOIN_TYPE_INNER = 'inner-join';
 
+    private const PREFIX_PARAM = 'p';
+    private const PREFIX_JOIN = 'j';
+    private const PREFIX_WHERE = 'w';
+    private const PREFIX_HAVING = 'h';
+
+    /**
+     * @var string
+     */
     private $type;
 
-    private $tableName = null;
+    /**
+     * @var string
+     */
+    private $tableName;
+
+    /**
+     * @var string|null
+     */
     private $alias = null;
-    private $where = null;
-    private $whereValues = [];
+
+    /**
+     * @var array
+     */
+    private $where = [];
+
+    /**
+     * @var array
+     */
+    private $having = [];
+
+    /**
+     * @var int|null
+     */
     private $limit = null;
+
+    /**
+     * @var array
+     */
     private $joins = [];
+
+    /**
+     * @var mixed[]
+     */
     private $values = [];
+
+    /**
+     * @var string[]
+     */
+    private $groupBy = [];
+
+    /**
+     * @var string
+     */
+    private $orderBy = null;
 
     protected function __construct(string $type, string $tableName, string $alias = null)
     {
@@ -47,7 +94,10 @@ abstract class Query
         return $this->type === self::INSERT;
     }
 
-    public function leftJoin(string $tableName, string $alias, string $on): self
+    /**
+     * @return $this
+     */
+    public function leftJoin(string $tableName, string $alias, $on)
     {
         return $this->join(
             self::JOIN_TYPE_LEFT,
@@ -57,7 +107,10 @@ abstract class Query
         );
     }
 
-    public function innerJoin(string $tableName, string $alias, string $on): self
+    /**
+     * @return $this
+     */
+    public function innerJoin(string $tableName, string $alias, $on)
     {
         return $this->join(
             self::JOIN_TYPE_INNER,
@@ -67,7 +120,10 @@ abstract class Query
         );
     }
 
-    private function join(string $type, string $tableName, string $alias, string $on): self
+    /**
+     * @return $this
+     */
+    private function join(string $type, string $tableName, string $alias, $on)
     {
         if (is_subclass_of($tableName, Entity::class)) {
             $tableName = $tableName::tableName();
@@ -77,7 +133,7 @@ abstract class Query
             'type' => $type,
             'tableName' => $tableName,
             'alias' => $alias,
-            'on' => $on,
+            'on' => (array) $on,
         ];
 
         return $this;
@@ -85,11 +141,38 @@ abstract class Query
 
     public function where($condition)
     {
-        $this->where = $condition;
-
-        if (is_array($condition)) {
-            $this->whereValues = $condition;
+        if (!is_array($condition)) {
+            $this->where[] = $condition;
+            return $this;
         }
+
+        $this->where = array_merge($this->where, $condition);
+
+        return $this;
+    }
+
+    public function groupBy(string $groupBy)
+    {
+        $this->groupBy[] = $groupBy;
+
+        return $this;
+    }
+
+    public function having($condition)
+    {
+        if (!is_array($condition)) {
+            $this->having[] = $condition;
+            return $this;
+        }
+
+        $this->having = array_merge($this->having, $condition);
+
+        return $this;
+    }
+
+    public function orderBy(string $orderBy)
+    {
+        $this->orderBy = $orderBy;
 
         return $this;
     }
@@ -114,29 +197,50 @@ abstract class Query
 
         $i = 0;
         foreach ($this->values as $value) {
-            $indexedValues["p{$i}"] = $value;
+            $indexedValues[self::PREFIX_PARAM . $i] = $value;
             $i++;
         }
 
+        foreach ($this->joins as $i => $join) {
+            $this->getConditionValues($indexedValues, $join['on'], $i . self::PREFIX_JOIN);
+        }
+
+        $this->getConditionValues($indexedValues, $this->where, self::PREFIX_WHERE);
+        $this->getConditionValues($indexedValues, $this->having, self::PREFIX_HAVING);
+
+        return $indexedValues;
+    }
+
+    private function getConditionValues(&$indexedValues, array $condition, string $prefix): void
+    {
         $i = 0;
-        foreach ($this->whereValues as $whereValue) {
-            if ($whereValue === null) {
+        foreach ($condition as $conditionKey => $conditionValue) {
+            if (is_int($conditionKey)) {
+                // where part only has a sql part, no value
+                continue;
+            } elseif ($conditionValue === null) {
                 // sql is converted to `IS NULL`
                 continue;
-            } elseif (is_array($whereValue)) {
-                foreach ($whereValue as $whereValuePart) {
-                    $indexedValues["w{$i}"] = $whereValuePart;
+            } elseif ($conditionValue === true || $conditionValue === false) {
+                $indexedValues[$prefix . $i] = (int) $conditionValue;
+                $i++;
+                continue;
+            } elseif ($conditionValue instanceof \DateTimeInterface) {
+                $indexedValues[$prefix . $i] = $conditionValue->format(Entity::DATETIME_FORMAT);
+                $i++;
+                continue;
+            } elseif (is_array($conditionValue)) {
+                foreach ($conditionValue as $conditionValuePart) {
+                    $indexedValues[$prefix . $i] = $conditionValuePart;
                     $i++;
                 }
 
                 continue;
             }
 
-            $indexedValues["w{$i}"] = $whereValue;
+            $indexedValues[$prefix . $i] = $conditionValue;
             $i++;
         }
-
-        return $indexedValues;
     }
 
     /**
@@ -187,9 +291,14 @@ abstract class Query
 
         $sqlJoins = $this->getJoinSql();
         $sqlWhere = $this->getWhereSql();
+        $sqlGroupBy = $this->getGroupBySql();
+        $sqlHaving = $this->getHavingSql();
+        $sqlOrderBy = $this->getOrderBySql();
         $sqlLimit = $this->getLimitSql();
 
-        return $sqlSelect . $sqlFrom . $sqlAlias . $sqlJoins . $sqlWhere . $sqlLimit;
+        return $sqlSelect .
+            $sqlFrom . $sqlAlias . $sqlJoins . $sqlWhere .
+            $sqlGroupBy . $sqlHaving . $sqlOrderBy . $sqlLimit;
     }
 
     private function getInsertQuery(): string
@@ -202,7 +311,7 @@ abstract class Query
 
         $sql = $sqlInsert . $sqlFields . $sqlValues;
 
-        return $this->replaceQuestionMarks($sql, 'p');
+        return $this->replaceQuestionMarks($sql, self::PREFIX_PARAM);
     }
 
     private function getUpdateQuery(): ?string
@@ -212,7 +321,9 @@ abstract class Query
             ', ',
             array_map(
                 function ($q) use (&$i) {
-                    return $this->escapeIdentifier($q) . ' = :p' . ($i++);
+                    $placeholder = self::PREFIX_PARAM . $i;
+                    $i++;
+                    return $this->escapeIdentifier($q) . ' = :' . $placeholder;
                 },
                 array_keys($this->values)
             )
@@ -277,7 +388,9 @@ abstract class Query
      */
     private function getJoinSql(): string
     {
-        $joins = array_map(function ($join) {
+        $i = 0;
+
+        $joins = array_map(function ($join) use (&$i) {
             $escapedJoinTableName = $this->escapeIdentifier($join['tableName']);
             $escapedAlias = $this->escapeIdentifier($join['alias']);
             $sql = '';
@@ -291,7 +404,10 @@ abstract class Query
                     break;
             }
 
-            $sql .= "{$escapedJoinTableName} AS {$escapedAlias} ON {$join['on']}";
+            $onSql = $this->getConditionSql('ON', $join['on'], $i . self::PREFIX_JOIN);
+            $sql .= "{$escapedJoinTableName} AS {$escapedAlias}{$onSql}";
+
+            $i++;
 
             return $sql;
         }, $this->joins);
@@ -311,48 +427,124 @@ abstract class Query
      */
     private function getWhereSql(): string
     {
-        if (empty($this->where)) {
+        return $this->getConditionSql(
+            'WHERE',
+            $this->where,
+            self::PREFIX_WHERE
+        );
+    }
+
+    /**
+     * Get SQL for where
+     *
+     * Ex: ' WHERE id = 1'
+     * EX: ''
+     *
+     * @return string
+     */
+    private function getHavingSql(): string
+    {
+        return $this->getConditionSql(
+            'HAVING',
+            $this->having,
+            self::PREFIX_HAVING
+        );
+    }
+
+    /**
+     * Get SQL for condition
+     *
+     * Ex: ' WHERE/HAVING id = 1'
+     * EX: ''
+     *
+     * @param string $what Type of condition (WHERE/HAVING/ON)
+     * @param array $definition Definition of the condition
+     * @param string $prefix Prefix for the placeholders
+     * @return string
+     */
+    private function getConditionSql(string $what, array $definition, string $prefix): string
+    {
+        if (empty($definition)) {
             return '';
         }
 
-        if (is_array($this->where)) {
-            $whereParts = [];
+        $conditionParts = [];
 
-            foreach ($this->where as $whereKey => $whereValue) {
-                if ($whereValue === null) {
-                    $whereParts[] = str_replace(
-                        [
-                            '!= ?',
-                            '= ?',
-                        ],
-                        [
-                            'IS NOT NULL',
-                            'IS NULL',
-                        ],
-                        $whereKey
-                    );
+        foreach ($definition as $definitionKey => $definitionValue) {
+            if (is_int($definitionKey)) {
+                $conditionParts[] = $definitionValue;
+                continue;
+            } elseif ($definitionValue === null) {
+                $conditionParts[] = str_replace(
+                    [
+                        '!= ?',
+                        '= ?',
+                    ],
+                    [
+                        'IS NOT NULL',
+                        'IS NULL',
+                    ],
+                    $definitionKey
+                );
 
-                    continue;
-                } elseif (is_array($whereValue)) {
-                    $whereParts[] = str_replace(
-                        '?',
-                        implode(', ', array_fill(0, count($whereValue), '?')),
-                        $whereKey
-                    );
+                continue;
+            } elseif (is_array($definitionValue)) {
+                $conditionParts[] = str_replace(
+                    '?',
+                    implode(', ', array_fill(0, count($definitionValue), '?')),
+                    $definitionKey
+                );
 
-                    continue;
-                }
-
-                $whereParts[] = $whereKey;
+                continue;
             }
 
-            $where = implode(' AND ', $whereParts);
-            $sqlWhere = " WHERE {$where}";
-        } else {
-            $sqlWhere = " WHERE {$this->where}";
+            $conditionParts[] = $definitionKey;
         }
 
-        return $this->replaceQuestionMarks($sqlWhere, 'w');
+        $enclosedDefinitionParts = array_map(
+            function ($conditionPart) {
+                return "($conditionPart)";
+            },
+            $conditionParts
+        );
+        $condition = implode(' AND ', $enclosedDefinitionParts);
+        $sqlCondition = " {$what} {$condition}";
+
+        return $this->replaceQuestionMarks($sqlCondition, $prefix);
+    }
+
+    /**
+     * Get SQL for group by
+     *
+     * Ex: ' GROUP BY id'
+     * Ex: ''
+     *
+     * @return string
+     */
+    private function getGroupBySql()
+    {
+        if (empty($this->groupBy)) {
+            return '';
+        }
+
+        return ' GROUP BY ' . implode(' ', $this->groupBy);
+    }
+
+    /**
+     * Get SQL for order
+     *
+     * Ex: ' ORDER BY id'
+     * Ex: ''
+     *
+     * @return string
+     */
+    private function getOrderBySql(): string
+    {
+        if (empty($this->orderBy)) {
+            return '';
+        }
+
+        return ' ORDER BY ' . $this->orderBy;
     }
 
     /**
@@ -365,9 +557,11 @@ abstract class Query
      */
     private function getLimitSql(): string
     {
-        $sqlLimit = $this->limit !== null ? " LIMIT {$this->limit}" : '';
+        if (empty($this->limit)) {
+            return '';
+        }
 
-        return $sqlLimit;
+        return " LIMIT {$this->limit}";
     }
 
     /**
