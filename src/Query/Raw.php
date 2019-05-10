@@ -18,7 +18,7 @@ class Raw extends Query
         $this->values = $values;
     }
 
-    public function getQuery(): ?string
+    public function getSql(): ?string
     {
         return $this->sql;
     }

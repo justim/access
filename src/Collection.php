@@ -103,6 +103,7 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
             return $result;
         }
 
+        $ids = array_unique($ids);
         $refs = $this->db->findByIds($klass, $ids);
 
         foreach ($refs as $ref) {

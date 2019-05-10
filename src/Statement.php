@@ -75,7 +75,7 @@ final class Statement
         $this->profiler = $profiler;
 
         // cache the sql
-        $this->sql = $query->getQuery();
+        $this->sql = $query->getSql();
 
         $this->prepare();
     }

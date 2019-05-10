@@ -14,63 +14,63 @@ abstract class Query
     protected const DELETE = 'DELETE';
     protected const RAW = 'RAW';
 
-    private const JOIN_TYPE_LEFT = 'left-join';
-    private const JOIN_TYPE_INNER = 'inner-join';
+    protected const JOIN_TYPE_LEFT = 'left-join';
+    protected const JOIN_TYPE_INNER = 'inner-join';
 
-    private const PREFIX_PARAM = 'p';
-    private const PREFIX_JOIN = 'j';
-    private const PREFIX_WHERE = 'w';
-    private const PREFIX_HAVING = 'h';
-
-    /**
-     * @var string
-     */
-    private $type;
+    protected const PREFIX_PARAM = 'p';
+    protected const PREFIX_JOIN = 'j';
+    protected const PREFIX_WHERE = 'w';
+    protected const PREFIX_HAVING = 'h';
 
     /**
      * @var string
      */
-    private $tableName;
+    protected $type;
+
+    /**
+     * @var string
+     */
+    protected $tableName;
 
     /**
      * @var string|null
      */
-    private $alias = null;
+    protected $alias = null;
 
     /**
      * @var array
      */
-    private $where = [];
+    protected $where = [];
 
     /**
      * @var array
      */
-    private $having = [];
+    protected $having = [];
 
     /**
      * @var int|null
      */
-    private $limit = null;
+    protected $limit = null;
 
     /**
      * @var array
      */
-    private $joins = [];
+    protected $joins = [];
 
     /**
      * @var mixed[]
      */
-    private $values = [];
+    protected $values = [];
 
     /**
      * @var string[]
      */
-    private $groupBy = [];
+    protected $groupBy = [];
 
     /**
      * @var string
      */
-    private $orderBy = null;
+    protected $orderBy = null;
 
     protected function __construct(string $type, string $tableName, string $alias = null)
     {
@@ -79,6 +79,10 @@ abstract class Query
 
         if (is_subclass_of($tableName, Entity::class)) {
             $this->tableName = $tableName::tableName();
+        }
+
+        if (!isset($this->tableName)) {
+            throw new Exception('No table given for query');
         }
 
         $this->alias = $alias;
@@ -244,120 +248,11 @@ abstract class Query
     }
 
     /**
-     * Get the SQL query
+     * Get the SQL
      *
      * @return string - `null` when no query is needed
      */
-    public function getQuery(): ?string
-    {
-        if (!isset($this->tableName)) {
-            throw new Exception('No table given for query');
-        }
-
-        $result = '';
-
-        switch ($this->type) {
-            case self::SELECT:
-                $result = $this->getSelectQuery();
-                break;
-
-            case self::INSERT:
-                $result = $this->getInsertQuery();
-                break;
-
-            case self::UPDATE:
-                $result = $this->getUpdateQuery();
-                break;
-
-            case self::DELETE:
-                $result = $this->getDeleteQuery();
-                break;
-        }
-
-        return $result;
-    }
-
-    private function getSelectQuery()
-    {
-        $escapedTableName = $this->escapeIdentifier($this->tableName);
-
-        $sqlSelect = "SELECT {$escapedTableName}.*";
-        $sqlFrom = " FROM {$escapedTableName}";
-        $sqlAlias = $this->getAliasSql();
-
-        if ($this->alias !== null) {
-            $sqlSelect = "SELECT {$this->escapeIdentifier($this->alias)}.*";
-        }
-
-        $sqlJoins = $this->getJoinSql();
-        $sqlWhere = $this->getWhereSql();
-        $sqlGroupBy = $this->getGroupBySql();
-        $sqlHaving = $this->getHavingSql();
-        $sqlOrderBy = $this->getOrderBySql();
-        $sqlLimit = $this->getLimitSql();
-
-        return $sqlSelect .
-            $sqlFrom . $sqlAlias . $sqlJoins . $sqlWhere .
-            $sqlGroupBy . $sqlHaving . $sqlOrderBy . $sqlLimit;
-    }
-
-    private function getInsertQuery(): string
-    {
-        $sqlInsert = 'INSERT INTO ' .
-            $this->escapeIdentifier($this->tableName);
-        $sqlFields = ' (' . implode(', ', array_keys($this->values)) . ')';
-        $sqlValues = ' VALUES (' .
-            implode(', ', array_fill(0, count($this->values), '?')) . ')';
-
-        $sql = $sqlInsert . $sqlFields . $sqlValues;
-
-        return $this->replaceQuestionMarks($sql, self::PREFIX_PARAM);
-    }
-
-    private function getUpdateQuery(): ?string
-    {
-        $i = 0;
-        $fields = implode(
-            ', ',
-            array_map(
-                function ($q) use (&$i) {
-                    $placeholder = self::PREFIX_PARAM . $i;
-                    $i++;
-                    return $this->escapeIdentifier($q) . ' = :' . $placeholder;
-                },
-                array_keys($this->values)
-            )
-        );
-
-        if (empty($fields)) {
-            return null;
-        }
-
-        $sqlUpdate = 'UPDATE ' . $this->escapeIdentifier($this->tableName);
-        $sqlAlias = $this->getAliasSql();
-        $sqlFields = ' SET ' . $fields;
-        $sqlWhere = $this->getWhereSql();
-        $sqlLimit = $this->getLimitSql();
-
-        return $sqlUpdate. $sqlAlias . $sqlFields . $sqlWhere . $sqlLimit;
-    }
-
-    private function getDeleteQuery(): string
-    {
-        $sqlDeleteFrom = 'DELETE FROM ';
-
-        if ($this->alias !== null) {
-            $sqlDeleteFrom = "DELETE {$this->escapeIdentifier($this->alias)} FROM ";
-        }
-
-        $sqlDelete = $sqlDeleteFrom . $this->escapeIdentifier($this->tableName);
-        $sqlAlias = $this->getAliasSql();
-        $sqlJoins = $this->getJoinSql();
-        $sqlWhere = $this->getWhereSql();
-        $sqlLimit = $this->getLimitSql();
-
-        return $sqlDelete . $sqlAlias . $sqlJoins . $sqlWhere . $sqlLimit;
-    }
+    abstract public function getSql(): ?string;
 
     /**
      * Get SQL for alias
@@ -367,7 +262,7 @@ abstract class Query
      *
      * @return string
      */
-    private function getAliasSql(): string
+    protected function getAliasSql(): string
     {
         $sqlAlias = '';
 
@@ -386,7 +281,7 @@ abstract class Query
      *
      * @return string
      */
-    private function getJoinSql(): string
+    protected function getJoinSql(): string
     {
         $i = 0;
 
@@ -425,7 +320,7 @@ abstract class Query
      *
      * @return string
      */
-    private function getWhereSql(): string
+    protected function getWhereSql(): string
     {
         return $this->getConditionSql(
             'WHERE',
@@ -442,7 +337,7 @@ abstract class Query
      *
      * @return string
      */
-    private function getHavingSql(): string
+    protected function getHavingSql(): string
     {
         return $this->getConditionSql(
             'HAVING',
@@ -507,6 +402,7 @@ abstract class Query
             },
             $conditionParts
         );
+
         $condition = implode(' AND ', $enclosedDefinitionParts);
         $sqlCondition = " {$what} {$condition}";
 
@@ -521,7 +417,7 @@ abstract class Query
      *
      * @return string
      */
-    private function getGroupBySql()
+    protected function getGroupBySql()
     {
         if (empty($this->groupBy)) {
             return '';
@@ -538,7 +434,7 @@ abstract class Query
      *
      * @return string
      */
-    private function getOrderBySql(): string
+    protected function getOrderBySql(): string
     {
         if (empty($this->orderBy)) {
             return '';
@@ -555,7 +451,7 @@ abstract class Query
      *
      * @return string
      */
-    private function getLimitSql(): string
+    protected function getLimitSql(): string
     {
         if (empty($this->limit)) {
             return '';
@@ -572,7 +468,7 @@ abstract class Query
      * @param string $identifier Identifier to escape
      * @return string;
      */
-    private function escapeIdentifier(string $identifier): string
+    protected function escapeIdentifier(string $identifier): string
     {
         return '`' . str_replace('`', '``', $identifier) . '`';
     }
@@ -584,7 +480,7 @@ abstract class Query
      * @param string $prefix Prefix for numbered placeholders
      * @return string
      */
-    private function replaceQuestionMarks(string $sql, string $prefix): string
+    protected function replaceQuestionMarks(string $sql, string $prefix): string
     {
         $i = 0;
         return (string) preg_replace_callback(
