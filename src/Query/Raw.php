@@ -12,7 +12,7 @@ class Raw extends Query
 
     public function __construct(string $sql, array $values = [])
     {
-        parent::__construct(self::RAW, '');
+        parent::__construct('');
 
         $this->sql = $sql;
         $this->values = $values;

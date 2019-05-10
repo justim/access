@@ -10,7 +10,7 @@ class Insert extends Query
 {
     public function __construct(string $tableName, string $alias = null)
     {
-        parent::__construct(self::INSERT, $tableName, $alias);
+        parent::__construct($tableName, $alias);
     }
 
     public function getSql(): ?string

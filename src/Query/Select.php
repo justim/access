@@ -12,7 +12,7 @@ class Select extends Query
 
     public function __construct(string $tableName, string $alias = null, array $virtualFields = [])
     {
-        parent::__construct(self::SELECT, $tableName, $alias);
+        parent::__construct($tableName, $alias);
 
         $this->virtualFields = $virtualFields;
     }

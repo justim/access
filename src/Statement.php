@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Profiler;
+use Access\Query\Insert;
+use Access\Query\Select;
 
 /**
  * Query executer
@@ -113,7 +115,7 @@ final class Statement
         $this->statement->execute($this->query->getValues());
         $profile->endExecute();
 
-        if ($this->query->isSelect()) {
+        if ($this->query instanceof Select) {
             while ($row = $this->statement->fetch(\PDO::FETCH_ASSOC)) {
                 yield $row;
             }
@@ -148,7 +150,7 @@ final class Statement
      */
     private function getReturnValue(): ?int
     {
-        if ($this->query->isInsert()) {
+        if ($this->query instanceof Insert) {
             if ($this->sql === null) {
                 return -1;
             }
@@ -156,7 +158,7 @@ final class Statement
             return (int) $this->connection->lastInsertId();
         }
 
-        if (!$this->query->isSelect()) {
+        if (!$this->query instanceof Select) {
             if ($this->sql === null) {
                 return 0;
             }

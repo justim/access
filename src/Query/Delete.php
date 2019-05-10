@@ -10,7 +10,7 @@ class Delete extends Query
 {
     public function __construct(string $tableName, string $alias = null)
     {
-        parent::__construct(self::DELETE, $tableName, $alias);
+        parent::__construct($tableName, $alias);
     }
 
     public function getSql(): ?string

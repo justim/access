@@ -8,12 +8,6 @@ use Access\Entity;
 
 abstract class Query
 {
-    protected const SELECT = 'SELECT';
-    protected const INSERT = 'INSERT';
-    protected const UPDATE = 'UPDATE';
-    protected const DELETE = 'DELETE';
-    protected const RAW = 'RAW';
-
     protected const JOIN_TYPE_LEFT = 'left-join';
     protected const JOIN_TYPE_INNER = 'inner-join';
 
@@ -21,11 +15,6 @@ abstract class Query
     protected const PREFIX_JOIN = 'j';
     protected const PREFIX_WHERE = 'w';
     protected const PREFIX_HAVING = 'h';
-
-    /**
-     * @var string
-     */
-    protected $type;
 
     /**
      * @var string
@@ -72,9 +61,14 @@ abstract class Query
      */
     protected $orderBy = null;
 
-    protected function __construct(string $type, string $tableName, string $alias = null)
+    /**
+     * Create a query
+     *
+     * @param string $tableName
+     * @param string $alias
+     */
+    protected function __construct(string $tableName, string $alias = null)
     {
-        $this->type = $type;
         $this->tableName = $tableName;
 
         if (is_subclass_of($tableName, Entity::class)) {
@@ -86,16 +80,6 @@ abstract class Query
         }
 
         $this->alias = $alias;
-    }
-
-    public function isSelect(): bool
-    {
-        return $this->type === self::SELECT;
-    }
-
-    public function isInsert(): bool
-    {
-        return $this->type === self::INSERT;
     }
 
     /**
