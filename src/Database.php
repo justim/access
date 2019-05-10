@@ -6,6 +6,7 @@ namespace Access;
 
 use Access\Entity;
 use Access\Exception;
+use Access\Profiler;
 use Access\Repository;
 use Access\Statement;
 
@@ -24,6 +25,13 @@ class Database
     private $connection = null;
 
     /**
+     * Profiler
+     *
+     * @var Profiler $profiler
+     */
+    private $profiler = null;
+
+    /**
      * Create a Access database with a PDO connection
      *
      * @param \PDO $connection A PDO connection
@@ -32,6 +40,7 @@ class Database
     {
         $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->connection = $connection;
+        $this->profiler = new Profiler();
     }
 
     /**
@@ -58,6 +67,16 @@ class Database
     public function getConnection(): \PDO
     {
         return $this->connection;
+    }
+
+    /**
+     * Get the profiler for some timings
+     *
+     * @return Profiler
+     */
+    public function getProfiler(): Profiler
+    {
+        return $this->profiler;
     }
 
     /**
@@ -137,7 +156,7 @@ class Database
     {
         $this->assertValidEntityClass($klass);
 
-        $stmt = new Statement($this, $query);
+        $stmt = new Statement($this, $this->profiler, $query);
 
         foreach ($stmt->execute() as $record) {
             $model = new $klass();
@@ -183,7 +202,7 @@ class Database
         $query = new Query\Insert($model::tableName());
         $query->values($values);
 
-        $stmt = new Statement($this, $query);
+        $stmt = new Statement($this, $this->profiler, $query);
         $gen = $stmt->execute();
         $model->setId(intval($gen->getReturn()));
 
@@ -212,7 +231,7 @@ class Database
             'id = ?' => $id,
         ]);
 
-        $stmt = new Statement($this, $query);
+        $stmt = new Statement($this, $this->profiler, $query);
         $gen = $stmt->execute();
 
         // set default values/timestamps
@@ -238,7 +257,7 @@ class Database
             'id = ?' => $id,
         ]);
 
-        $stmt = new Statement($this, $query);
+        $stmt = new Statement($this, $this->profiler, $query);
         $gen = $stmt->execute();
         $model->markUpdated();
 
@@ -259,7 +278,7 @@ class Database
             throw new Exception('Method does not allow select queries, use `select` or `selectOne`');
         }
 
-        $stmt = new Statement($this, $query);
+        $stmt = new Statement($this, $this->profiler, $query);
         $gen = $stmt->execute();
 
         // consume generator

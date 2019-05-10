@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Profiler;
+
 /**
  * Query executer
  *
@@ -49,9 +51,16 @@ final class Statement
     /**
      * The SQL to execute
      *
-     * @var string
+     * @var string|null
      */
     private $sql = null;
+
+    /**
+     * Profiler
+     *
+     * @var Profiler $profiler
+     */
+    private $profiler = null;
 
     /**
      * Create a statement
@@ -59,10 +68,11 @@ final class Statement
      * @param Database $db
      * @param Query $query
      */
-    public function __construct(Database $db, Query $query)
+    public function __construct(Database $db, Profiler $profiler, Query $query)
     {
         $this->connection = $db->getConnection();
         $this->query = $query;
+        $this->profiler = $profiler;
 
         // cache the sql
         $this->sql = $query->getQuery();
@@ -87,15 +97,21 @@ final class Statement
      */
     public function execute(): \Generator
     {
+        $profile = $this->profiler->createForQuery($this->query);
+
         if ($this->sql === null) {
             return $this->getReturnValue();
         }
 
+        $profile->startPrepare();
         if (!$this->isPrepared) {
             $this->prepare();
         }
+        $profile->endPrepare();
 
+        $profile->startExecute();
         $this->statement->execute($this->query->getValues());
+        $profile->endExecute();
 
         if ($this->query->isSelect()) {
             while ($row = $this->statement->fetch(\PDO::FETCH_ASSOC)) {
