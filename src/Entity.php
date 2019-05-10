@@ -154,7 +154,9 @@ abstract class Entity
         $fields = static::fields();
 
         foreach ($fields as $field => $options) {
-            if (array_key_exists($field, $this->values)) {
+            if (isset($options['virtual']) && $options['virtual'] === true) {
+                continue;
+            } elseif (array_key_exists($field, $this->values)) {
                 $value = $this->values[$field];
             } elseif (isset($options['default'])) {
                 if (is_callable($options['default'])) {
@@ -192,8 +194,17 @@ abstract class Entity
     final public function getUpdateValues(): array
     {
         $values = [];
+        $fields = static::fields();
 
         foreach ($this->updatedFields as $field => $value) {
+            if (isset($fields[$field])) {
+                $options = $fields[$field];
+
+                if (isset($options['virtual']) && $options['virtual'] === true) {
+                    continue;
+                }
+            }
+
             $values[$field] = $this->toDatabaseFormat($field, $value);
         }
 
