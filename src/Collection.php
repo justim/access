@@ -114,6 +114,23 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
     }
 
     /**
+     * Find the first entity in a collection
+     *
+     * @param callable $finder Return entity when $finder returns `true`
+     * @return ?Entity
+     */
+    public function find(callable $finder): ?Entity
+    {
+        foreach ($this->entities as $entity) {
+            if ($finder($entity)) {
+                return $entity;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Does the ID exist?
      *
      * @param int $id
