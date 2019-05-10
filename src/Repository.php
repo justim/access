@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Batch;
+use Access\Collection;
 use Access\Database;
 use Access\Entity;
 use Access\Query;
@@ -67,7 +69,7 @@ class Repository
             return null;
         }
 
-        return $records[0];
+        return current($records);
     }
 
     /**
@@ -103,6 +105,22 @@ class Repository
     }
 
     /**
+     * Find multiple entities by its ID
+     *
+     * @param int[] $ids
+     * @param int $limit
+     * @return \Generator - yields Entity
+     */
+    public function findByIds(array $ids, int $limit = null): \Generator
+    {
+        $fields = [
+            'id' => $ids,
+        ];
+
+        return $this->findBy($fields, $limit);
+    }
+
+    /**
      * Execute a select query
      *
      * @param Query\Select $query Select query to be executed
@@ -119,8 +137,65 @@ class Repository
      * @param Query\Select $query Select query to be executed
      * @return ?Entity
      */
-    public function selectOne(Query $query): ?Entity
+    public function selectOne(Query\Select $query): ?Entity
     {
         return $this->db->selectOne($this->klass, $query);
+    }
+
+    /**
+     * Execute a select query in a batched fashion
+     *
+     * @param Query\Select $query Select query to be executed
+     */
+    public function selectBatched(Query\Select $query): \Generator
+    {
+        $batch = new Batch($this->db);
+
+        $result = $this->select($query);
+
+        foreach ($result as $entity) {
+            $batch->addEntity($entity);
+
+            if ($batch->isFull()) {
+                yield $batch;
+
+                $batch = new Batch($this->db);
+            }
+        }
+
+        if (!$batch->isEmpty()) {
+            yield $batch;
+        }
+
+        return $result->getReturn();
+    }
+
+    /**
+     * Execute a select query with a Collection as result
+     *
+     * @param Query\Select $query Select query to be executed
+     * @return Collection
+     */
+    public function selectCollection(Query\Select $query): Collection
+    {
+        $collection = new Collection($this->db);
+
+        $result = $this->select($query);
+
+        foreach ($result as $entity) {
+            $collection->addEntity($entity);
+        }
+
+        return $collection;
+    }
+
+    /**
+     * Create an empty collection
+     *
+     * @return Collection
+     */
+    protected function createEmptyCollection(): Collection
+    {
+        return new Collection($this->db);
     }
 }

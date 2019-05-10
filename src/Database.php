@@ -114,6 +114,19 @@ class Database
     }
 
     /**
+     * Find a list of entities by their ids
+     *
+     * @param string $klass Entity class name
+     * @param int[] $ids List of ides
+     * @param ?int $limit A a limit to the query
+     * @return \Generator - yields Entity
+     */
+    public function findByIds(string $klass, array $ids, int $limit = null): \Generator
+    {
+        return $this->getRepository($klass)->findByIds($ids, $limit);
+    }
+
+    /**
      * Execute a select query
      *
      * @param string $klass Entity class name
@@ -129,7 +142,7 @@ class Database
         foreach ($stmt->execute() as $record) {
             $model = new $klass();
             $model->hydrate($record);
-            yield $model;
+            yield $model->getId() => $model;
         }
     }
 
@@ -140,7 +153,7 @@ class Database
      * @param Query\Select $query Select query to be executed
      * @return ?Entity
      */
-    public function selectOne(string $klass, Query $query): ?Entity
+    public function selectOne(string $klass, Query\Select $query): ?Entity
     {
         $query->limit(1);
 
@@ -150,7 +163,7 @@ class Database
             return null;
         }
 
-        return $records[0];
+        return current($records);
     }
 
     /**

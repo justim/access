@@ -10,11 +10,12 @@ class Raw extends Query
 {
     private $sql;
 
-    public function __construct(string $sql)
+    public function __construct(string $sql, array $values = [])
     {
         parent::__construct(self::RAW, '');
 
         $this->sql = $sql;
+        $this->values = $values;
     }
 
     public function getQuery(): ?string
@@ -24,6 +25,6 @@ class Raw extends Query
 
     public function getValues(): array
     {
-        return [];
+        return $this->values;
     }
 }

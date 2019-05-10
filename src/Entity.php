@@ -21,7 +21,7 @@ abstract class Entity
     /**
      * Get the field definitions
      *
-     * @return arry
+     * @return array
      */
     abstract public static function fields(): array;
 
@@ -55,7 +55,7 @@ abstract class Entity
     /**
      * Date time format
      */
-    private const DATETIME_FORMAT = 'Y-m-d H:i:s';
+    public const DATETIME_FORMAT = 'Y-m-d H:i:s';
 
     /**
      * ID of the entity
