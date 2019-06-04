@@ -1,4 +1,4 @@
-# Access
+# Access [![Build Status](https://travis-ci.org/justim/access.svg?branch=master)](http://travis-ci.org/justim/access)
 
 > A simple MySQL wrapper optimized for bigger data sets
 
