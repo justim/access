@@ -1,4 +1,4 @@
-# Access [![Build Status](https://travis-ci.org/justim/access.svg?branch=master)](http://travis-ci.org/justim/access)
+# Access [![Build Status](https://travis-ci.org/justim/access.svg?branch=master)](http://travis-ci.org/justim/access) [![Coverage Status](https://coveralls.io/repos/github/justim/access/badge.svg?branch=master)](https://coveralls.io/github/justim/access?branch=master)
 
 > A simple MySQL wrapper optimized for bigger data sets
 
