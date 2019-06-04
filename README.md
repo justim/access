@@ -35,7 +35,8 @@ foreach ($users as $user) {
 
 ## Installation
 
-- Available at Packagist (Composer) -- almost
+- Available at [Packagist](https://packagist.org/packages/justim/access)
+- `composer require justim/access=dev-master`
 
 ## Docs
 
