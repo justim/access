@@ -59,14 +59,6 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
     }
 
     /**
-     * @return Entity[]
-     */
-    public function getEntities(): array
-    {
-        return $this->entities;
-    }
-
-    /**
      * Get a list of the ids of the entities
      *
      * @return int[]

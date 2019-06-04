@@ -85,7 +85,7 @@ abstract class Entity
     final protected function get(string $field)
     {
         if (!array_key_exists($field, $this->values)) {
-            return null;
+            throw new Exception(sprintf('Field "%s" not available', $field));
         }
 
         return $this->values[$field];
@@ -120,6 +120,7 @@ abstract class Entity
      *
      * Only available for entities also in the database
      *
+     * @throws Exception When id is not yet set
      * @return int
      */
     final public function getId(): int
@@ -136,10 +137,15 @@ abstract class Entity
      *
      * Should only be called from the Database class after an insert
      *
+     * @throws Exception When id is already set
      * @param int $id
      */
     final public function setId(int $id): void
     {
+        if ($this->id !== null) {
+            throw new Exception('ID already set');
+        }
+
         $this->id = $id;
     }
 
@@ -276,7 +282,7 @@ abstract class Entity
                 continue;
             }
 
-            $this->values[$field] = $this->fromDatabaseFormat($field, $value);
+            $this->values[$field] = $this->fromDatabaseFormat((string) $field, $value);
         }
 
         if (isset($record['id'])) {
@@ -406,6 +412,9 @@ abstract class Entity
             return $date;
         }
 
-        return \DateTimeImmutable::createFromMutable($date);
+        return new \DateTimeImmutable(
+            $date->format('Y-m-d H:i:s.u'),
+            $date->getTimezone()
+        );
     }
 }

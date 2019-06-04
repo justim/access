@@ -95,7 +95,7 @@ class Database
     }
 
     /**
-     * Get the reposity to find entities
+     * Get the repository to find entities
      *
      * @param string $klass Entity class name
      */
@@ -309,11 +309,11 @@ class Database
     public function assertValidEntityClass(string $klass): void
     {
         if (!is_subclass_of($klass, Entity::class)) {
-            throw new Exception('Invalid entity');
+            throw new Exception('Invalid entity: ' . $klass);
         }
 
         if (empty($klass::tableName())) {
-            throw new Exception('Invalid table name');
+            throw new Exception('Invalid table name, can not be empty');
         }
     }
 
@@ -328,7 +328,7 @@ class Database
         if (!is_subclass_of($repositoryClassName, Repository::class) &&
             $repositoryClassName !== Repository::class
         ) {
-            throw new Exception('Invalid repository');
+            throw new Exception('Invalid repository: ' . $repositoryClassName);
         }
     }
 }
