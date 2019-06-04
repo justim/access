@@ -1,0 +1,68 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests;
+
+use Access\Batch;
+use Access\Exception;
+
+use Tests\AbstractBaseTestCase;
+use Tests\Fixtures\Entity\Project;
+use Tests\Fixtures\Entity\User;
+use Tests\Fixtures\Repository\ProjectRepository;
+
+class EntityTest extends AbstractBaseTestCase
+{
+    /**
+     * @depends testInsert
+     */
+    public function testIdAlreadySet(): void
+    {
+        /** @var User $user */
+        $user = self::$db->findOne(User::class, 1);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('ID already set');
+
+        $user->setId(2);
+    }
+
+    public function testIdNotAvailable(): void
+    {
+        $user = new User();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('ID not available yet');
+
+        $user->getId();
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testUnavailableField(): void
+    {
+        /** @var User $user */
+        $user = self::$db->findOne(User::class, 1);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Field "username" not available');
+
+        $user->getUsername();
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testOverrideId(): void
+    {
+        /** @var User $user */
+        $user = self::$db->findOne(User::class, 1);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Not possible to change ID');
+
+        $user->overrideId(12);
+    }
+}

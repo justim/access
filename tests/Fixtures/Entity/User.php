@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Fixtures\Entity;
+
+use Access\Entity;
+
+class User extends Entity
+{
+    public static function tableName(): string
+    {
+        return 'users';
+    }
+
+    public static function fields(): array
+    {
+        return [
+            'role' => [
+                'default' => 'USER',
+            ],
+            'email' => [],
+            'name' => [],
+            'total_projects' => [
+                'type' => 'int',
+                'virtual' => true,
+            ],
+        ];
+    }
+
+    public static function timestamps(): bool
+    {
+        return true;
+    }
+
+    public function setEmail(string $email): void
+    {
+        $this->set('email', $email);
+    }
+
+    public function getEmail(): string
+    {
+        return $this->get('email');
+    }
+
+    public function setName(string $name): void
+    {
+        $this->set('name', $name);
+    }
+
+    public function getName(): string
+    {
+        return $this->get('name');
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->get('created_at');
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->get('updated_at');
+    }
+
+    public function getTotalProjects(): int
+    {
+        return $this->get('total_projects');
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->get('username');
+    }
+
+    public function overrideId(int $id): void
+    {
+        $this->set('id', $id);
+    }
+}

@@ -1,5 +1,6 @@
 # vim: ft=yaml
 parameters:
-  level: 7
+  level: max
   paths:
     - src
+    - tests
