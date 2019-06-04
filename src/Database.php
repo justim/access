@@ -7,8 +7,10 @@ namespace Access;
 use Access\Entity;
 use Access\Exception;
 use Access\Profiler;
+use Access\Query;
 use Access\Repository;
 use Access\Statement;
+use Access\StatementPool;
 
 /**
  * An Access database
@@ -23,6 +25,13 @@ class Database
      * @var \PDO $connection
      */
     private $connection = null;
+
+    /**
+     * Statement pool
+     *
+     * @var StatementPool $statementPool
+     */
+    private $statementPool = null;
 
     /**
      * Profiler
@@ -40,6 +49,7 @@ class Database
     {
         $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->connection = $connection;
+        $this->statementPool = new StatementPool($this);
         $this->profiler = new Profiler();
     }
 
@@ -67,6 +77,11 @@ class Database
     public function getConnection(): \PDO
     {
         return $this->connection;
+    }
+
+    public function getStatementPool(): StatementPool
+    {
+        return $this->statementPool;
     }
 
     /**

@@ -7,6 +7,7 @@ namespace Access;
 use Access\Profiler;
 use Access\Query\Insert;
 use Access\Query\Select;
+use Access\StatementPool;
 
 /**
  * Query executer
@@ -16,13 +17,6 @@ use Access\Query\Select;
 final class Statement
 {
     /**
-     * All open prepared statements
-     *
-     * @var \PDOStatement[]
-     */
-    private static $stmtPool = [];
-
-    /**
      * Database connection
      *
      * @var \PDO
@@ -30,18 +24,9 @@ final class Statement
     private $connection = null;
 
     /**
-     * Is the query prepared
-     *
-     * @var bool
+     * @var StatementPool $statementPool
      */
-    private $isPrepared = false;
-
-    /**
-     * The prepared statement
-     *
-     * @var \PDOStatement
-     */
-    private $statement = null;
+    private $statementPool = null;
 
     /**
      * The query to execute
@@ -73,23 +58,12 @@ final class Statement
     public function __construct(Database $db, Profiler $profiler, Query $query)
     {
         $this->connection = $db->getConnection();
+        $this->statementPool = $db->getStatementPool();
         $this->query = $query;
         $this->profiler = $profiler;
 
         // cache the sql
         $this->sql = $query->getSql();
-
-        $this->prepare();
-    }
-
-    /**
-     * Close prepared statement
-     */
-    public function close(): void
-    {
-        $this->isPrepared = false;
-
-        unset(self::$stmtPool[$this->sql]);
     }
 
     /**
@@ -106,41 +80,22 @@ final class Statement
         }
 
         $profile->startPrepare();
-        if (!$this->isPrepared) {
-            $this->prepare();
-        }
+        $statement = $this->statementPool->prepare($this->sql);
         $profile->endPrepare();
 
         $profile->startExecute();
-        $this->statement->execute($this->query->getValues());
+        $statement->execute($this->query->getValues());
         $profile->endExecute();
 
         if ($this->query instanceof Select) {
-            while ($row = $this->statement->fetch(\PDO::FETCH_ASSOC)) {
+            $statement = $this->statementPool->prepare($this->sql);
+
+            while ($row = $statement->fetch(\PDO::FETCH_ASSOC)) {
                 yield $row;
             }
         }
 
         return $this->getReturnValue();
-    }
-
-    /**
-     * Prepare the query
-     *
-     * Reuse prepared statement if we have one open
-     */
-    private function prepare(): void
-    {
-        if ($this->sql === null) {
-            return;
-        }
-
-        if (!isset(self::$stmtPool[$this->sql])) {
-            self::$stmtPool[$this->sql] = $this->connection->prepare($this->sql);
-        }
-
-        $this->statement = self::$stmtPool[$this->sql];
-        $this->isPrepared = true;
     }
 
     /**
@@ -163,7 +118,8 @@ final class Statement
                 return 0;
             }
 
-            return $this->statement->rowCount();
+            $statement = $this->statementPool->prepare($this->sql);
+            return $statement->rowCount();
         }
 
         return null;
