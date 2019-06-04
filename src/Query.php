@@ -83,6 +83,11 @@ abstract class Query
     }
 
     /**
+     * Add a left join to query
+     *
+     * @param string $tableName
+     * @param string $alias
+     * @param string|string[] $on
      * @return $this
      */
     public function leftJoin(string $tableName, string $alias, $on)
@@ -96,6 +101,11 @@ abstract class Query
     }
 
     /**
+     * Add a inner join to query
+     *
+     * @param string $tableName
+     * @param string $alias
+     * @param string|string[] $on
      * @return $this
      */
     public function innerJoin(string $tableName, string $alias, $on)
@@ -117,24 +127,21 @@ abstract class Query
             $tableName = $tableName::tableName();
         }
 
+        $conditions = $this->processNewCondition($on, null, false);
         $this->joins[] = [
             'type' => $type,
             'tableName' => $tableName,
             'alias' => $alias,
-            'on' => (array) $on,
+            'on' => $conditions,
         ];
 
         return $this;
     }
 
-    public function where($condition)
+    public function where($condition, $value = null)
     {
-        if (!is_array($condition)) {
-            $this->where[] = $condition;
-            return $this;
-        }
-
-        $this->where = array_merge($this->where, $condition);
+        $newConditions = $this->processNewCondition($condition, $value, func_num_args() === 2);
+        $this->where = array_merge($this->where, $newConditions);
 
         return $this;
     }
@@ -146,14 +153,10 @@ abstract class Query
         return $this;
     }
 
-    public function having($condition)
+    public function having($condition, $value = null)
     {
-        if (!is_array($condition)) {
-            $this->having[] = $condition;
-            return $this;
-        }
-
-        $this->having = array_merge($this->having, $condition);
+        $newConditions = $this->processNewCondition($condition, $value, func_num_args() === 2);
+        $this->having = array_merge($this->having, $newConditions);
 
         return $this;
     }
@@ -474,5 +477,30 @@ abstract class Query
             },
             $sql
         );
+    }
+
+    private function processNewCondition($condition, $value, $valueWasProvided): array
+    {
+        if (!is_array($condition)) {
+            if (!is_string($condition)) {
+                throw new Exception('Condition should be a string');
+            }
+
+            if ($valueWasProvided) {
+                return [
+                    $condition => $value,
+                ];
+            }
+
+            return [
+                $condition,
+            ];
+        }
+
+        if ($value !== null) {
+            throw new Exception('Values should be in condition array');
+        }
+
+        return $condition;
     }
 }
