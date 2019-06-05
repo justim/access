@@ -1,16 +1,32 @@
 <?php
 
+/*
+ * This file is part of the Access package.
+ *
+ * (c) Tim <me@justim.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Access;
 
 use Access\Entity;
 
+/**
+ * Base class for building queries
+ *
+ * @author Tim <me@justim.net>
+ */
 abstract class Query
 {
+    // types of joins
     protected const JOIN_TYPE_LEFT = 'left-join';
     protected const JOIN_TYPE_INNER = 'inner-join';
 
+    // prefixes for parameter placeholders
     protected const PREFIX_PARAM = 'p';
     protected const PREFIX_JOIN = 'j';
     protected const PREFIX_WHERE = 'w';
@@ -64,8 +80,8 @@ abstract class Query
     /**
      * Create a query
      *
-     * @param string $tableName
-     * @param string $alias
+     * @param string $tableName Name of the table (or name of entity class)
+     * @param string $alias Name of the alias for given table name
      */
     protected function __construct(string $tableName, string $alias = null)
     {
@@ -85,9 +101,9 @@ abstract class Query
     /**
      * Add a left join to query
      *
-     * @param string $tableName
-     * @param string $alias
-     * @param string|string[] $on
+     * @param string $tableName Name of the table (or name of entity class)
+     * @param string $alias Name of the alias for given table name
+     * @param string|string[] $on Join condition(s)
      * @return $this
      */
     public function leftJoin(string $tableName, string $alias, $on)
@@ -103,9 +119,9 @@ abstract class Query
     /**
      * Add a inner join to query
      *
-     * @param string $tableName
-     * @param string $alias
-     * @param string|string[] $on
+     * @param string $tableName Name of the table (or name of entity class)
+     * @param string $alias Name of the alias for given table name
+     * @param string|string[] $on Join condition(s)
      * @return $this
      */
     public function innerJoin(string $tableName, string $alias, $on)
@@ -119,6 +135,12 @@ abstract class Query
     }
 
     /**
+     * Add a join to query
+     *
+     * @param string $type Type of join (see self::JOIN_TYPE_LEFT)
+     * @param string $tableName Name of the table (or name of entity class)
+     * @param string $alias Name of the alias for given table name
+     * @param string|string[] $on Join condition(s)
      * @return $this
      */
     private function join(string $type, string $tableName, string $alias, $on)
@@ -138,6 +160,13 @@ abstract class Query
         return $this;
     }
 
+    /**
+     * Add WHERE clause to query
+     *
+     * @param array|string $condition List of clauses (joined it AND) or a single one
+     * @param mixed $value Value of the single where clause
+     * @return $this
+     */
     public function where($condition, $value = null)
     {
         $newConditions = $this->processNewCondition($condition, $value, func_num_args() === 2);
@@ -146,6 +175,14 @@ abstract class Query
         return $this;
     }
 
+    /**
+     * Add GROUP BY to query
+     *
+     * Each call adds a new clause
+     *
+     * @param string $groupBy
+     * @return $this
+     */
     public function groupBy(string $groupBy)
     {
         $this->groupBy[] = $groupBy;
@@ -153,6 +190,13 @@ abstract class Query
         return $this;
     }
 
+    /**
+     * Add a HAVING clause to query
+     *
+     * @param array|string $condition List of clauses (joined it AND) or a single one
+     * @param mixed $value Value of the single where clause
+     * @return $this
+     */
     public function having($condition, $value = null)
     {
         $newConditions = $this->processNewCondition($condition, $value, func_num_args() === 2);
@@ -161,6 +205,12 @@ abstract class Query
         return $this;
     }
 
+    /**
+     * Add a single ORDER BY part to query
+     *
+     * @param string $orderBy Order by clause
+     * @return $this
+     */
     public function orderBy(string $orderBy)
     {
         $this->orderBy = $orderBy;
@@ -168,20 +218,39 @@ abstract class Query
         return $this;
     }
 
-    public function limit($limit)
+    /**
+     * Add a LIMIT clause to query
+     *
+     * @param int $limit
+     * @return $this
+     */
+    public function limit(int $limit)
     {
         $this->limit = $limit;
 
         return $this;
     }
 
-    public function values($values)
+    /**
+     * Set the values used in the query
+     *
+     * Useful for update and insert queries
+     *
+     * @param array $values Values for the query
+     * @return $this
+     */
+    public function values(array $values)
     {
         $this->values = $values;
 
         return $this;
     }
 
+    /**
+     * Get the values with a prefixed index
+     *
+     * @return array The values
+     */
     public function getValues(): array
     {
         $indexedValues = [];
@@ -202,10 +271,17 @@ abstract class Query
         return $indexedValues;
     }
 
-    private function getConditionValues(&$indexedValues, array $condition, string $prefix): void
+    /**
+     * Get the values used in a list of conditions
+     *
+     * @param array $indexedValues (by ref) New condition values will added to this array
+     * @param array $conditions List of conditions
+     * @param string $prefix Prefix used for the indexed values
+     */
+    private function getConditionValues(&$indexedValues, array $conditions, string $prefix): void
     {
         $i = 0;
-        foreach ($condition as $conditionKey => $conditionValue) {
+        foreach ($conditions as $conditionKey => $conditionValue) {
             if (is_int($conditionKey)) {
                 // where part only has a sql part, no value
                 continue;
@@ -479,7 +555,15 @@ abstract class Query
         );
     }
 
-    private function processNewCondition($condition, $value, $valueWasProvided): array
+    /**
+     * Process condition input
+     *
+     * @param array|string $condition List of clauses (joined it AND) or a single one
+     * @param mixed $value Value of the single condition
+     * @param bool $valueWasProvided Was the value provided
+     * @return array
+     */
+    private function processNewCondition($condition, $value, bool $valueWasProvided): array
     {
         if (!is_array($condition)) {
             if (!is_string($condition)) {

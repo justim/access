@@ -1,11 +1,25 @@
 <?php
 
+/*
+ * This file is part of the Access package.
+ *
+ * (c) Tim <me@justim.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Access\Profiler;
 
 use Access\Query;
 
+/**
+ * Profile for a single query
+ *
+ * @author Tim <me@justim.net>
+ */
 class QueryProfile
 {
     /**
@@ -33,6 +47,9 @@ class QueryProfile
      */
     private $executeDurationEnd;
 
+    /**
+     * @param Query $query
+     */
     public function __construct(Query $query)
     {
         $this->query = $query;
