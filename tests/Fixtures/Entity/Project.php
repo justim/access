@@ -39,7 +39,7 @@ class Project extends Entity
             ],
             'name' => [],
             'owner_id' => [
-                'type' => 'int',
+                'type' => self::FIELD_TYPE_INT,
             ],
         ];
     }

@@ -22,6 +22,12 @@ use Access\Repository;
  */
 abstract class Entity
 {
+    // list of supported field types
+    protected const FIELD_TYPE_INT = 'int';
+    protected const FIELD_TYPE_BOOL = 'bool';
+    protected const FIELD_TYPE_DATETIME = 'datetime';
+    protected const FIELD_TYPE_JSON = 'json';
+
     /**
      * Get the table name of the entity
      *
@@ -195,12 +201,12 @@ abstract class Entity
 
         if (static::timestamps()) {
             $values['created_at'] = $this->toDatabaseFormatValue(
-                'datetime',
+                self::FIELD_TYPE_DATETIME,
                 new \DateTimeImmutable()
             );
 
             $values['updated_at'] = $this->toDatabaseFormatValue(
-                'datetime',
+                self::FIELD_TYPE_DATETIME,
                 new \DateTimeImmutable()
             );
         }
@@ -232,7 +238,7 @@ abstract class Entity
 
         if (!empty($values) && static::timestamps()) {
             $values['updated_at'] = $this->toDatabaseFormatValue(
-                'datetime',
+                self::FIELD_TYPE_DATETIME,
                 new \DateTimeImmutable()
             );
         }
@@ -259,7 +265,7 @@ abstract class Entity
                     $field === self::UPDATED_AT_FIELD)
                 ) {
                     $this->values[$field] = $this->fromDatabaseFormatValue(
-                        'datetime',
+                        self::FIELD_TYPE_DATETIME,
                         $value
                     );
 
@@ -291,7 +297,7 @@ abstract class Entity
                 $field === self::UPDATED_AT_FIELD)
             ) {
                 $this->values[$field] = $this->fromDatabaseFormatValue(
-                    'datetime',
+                    self::FIELD_TYPE_DATETIME,
                     $value
                 );
 
@@ -346,14 +352,14 @@ abstract class Entity
         }
 
         switch ($type) {
-            case 'bool':
+            case self::FIELD_TYPE_BOOL:
                 return intval($value);
-            case 'datetime':
+            case self::FIELD_TYPE_DATETIME:
                 return $this
                     ->fromMutable($value)
                     ->setTimezone(new \DateTimeZone('UTC'))
                     ->format(self::DATETIME_FORMAT);
-            case 'json':
+            case self::FIELD_TYPE_JSON:
                 return json_encode($value);
 
             default:
@@ -399,17 +405,17 @@ abstract class Entity
         }
 
         switch ($type) {
-            case 'int':
+            case self::FIELD_TYPE_INT:
                 return intval($value);
-            case 'bool':
+            case self::FIELD_TYPE_BOOL:
                 return boolval($value);
-            case 'datetime':
+            case self::FIELD_TYPE_DATETIME:
                 return \DateTimeImmutable::createFromFormat(
                     self::DATETIME_FORMAT,
                     $value,
                     new \DateTimeZone('UTC')
                 );
-            case 'json':
+            case self::FIELD_TYPE_JSON:
                 return json_decode($value, true);
             default:
                 return $value;

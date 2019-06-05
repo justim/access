@@ -31,7 +31,7 @@ class User extends Entity
             'email' => [],
             'name' => [],
             'total_projects' => [
-                'type' => 'int',
+                'type' => self::FIELD_TYPE_INT,
                 'virtual' => true,
             ],
         ];
