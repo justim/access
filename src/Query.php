@@ -103,7 +103,7 @@ abstract class Query
      *
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
-     * @param string|string[] $on Join condition(s)
+     * @param string|array<int|string, mixed> $on Join condition(s)
      * @return $this
      */
     public function leftJoin(string $tableName, string $alias, $on)
@@ -121,7 +121,7 @@ abstract class Query
      *
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
-     * @param string|string[] $on Join condition(s)
+     * @param string|array<int|string, mixed> $on Join condition(s)
      * @return $this
      */
     public function innerJoin(string $tableName, string $alias, $on)
@@ -140,7 +140,7 @@ abstract class Query
      * @param string $type Type of join (see self::JOIN_TYPE_LEFT)
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
-     * @param string|string[] $on Join condition(s)
+     * @param string|array<int|string, mixed> $on Join condition(s)
      * @return $this
      */
     private function join(string $type, string $tableName, string $alias, $on)
@@ -163,7 +163,7 @@ abstract class Query
     /**
      * Add WHERE clause to query
      *
-     * @param array|string $condition List of clauses (joined it AND) or a single one
+     * @param array<int|string, mixed>|string $condition List of clauses (joined it AND) or a single one
      * @param mixed $value Value of the single where clause
      * @return $this
      */
@@ -193,7 +193,7 @@ abstract class Query
     /**
      * Add a HAVING clause to query
      *
-     * @param array|string $condition List of clauses (joined it AND) or a single one
+     * @param array<int|string, mixed>|string $condition List of clauses (joined it AND) or a single one
      * @param mixed $value Value of the single where clause
      * @return $this
      */
