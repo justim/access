@@ -99,8 +99,6 @@ final class Statement
         $profile->endExecute();
 
         if ($this->query instanceof Select) {
-            $statement = $this->statementPool->prepare($this->sql);
-
             while ($row = $statement->fetch(\PDO::FETCH_ASSOC)) {
                 yield $row;
             }
