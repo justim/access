@@ -55,26 +55,28 @@ class Database
      * Create a Access database with a PDO connection
      *
      * @param \PDO $connection A PDO connection
+     * @param Profiler $profiler A custom profiler, optionally
      */
-    public function __construct(\PDO $connection)
+    public function __construct(\PDO $connection, Profiler $profiler = null)
     {
         $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->connection = $connection;
         $this->statementPool = new StatementPool($this);
-        $this->profiler = new Profiler();
+        $this->profiler = $profiler ?: new Profiler();
     }
 
     /**
      * Create a access database with a PDO connection string
      *
      * @param string $connectionString A PDO connection string
+     * @param Profiler $profiler A custom profiler, optionally
      * @return self A Access database object
      */
-    public static function create(string $connectionString): self
+    public static function create(string $connectionString, Profiler $profiler = null): self
     {
         try {
             $pdoConnection = new \PDO($connectionString);
-            return new self($pdoConnection);
+            return new self($pdoConnection, $profiler);
         } catch (\Exception $e) {
             throw new Exception("Invalid database: {$connectionString}", 0, $e);
         }
