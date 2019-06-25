@@ -209,4 +209,17 @@ class Repository
     {
         return new Collection($this->db);
     }
+
+    /**
+     * Execute a raw query
+     *
+     * Has no return value, not suited for select queries
+     *
+     * @param Query $query
+     * @throws Exception when $query is a Query\Select
+     */
+    protected function query(Query $query): void
+    {
+        $this->db->query($query);
+    }
 }
