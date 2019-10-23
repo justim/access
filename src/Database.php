@@ -20,6 +20,7 @@ use Access\Query;
 use Access\Repository;
 use Access\Statement;
 use Access\StatementPool;
+use Access\Transaction;
 
 /**
  * An Access database
@@ -211,6 +212,24 @@ class Database
     public function findByIds(string $klass, array $ids, int $limit = null): \Generator
     {
         yield from $this->getRepository($klass)->findByIds($ids, $limit);
+    }
+
+    /**
+     * Find all entities (default sort `id ASC`)
+     *
+     * @template TEntity of Entity
+     * @psalm-param class-string<TEntity> $klass
+     * @psalm-suppress InvalidReturnType TODO remove when psalm supports this
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param string $klass Entity class name
+     * @param ?int $limit A a limit to the query
+     * @param string $orderBy The order to use to find all entities
+     * @return \Generator - yields Entity
+     */
+    public function findAll(string $klass, ?int $limit = null, string $orderBy = 'id ASC'): \Generator
+    {
+        yield from $this->getRepository($klass)->findAll($limit, $orderBy);
     }
 
     /**

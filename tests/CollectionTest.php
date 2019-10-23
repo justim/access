@@ -65,7 +65,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAll();
+        $projects = $projectRepo->findAllAsCollection();
 
         $ids = $projects->getIds();
 
@@ -115,7 +115,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAll();
+        $projects = $projectRepo->findAllAsCollection();
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to remove entities through array access');
@@ -130,7 +130,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAll();
+        $projects = $projectRepo->findAllAsCollection();
 
         $this->assertEquals(2, count($projects));
 

@@ -143,6 +143,28 @@ class Repository
     }
 
     /**
+     * Find all entities (default sort `id ASC`)
+     *
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param ?int $limit A a limit to the query
+     * @param string $orderBy The order to use to find all entities
+     * @return \Generator - yields Entity
+     */
+    public function findAll(?int $limit = null, string $orderBy = 'id ASC'): \Generator
+    {
+        $query = new Query\Select($this->klass::tableName());
+
+        $query->orderBy($orderBy);
+
+        if ($limit !== null) {
+            $query->limit($limit);
+        }
+
+        yield from $this->db->select($this->klass, $query);
+    }
+
+    /**
      * Execute a select query
      *
      * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
