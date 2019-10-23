@@ -178,6 +178,16 @@ abstract class Entity
     }
 
     /**
+     * Has the entity a id set?
+     *
+     * @return bool
+     */
+    final public function hasId(): bool
+    {
+        return $this->id !== null;
+    }
+
+    /**
      * Get all the values needed to insert the entity
      *
      * @return array<string, mixed>

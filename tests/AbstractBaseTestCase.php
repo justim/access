@@ -87,10 +87,17 @@ abstract class AbstractBaseTestCase extends TestCase
         $access->setOwnerId($dave->getId());
         $access->setName('Access');
 
-        self::$db->insert($access);
+        $this->assertFalse($access->hasId());
 
+        self::$db->save($access);
+
+        $this->assertTrue($access->hasId());
         $this->assertEquals(1, $access->getId());
         $this->assertNotNull($access->getCreatedAt());
+
+        self::$db->save($access);
+
+        $this->assertTrue($access->hasId());
 
         $accessFork = new Project();
         $accessFork->setOwnerId($bob->getId());

@@ -337,6 +337,22 @@ class Database
     }
 
     /**
+     * Save a model to the database
+     *
+     * Delegates to insert when no id is available, update otherwise
+     *
+     * @param Entity $model
+     */
+    public function save(Entity $model): void
+    {
+        if ($model->hasId()) {
+            $this->update($model);
+        } else {
+            $this->insert($model);
+        }
+    }
+
+    /**
      * Delete a model from the database
      *
      * @param Entity $model Model to delete
