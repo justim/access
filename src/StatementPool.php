@@ -36,7 +36,7 @@ final class StatementPool
      *
      * @var \PDO
      */
-    private $connection = null;
+    private $connection;
 
     /**
      * Create a pool of prepared PDO statements

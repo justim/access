@@ -22,12 +22,15 @@ use Access\Query;
  */
 class Select extends Query
 {
+    /**
+     * @var array<string, string>
+     */
     private $virtualFields = [];
 
     /**
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
-     * @param array $virtualFields List of virtual fields, 'name' => 'SQL'
+     * @param array<string, string> $virtualFields List of virtual fields, 'name' => 'SQL'
      */
     public function __construct(string $tableName, string $alias = null, array $virtualFields = [])
     {

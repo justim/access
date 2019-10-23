@@ -35,21 +35,21 @@ class Database
      *
      * @var \PDO $connection
      */
-    private $connection = null;
+    private $connection;
 
     /**
      * Statement pool
      *
      * @var StatementPool $statementPool
      */
-    private $statementPool = null;
+    private $statementPool;
 
     /**
      * Profiler
      *
      * @var Profiler $profiler
      */
-    private $profiler = null;
+    private $profiler;
 
     /**
      * Create a Access database with a PDO connection
@@ -92,6 +92,11 @@ class Database
         return $this->connection;
     }
 
+    /**
+     * Get the statement pool
+     *
+     * @return StatementPool
+     */
     public function getStatementPool(): StatementPool
     {
         return $this->statementPool;
@@ -108,7 +113,23 @@ class Database
     }
 
     /**
+     * Begin a transaction
+     *
+     * @return Transaction
+     */
+    public function beginTransaction(): Transaction
+    {
+        $transaction = new Transaction($this);
+        $transaction->begin();
+
+        return $transaction;
+    }
+
+    /**
      * Get the repository to find entities
+     *
+     * @template TEntity of Entity
+     * @psalm-param class-string<TEntity> $klass
      *
      * @param string $klass Entity class name
      */
@@ -120,11 +141,17 @@ class Database
 
         $this->assertValidRepositoryClass($repositoryClassName);
 
-        return new $repositoryClassName($this, $klass);
+        /** @var Repository $repository */
+        $repository = new $repositoryClassName($this, $klass);
+
+        return $repository;
     }
 
     /**
      * Find a single entity by its ID
+     *
+     * @template TEntity of Entity
+     * @psalm-param class-string<TEntity> $klass
      *
      * @param string $klass Entity class name
      * @param int $id ID of the entity
@@ -138,8 +165,11 @@ class Database
     /**
      * Find a single entity by searching for column values
      *
+     * @template TEntity of Entity
+     * @psalm-param class-string<TEntity> $klass
+     *
      * @param string $klass Entity class name
-     * @param array $fields List of fields with values
+     * @param array<string, mixed> $fields List of fields with values
      * @return ?Entity
      */
     public function findOneBy(string $klass, array $fields): ?Entity
@@ -150,31 +180,45 @@ class Database
     /**
      * Find a list of entities by searching for column values
      *
+     * @template TEntity of Entity
+     * @psalm-param class-string<TEntity> $klass
+     * @psalm-suppress InvalidReturnType TODO remove when psalm supports this
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
      * @param string $klass Entity class name
-     * @param array $fields List of fields with values
+     * @param array<string, mixed> $fields List of fields with values
      * @param ?int $limit A a limit to the query
      * @return \Generator - yields Entity
      */
     public function findBy(string $klass, $fields, int $limit = null): \Generator
     {
-        return $this->getRepository($klass)->findBy($fields, $limit);
+        yield from $this->getRepository($klass)->findBy($fields, $limit);
     }
 
     /**
      * Find a list of entities by their ids
      *
+     * @template TEntity of Entity
+     * @psalm-param class-string<TEntity> $klass
+     * @psalm-suppress InvalidReturnType TODO remove when psalm supports this
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
      * @param string $klass Entity class name
-     * @param int[] $ids List of ides
+     * @param int[] $ids List of ids
      * @param ?int $limit A a limit to the query
      * @return \Generator - yields Entity
      */
     public function findByIds(string $klass, array $ids, int $limit = null): \Generator
     {
-        return $this->getRepository($klass)->findByIds($ids, $limit);
+        yield from $this->getRepository($klass)->findByIds($ids, $limit);
     }
 
     /**
      * Execute a select query
+     *
+     * @template TEntity of Entity
+     * @psalm-param class-string<TEntity> $klass
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
      *
      * @param string $klass Entity class name
      * @param Query\Select $query Select query to be executed
@@ -186,6 +230,7 @@ class Database
 
         $stmt = new Statement($this, $this->profiler, $query);
 
+        /** @var array<string, mixed> $record */
         foreach ($stmt->execute() as $record) {
             $model = new $klass();
             $model->hydrate($record);
@@ -199,6 +244,10 @@ class Database
      * @param string $klass Entity class name
      * @param Query\Select $query Select query to be executed
      * @return ?Entity
+     *
+     * @template TEntity of Entity
+     * @psalm-param class-string<TEntity> $klass
+     * @psalm-return ?TEntity
      */
     public function selectOne(string $klass, Query\Select $query): ?Entity
     {
@@ -210,7 +259,7 @@ class Database
             return null;
         }
 
-        return current($records);
+        return array_shift($records);
     }
 
     /**

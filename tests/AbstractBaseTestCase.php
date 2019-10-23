@@ -42,8 +42,6 @@ abstract class AbstractBaseTestCase extends TestCase
 
         self::$db->query($createUsersQuery);
 
-        self::$db->query(new Raw('SELECT * FROM users'));
-
         $createProjectsQuery = new Raw('CREATE TABLE `projects` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `status` VARCHAR(20) DEFAULT NULL,
@@ -68,7 +66,7 @@ abstract class AbstractBaseTestCase extends TestCase
     public function testInsert(): void
     {
         $dave = new User();
-        $dave->setEmail('dave@example.php');
+        $dave->setEmail('dave@example.com');
         $dave->setName('Dave');
 
         self::$db->insert($dave);
@@ -77,7 +75,7 @@ abstract class AbstractBaseTestCase extends TestCase
         $this->assertNotNull($dave->getCreatedAt());
 
         $bob = new User();
-        $bob->setEmail('bob@example.php');
+        $bob->setEmail('bob@example.com');
         $bob->setName('Bob');
 
         self::$db->insert($bob);

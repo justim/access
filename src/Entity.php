@@ -18,6 +18,7 @@ use Access\Repository;
 /**
  * Entity functionality
  *
+ * @template TRepository of Repository
  * @author Tim <me@justim.net>
  */
 abstract class Entity
@@ -38,7 +39,8 @@ abstract class Entity
     /**
      * Get the field definitions
      *
-     * @return array
+     * @return array<string, mixed>
+     * @psalm-return array<string, array{default: mixed, type: string, virual: bool}>
      */
     abstract public static function fields(): array;
 
@@ -56,6 +58,8 @@ abstract class Entity
 
     /**
      * Get the repository class for entity
+     *
+     * @psalm-return class-string<TRepository>
      *
      * @return string
      */
@@ -89,12 +93,14 @@ abstract class Entity
     /**
      * Data of in the entity
      *
-     * @var mixed[]
+     * @var array<string, mixed>
      */
     private $values = [];
 
     /**
      * Diff for updating entities
+     *
+     * @var array<string, mixed>
      */
     private $updatedFields = [];
 
@@ -119,7 +125,7 @@ abstract class Entity
      * @param string $field
      * @param mixed $value
      */
-    final protected function set($field, $value): void
+    final protected function set(string $field, $value): void
     {
         if ($this->id !== null) {
             // value is the same, don't bother updating
@@ -174,7 +180,7 @@ abstract class Entity
     /**
      * Get all the values needed to insert the entity
      *
-     * @return mixed[]
+     * @return array<string, mixed>
      */
     final public function getInsertValues(): array
     {
@@ -217,10 +223,11 @@ abstract class Entity
     /**
      * Get all updated field/values for entity
      *
-     * @return mixed[]
+     * @return array<string, mixed>
      */
     final public function getUpdateValues(): array
     {
+        /** @var array<string, mixed> $values */
         $values = [];
         $fields = static::fields();
 
@@ -233,7 +240,7 @@ abstract class Entity
                 }
             }
 
-            $values[$field] = $this->toDatabaseFormat($field, $value);
+            $values[(string) $field] = $this->toDatabaseFormat((string) $field, $value);
         }
 
         if (!empty($values) && static::timestamps()) {
@@ -273,7 +280,7 @@ abstract class Entity
                 }
 
                 if (!array_key_exists($field, $this->values)) {
-                    $this->values[$field] = $this->fromDatabaseFormat($field, $value);
+                    $this->values[(string) $field] = $this->fromDatabaseFormat((string) $field, $value);
                 }
             }
         }
@@ -282,7 +289,7 @@ abstract class Entity
     /**
      * Fill all values
      *
-     * @param array $record
+     * @param array<string, mixed> $record
      */
     final public function hydrate(array $record): void
     {
@@ -304,7 +311,7 @@ abstract class Entity
                 continue;
             }
 
-            $this->values[$field] = $this->fromDatabaseFormat((string) $field, $value);
+            $this->values[(string) $field] = $this->fromDatabaseFormat((string) $field, $value);
         }
 
         if (isset($record['id'])) {
@@ -355,6 +362,7 @@ abstract class Entity
             case self::FIELD_TYPE_BOOL:
                 return intval($value);
             case self::FIELD_TYPE_DATETIME:
+                /** @var \DateTimeInterface $value */
                 return $this
                     ->fromMutable($value)
                     ->setTimezone(new \DateTimeZone('UTC'))
@@ -410,12 +418,20 @@ abstract class Entity
             case self::FIELD_TYPE_BOOL:
                 return boolval($value);
             case self::FIELD_TYPE_DATETIME:
+                if (!is_string($value)) {
+                    throw new Exception('Invalid datetime value');
+                }
+
                 return \DateTimeImmutable::createFromFormat(
                     self::DATETIME_FORMAT,
                     $value,
                     new \DateTimeZone('UTC')
                 );
             case self::FIELD_TYPE_JSON:
+                if (!is_string($value)) {
+                    throw new Exception('Invalid json value');
+                }
+
                 return json_decode($value, true);
             default:
                 return $value;
@@ -428,7 +444,7 @@ abstract class Entity
      * @param \DateTimeInterface $date
      * @return \DateTimeImmutable
      */
-    private static function fromMutable(\DateTimeInterface $date): \DateTimeImmutable
+    private function fromMutable(\DateTimeInterface $date): \DateTimeImmutable
     {
         if ($date instanceof \DateTimeImmutable) {
             return $date;

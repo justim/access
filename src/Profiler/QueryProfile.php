@@ -30,22 +30,22 @@ class QueryProfile
     /**
      * @var float
      */
-    private $prepareDurationStart;
+    private $prepareDurationStart = 0.0;
 
     /**
      * @var float
      */
-    private $prepareDurationEnd;
+    private $prepareDurationEnd = 0.0;
 
     /**
      * @var float
      */
-    private $executeDurationStart;
+    private $executeDurationStart = 0.0;
 
     /**
      * @var float
      */
-    private $executeDurationEnd;
+    private $executeDurationEnd = 0.0;
 
     /**
      * @param Query $query

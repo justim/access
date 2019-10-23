@@ -20,6 +20,7 @@ use Access\Exception;
 /**
  * Collection of entities
  *
+ * @template TEntity of Entity
  * @author Tim <me@justim.net>
  */
 class Collection implements \ArrayAccess, \Countable, \Iterator
@@ -84,6 +85,8 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
     /**
      * Find the refs in a collection
      *
+     * @psalm-param class-string<TEntity> $klass
+     *
      * @param string $klass Entity class name
      * @param callable $mapper
      * @return Collection
@@ -93,6 +96,7 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
         $ids = [];
 
         foreach ($this->entities as $entity) {
+            /** @var int|null $id */
             $id = $mapper($entity);
 
             if ($id !== null) {
@@ -212,7 +216,7 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
      *
      * Iterator implementation
      *
-     * @return int
+     * @return void
      */
     public function next()
     {

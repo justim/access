@@ -23,13 +23,19 @@ use Access\Query;
 class Raw extends Query
 {
     /**
+     * @readonly
      * @var string $sql
      */
     private $sql;
 
     /**
-     * @var string $sql
-     * @var array $values
+     * @var mixed[]
+     */
+    protected $values = [];
+
+    /**
+     * @param string $sql
+     * @param mixed[] $values
      */
     public function __construct(string $sql, array $values = [])
     {

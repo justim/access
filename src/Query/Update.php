@@ -36,18 +36,14 @@ class Update extends Query
      */
     public function getSql(): ?string
     {
-        $i = 0;
-        $fields = implode(
-            ', ',
-            array_map(
-                function ($q) use (&$i) {
-                    $placeholder = self::PREFIX_PARAM . $i;
-                    $i++;
-                    return $this->escapeIdentifier($q) . ' = :' . $placeholder;
-                },
-                array_keys($this->values)
-            )
-        );
+        $parts = [];
+
+        foreach (array_keys($this->values) as $i => $q) {
+            $placeholder = self::PREFIX_PARAM . (string) $i;
+            $parts[] = $this->escapeIdentifier($q) . ' = :' . $placeholder;
+        }
+
+        $fields = implode(', ', $parts);
 
         // there are not updated fields, no query needs to be executed
         if (empty($fields)) {

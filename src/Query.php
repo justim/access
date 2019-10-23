@@ -58,12 +58,13 @@ abstract class Query
     protected $limit = null;
 
     /**
+     * @psalm-var array<array-key, array{type: string, tableName: string, alias: string, on: array}>
      * @var array
      */
     protected $joins = [];
 
     /**
-     * @var mixed[]
+     * @var array<string, mixed>
      */
     protected $values = [];
 
@@ -73,7 +74,7 @@ abstract class Query
     protected $groupBy = [];
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $orderBy = null;
 
@@ -236,7 +237,7 @@ abstract class Query
      *
      * Useful for update and insert queries
      *
-     * @param array $values Values for the query
+     * @param array<string, mixed> $values Values for the query
      * @return $this
      */
     public function values(array $values)
@@ -347,8 +348,10 @@ abstract class Query
     protected function getJoinSql(): string
     {
         $i = 0;
+        $parts = [];
 
         $joins = array_map(function ($join) use (&$i) {
+            /** @var int $i */
             $escapedJoinTableName = $this->escapeIdentifier($join['tableName']);
             $escapedAlias = $this->escapeIdentifier($join['alias']);
             $sql = '';
@@ -529,7 +532,7 @@ abstract class Query
      * MySQL only
      *
      * @param string $identifier Identifier to escape
-     * @return string;
+     * @return string
      */
     protected function escapeIdentifier(string $identifier): string
     {
@@ -549,7 +552,8 @@ abstract class Query
         return (string) preg_replace_callback(
             '/\?/',
             function () use ($prefix, &$i) {
-                return ':' . $prefix . $i++;
+                /** @var int $i */
+                return ':' . $prefix . (string) $i++;
             },
             $sql
         );
@@ -566,6 +570,7 @@ abstract class Query
     private function processNewCondition($condition, $value, bool $valueWasProvided): array
     {
         if (!is_array($condition)) {
+            /** @psalm-suppress DocblockTypeContradiction */
             if (!is_string($condition)) {
                 throw new Exception('Condition should be a string');
             }

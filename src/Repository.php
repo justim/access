@@ -24,6 +24,7 @@ use Access\Query;
  *
  * Collection of methods to easily find entities
  *
+ * @template TEntity of Entity
  * @author Tim <me@justim.net>
  */
 class Repository
@@ -34,12 +35,16 @@ class Repository
     private $db;
 
     /**
+     * @psalm-var class-string<TEntity> $klass
+     *
      * @var string Entity class name
      */
     private $klass;
 
     /**
      * Create a entity repository
+     *
+     * @psalm-param class-string<TEntity> $klass
      *
      * @param Database $db
      * @param string $klass Entity class name
@@ -68,8 +73,8 @@ class Repository
     /**
      * Find a single entity by searching for column values
      *
-     * @param array $fields List of fields with values
-     * @return ?Entity
+     * @param array<string, mixed> $fields List of fields with values
+     * @return Entity|null
      */
     public function findOneBy(array $fields): ?Entity
     {
@@ -86,17 +91,21 @@ class Repository
     /**
      * Find a list of entities by searching for column values
      *
-     * @param array $fields List of fields with values
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param array<string, mixed> $fields List of fields with values
      * @param ?int $limit A a limit to the query
      * @return \Generator - yields Entity
      */
     public function findBy($fields, int $limit = null): \Generator
     {
+        /* @var array<string, mixed> $where */
         $where = [];
+
         foreach ($fields as $field => $value) {
             $condition = "{$field} = ?";
 
-            if (strpos($field, '?') !== false) {
+            if (strpos((string) $field, '?') !== false) {
                 $condition = $field;
             } elseif (is_array($value)) {
                 $condition = "{$field} IN (?)";
@@ -118,6 +127,8 @@ class Repository
     /**
      * Find multiple entities by its ID
      *
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
      * @param int[] $ids
      * @param int $limit
      * @return \Generator - yields Entity
@@ -128,18 +139,20 @@ class Repository
             'id' => $ids,
         ];
 
-        return $this->findBy($fields, $limit);
+        yield from $this->findBy($fields, $limit);
     }
 
     /**
      * Execute a select query
+     *
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
      *
      * @param Query\Select $query Select query to be executed
      * @return \Generator - yields Entity
      */
     public function select(Query\Select $query): \Generator
     {
-        return $this->db->select($this->klass, $query);
+        yield from $this->db->select($this->klass, $query);
     }
 
     /**
