@@ -129,7 +129,7 @@ class Database
     /**
      * Get the repository to find entities
      *
-     * @template TEntity of Entity
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      *
      * @param string $klass Entity class name
@@ -151,7 +151,7 @@ class Database
     /**
      * Find a single entity by its ID
      *
-     * @template TEntity of Entity
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      *
      * @param string $klass Entity class name
@@ -166,7 +166,7 @@ class Database
     /**
      * Find a single entity by searching for column values
      *
-     * @template TEntity of Entity
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      *
      * @param string $klass Entity class name
@@ -181,7 +181,7 @@ class Database
     /**
      * Find a list of entities by searching for column values
      *
-     * @template TEntity of Entity
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      * @psalm-suppress InvalidReturnType TODO remove when psalm supports this
      * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
@@ -199,7 +199,7 @@ class Database
     /**
      * Find a list of entities by their ids
      *
-     * @template TEntity of Entity
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      * @psalm-suppress InvalidReturnType TODO remove when psalm supports this
      * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
@@ -217,7 +217,7 @@ class Database
     /**
      * Find all entities (default sort `id ASC`)
      *
-     * @template TEntity of Entity
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      * @psalm-suppress InvalidReturnType TODO remove when psalm supports this
      * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
@@ -235,7 +235,7 @@ class Database
     /**
      * Execute a select query
      *
-     * @template TEntity of Entity
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
      *
@@ -264,7 +264,7 @@ class Database
      * @param Query\Select $query Select query to be executed
      * @return ?Entity
      *
-     * @template TEntity of Entity
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      * @psalm-return ?TEntity
      */

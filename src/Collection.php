@@ -20,7 +20,7 @@ use Access\Exception;
 /**
  * Collection of entities
  *
- * @template TEntity of Entity
+ * @psalm-template TEntity of Entity
  * @author Tim <me@justim.net>
  */
 class Collection implements \ArrayAccess, \Countable, \Iterator

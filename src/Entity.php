@@ -18,7 +18,7 @@ use Access\Repository;
 /**
  * Entity functionality
  *
- * @template TRepository of Repository
+ * @psalm-template TRepository of Repository
  * @author Tim <me@justim.net>
  */
 abstract class Entity
