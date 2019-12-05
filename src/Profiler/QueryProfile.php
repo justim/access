@@ -48,6 +48,16 @@ class QueryProfile
     private $executeDurationEnd = 0.0;
 
     /**
+     * @var float
+     */
+    private $hydrateDurationStart = 0.0;
+
+    /**
+        * @var float
+     */
+    private $hydrateDurationEnd = 0.0;
+
+    /**
      * @param Query $query
      */
     public function __construct(Query $query)
@@ -118,18 +128,63 @@ class QueryProfile
     }
 
     /**
+     * Start of hydrate
+     */
+    public function startHydrate(): void
+    {
+        $this->hydrateDurationStart = microtime(true);
+    }
+
+    /**
+     * End of hydrate
+     */
+    public function endHydrate(): void
+    {
+        $this->hydrateDurationEnd = microtime(true);
+    }
+
+    /**
+     * Get hydrate duration in seconds
+     *
+     * @return float
+     */
+    public function getHydrateDuration(): float
+    {
+        return $this->hydrateDurationEnd - $this->hydrateDurationStart;
+    }
+
+    /**
      * Get total duration in seconds
      *
      * - Prepare duration
      * - Execute duration
      *
      * Acutal fetching of data is not included, because we yield all records
-     * directly to the caller, skewing the time it takes to fetch
+     * directly to the caller, skewing the time it takes to fetch. You can get
+     * the duration of the fetching with `getHydrateDuration` or
+     * `getTotalDurationWithHydrate`
      *
      * @return float
      */
     public function getTotalDuration(): float
     {
-        return $this->getPrepareDuration() + $this->getExecuteDuration();
+        return $this->getPrepareDuration()
+            + $this->getExecuteDuration();
+    }
+
+    /**
+     * Get total duration in seconds
+     *
+     * - Prepare duration
+     * - Execute duration
+     * - Hydrate duration
+     *
+     * @return float
+     */
+    public function getTotalDurationWithHydrate(): float
+    {
+        return $this->getPrepareDuration()
+            + $this->getExecuteDuration()
+            + $this->getHydrateDuration();
     }
 }

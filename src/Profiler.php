@@ -59,6 +59,22 @@ class Profiler
     }
 
     /**
+     * Get the total duration with hydrate in seconds
+     *
+     * @return float
+     */
+    public function getTotalDurationWithHydrate(): float
+    {
+        $duration = 0;
+
+        foreach ($this->queryProfiles as $queryProfile) {
+            $duration += $queryProfile->getTotalDurationWithHydrate();
+        }
+
+        return $duration;
+    }
+
+    /**
      * Get a flat export of query profiles
      *
      * @return array
@@ -67,12 +83,14 @@ class Profiler
     {
         return [
             'duration' => $this->getTotalDuration(),
+            'durationWithHydrate' => $this->getTotalDurationWithHydrate(),
             'queries' => array_map(
                 function (QueryProfile $queryProfile) {
                     return [
                         'sql' => $queryProfile->getQuery()->getSql(),
                         'values' => $queryProfile->getQuery()->getValues(),
                         'duration' => $queryProfile->getTotalDuration(),
+                        'durationWithHydrate' => $queryProfile->getTotalDurationWithHydrate(),
                     ];
                 },
                 $this->queryProfiles

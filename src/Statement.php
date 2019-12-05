@@ -90,17 +90,35 @@ final class Statement
             return $this->getReturnValue();
         }
 
-        $profile->startPrepare();
-        $statement = $this->statementPool->prepare($this->sql);
-        $profile->endPrepare();
+        try {
+            $profile->startPrepare();
+            $statement = $this->statementPool->prepare($this->sql);
+        } catch (\PDOException $e) {
+            throw new Exception('Unable to prepare query', 0, $e);
+        } finally {
+            $profile->endPrepare();
+        }
 
-        $profile->startExecute();
-        $statement->execute($this->query->getValues());
-        $profile->endExecute();
+        try {
+            $profile->startExecute();
+            $statement->execute($this->query->getValues());
+        } catch (\PDOException $e) {
+            throw new Exception('Unable to execute query', 0, $e);
+        } finally {
+            $profile->endExecute();
+        }
 
         if ($this->query instanceof Select) {
-            while ($row = $statement->fetch(\PDO::FETCH_ASSOC)) {
-                yield $row;
+            try {
+                $profile->startHydrate();
+
+                while ($row = $statement->fetch(\PDO::FETCH_ASSOC)) {
+                    yield $row;
+                }
+            } catch (\PDOException $e) {
+                throw new Exception('Unable to fetch', 0, $e);
+            } finally {
+                $profile->endHydrate();
             }
         }
 
