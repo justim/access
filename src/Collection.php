@@ -51,6 +51,16 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
     }
 
     /**
+     * @param iterable<Entity> $iterable List of entities
+     */
+    public function fromIterable(iterable $iterable): void
+    {
+        foreach ($iterable as $entity) {
+            $this->addEntity($entity);
+        }
+    }
+
+    /**
      * Add a entity to the collection
      *
      * @param Entity $entity
@@ -135,6 +145,77 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
         }
 
         return null;
+    }
+
+    /**
+     * Merge a collection into this collection
+     *
+     * @param Collection $source Collection to merge
+     */
+    public function merge(Collection $source): void
+    {
+        $ids = $this->getIds();
+
+        foreach ($source as $entity) {
+            if (!in_array($entity->getId(), $ids)) {
+                $this->addEntity($entity);
+            }
+        }
+    }
+
+    /**
+     * Group collection by a specified index
+     *
+     * @param callable $groupIndexMapper Should return the index of the group
+     * @return array<mixed, Collection>
+     */
+    public function groupBy(callable $groupIndexMapper): array
+    {
+        /** @var array<mixed, Collection> $result */
+        $result = [];
+
+        foreach ($this->entities as $entity) {
+            $groupIndex = $groupIndexMapper($entity);
+
+            if (!isset($result[$groupIndex])) {
+                $result[$groupIndex] = new self($this->db);
+            }
+
+            $result[$groupIndex]->addEntity($entity);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Sort collection
+     *
+     * NOTE: uses `usort` with $comparer as compare function
+     *
+     * @param callable $comparer Function to sort/compare with
+     */
+    public function sort(callable $comparer): void
+    {
+        usort($this->entities, $comparer);
+    }
+
+    /**
+     * Map over collection
+     *
+     * @param callable $mapper Function to call for every entity
+     * @return mixed[]
+     */
+    public function map(callable $mapper): array
+    {
+        $result = [];
+
+        foreach ($this->entities as $entity) {
+            $value = $mapper($entity);
+
+            $result[] = $value;
+        }
+
+        return $result;
     }
 
     /**
