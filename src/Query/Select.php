@@ -23,20 +23,38 @@ use Access\Query;
 class Select extends Query
 {
     /**
-     * @var array<string, string>
+     * @var array<string, string|self>
      */
     private $virtualFields = [];
 
     /**
+     * @var string|null $select
+     */
+    private $select = null;
+
+    /**
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
-     * @param array<string, string> $virtualFields List of virtual fields, 'name' => 'SQL'
+     * @param array<string, string|self> $virtualFields List of virtual fields, 'name' => 'SQL'
      */
     public function __construct(string $tableName, string $alias = null, array $virtualFields = [])
     {
         parent::__construct($tableName, $alias);
 
         $this->virtualFields = $virtualFields;
+    }
+
+    /**
+     * Change what you want to select
+     *
+     * @param string|null $select
+     * @return $this
+     */
+    public function select($select)
+    {
+        $this->select = $select;
+
+        return $this;
     }
 
     /**
@@ -72,15 +90,55 @@ class Select extends Query
 
         $sql = "SELECT {$escapedTableName}.*";
 
-        if ($this->alias !== null) {
+        if ($this->select !== null) {
+            $sql = "SELECT {$this->select}";
+        } elseif ($this->alias !== null) {
             $escapedAlias = $this->escapeIdentifier($this->alias);
             $sql = "SELECT {$escapedAlias}.*";
         }
 
+        $i = 0;
         foreach ($this->virtualFields as $alias => $value) {
-            $sql .= ", $value AS $alias";
+            $escapedAlias = $this->escapeIdentifier($alias);
+
+            if ($value instanceof self) {
+                $subSql = preg_replace(
+                    '/:(([a-z][0-9]+)+)/',
+                    ':' . self::PREFIX_SUBQUERY . $i . '$1',
+                    (string) $value->getSql(),
+                );
+
+                $sql .= ", ($subSql) AS $escapedAlias";
+                $i++;
+            } else {
+                $sql .= ", $value AS $escapedAlias";
+            }
         }
 
         return $sql;
+    }
+
+    /**
+     * Get the values with a prefixed index
+     *
+     * @return array The values
+     */
+    public function getValues(): array
+    {
+        $values = parent::getValues();
+
+        $i = 0;
+
+        foreach ($this->virtualFields as $value) {
+            if ($value instanceof self) {
+                foreach ($value->getValues() as $nestedIndex => $nestedValue) {
+                    $values[self::PREFIX_SUBQUERY . $i . $nestedIndex] = $nestedValue;
+                }
+
+                $i++;
+            }
+        }
+
+        return $values;
     }
 }

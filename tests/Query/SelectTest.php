@@ -101,7 +101,7 @@ class SelectTest extends TestCase
         $query->having('u.name IS NOT NULL');
 
         $this->assertEquals(
-            'SELECT `u`.*, COUNT(p.id) AS total_projects FROM `users` AS `u` LEFT JOIN `projects` AS `p` ON '
+            'SELECT `u`.*, COUNT(p.id) AS `total_projects` FROM `users` AS `u` LEFT JOIN `projects` AS `p` ON '
             . '(p.owner_id = u.id) GROUP BY u.id HAVING (total_projects > :h0) AND (u.name IS NOT NULL)',
             $query->getSql()
         );
@@ -115,5 +115,41 @@ class SelectTest extends TestCase
         $query->orderBy('p.name ASC');
 
         $this->assertEquals('SELECT `p`.* FROM `projects` AS `p` ORDER BY p.name ASC', $query->getSql());
+    }
+
+    public function testSubquery(): void
+    {
+        $subQuery = new Select(Project::class, 'p');
+        $subQuery->select('COUNT(p.id)');
+        $subQuery->where('p.user_id = u.id');
+        $subQuery->where('p.status = ?', 'IN_PROGRESS');
+
+        $query = new Select(User::class, 'u', [
+            'total_projects' => $subQuery,
+        ]);
+
+        $query->innerJoin(Project::class, 'pp', [
+            'pp.user_id = u.id',
+            'pp.id = ?' => 1,
+        ]);
+
+        $query->where('u.first_name = ?', 'Dave');
+
+        $this->assertEquals(
+            'SELECT `u`.*, (SELECT COUNT(p.id) FROM `projects` AS `p` WHERE '
+            . '(p.user_id = u.id) AND (p.status = :s0w0)) AS `total_projects` FROM `users` AS `u` '
+            . 'INNER JOIN `projects` AS `pp` ON (pp.user_id = u.id) AND (pp.id = :j0j0) '
+            . 'WHERE (u.first_name = :w0)',
+            $query->getSql()
+        );
+
+        $this->assertEquals(
+            [
+                's0w0' => 'IN_PROGRESS',
+                'w0' => 'Dave',
+                'j0j0' => 1,
+            ],
+            $query->getValues()
+        );
     }
 }

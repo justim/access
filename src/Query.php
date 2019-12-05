@@ -31,6 +31,7 @@ abstract class Query
     protected const PREFIX_JOIN = 'j';
     protected const PREFIX_WHERE = 'w';
     protected const PREFIX_HAVING = 'h';
+    protected const PREFIX_SUBQUERY = 's';
 
     /**
      * @var string
@@ -263,7 +264,7 @@ abstract class Query
         }
 
         foreach ($this->joins as $i => $join) {
-            $this->getConditionValues($indexedValues, $join['on'], $i . self::PREFIX_JOIN);
+            $this->getConditionValues($indexedValues, $join['on'], self::PREFIX_JOIN . $i . self::PREFIX_JOIN);
         }
 
         $this->getConditionValues($indexedValues, $this->where, self::PREFIX_WHERE);
@@ -365,7 +366,7 @@ abstract class Query
                     break;
             }
 
-            $onSql = $this->getConditionSql('ON', $join['on'], $i . self::PREFIX_JOIN);
+            $onSql = $this->getConditionSql('ON', $join['on'], self::PREFIX_JOIN . $i . self::PREFIX_JOIN);
             $sql .= "{$escapedJoinTableName} AS {$escapedAlias}{$onSql}";
 
             $i++;
