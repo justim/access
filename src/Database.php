@@ -15,6 +15,7 @@ namespace Access;
 
 use Access\Entity;
 use Access\Exception;
+use Access\Lock;
 use Access\Profiler;
 use Access\Query;
 use Access\Repository;
@@ -124,6 +125,16 @@ class Database
         $transaction->begin();
 
         return $transaction;
+    }
+
+    /**
+     * Create a lock object
+     *
+     * @return Lock
+     */
+    public function createLock(): Lock
+    {
+        return new Lock($this);
     }
 
     /**
