@@ -17,6 +17,7 @@ use Tests\Fixtures\Entity\Project;
 
 use Access\Collection;
 use Access\Query\Select;
+use Access\Query\Update;
 use Access\Repository;
 
 class ProjectRepository extends Repository
@@ -54,5 +55,16 @@ class ProjectRepository extends Repository
         /** @var Project|null $project */
         $project = $this->selectOne($query);
         return $project;
+    }
+
+    public function setNameWithDirectQuery(int $id, string $name): void
+    {
+        $query = new Update(Project::class, 'p');
+        $query->where('id = ?', $id);
+        $query->values([
+            'name' => $name,
+        ]);
+
+        $this->query($query);
     }
 }

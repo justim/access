@@ -20,7 +20,7 @@ class ProfilerTest extends AbstractBaseTestCase
     /**
      * @depends testInsert
      */
-    public function testProfiler()
+    public function testProfiler(): void
     {
         $profiler = self::$db->getProfiler();
         $export = $profiler->export();

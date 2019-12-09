@@ -22,7 +22,7 @@ class RepositoryTest extends AbstractBaseTestCase
     /**
      * @depends testInsert
      */
-    public function testSelectOne()
+    public function testSelectOne(): void
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
@@ -36,5 +36,35 @@ class RepositoryTest extends AbstractBaseTestCase
         $project = $projectRepo->findByName('BLABLA');
 
         $this->assertNull($project);
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testFindAllWithLimit(): void
+    {
+        $projects = self::$db->findAll(Project::class, 1);
+
+        foreach ($projects as $project) {
+            $this->assertEquals('Access', $project->getName());
+        }
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testDirectQuery(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+
+        /** @var Project $project */
+        $project = $projectRepo->findOne(1);
+
+        $projectRepo->setNameWithDirectQuery($project->getId(), 'Access2');
+
+        /** @var Project $project */
+        $project = $projectRepo->findOne(1);
+        $this->assertEquals('Access2', $project->getName());
     }
 }

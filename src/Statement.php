@@ -134,7 +134,12 @@ final class Statement
     {
         if ($this->query instanceof Insert) {
             if ($this->sql === null) {
+                // insert queries always return a string, but the type
+                // of this property is string|null, so we need to check
+                // for it
+                // @codeCoverageIgnoreStart
                 return -1;
+                // @codeCoverageIgnoreEnd
             }
 
             return (int) $this->connection->lastInsertId();
