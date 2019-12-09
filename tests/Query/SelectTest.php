@@ -102,7 +102,7 @@ class SelectTest extends TestCase
 
         $this->assertEquals(
             'SELECT `u`.*, COUNT(p.id) AS `total_projects` FROM `users` AS `u` LEFT JOIN `projects` AS `p` ON '
-            . '(p.owner_id = u.id) GROUP BY u.id HAVING (total_projects > :h0) AND (u.name IS NOT NULL)',
+                . '(p.owner_id = u.id) GROUP BY u.id HAVING (total_projects > :h0) AND (u.name IS NOT NULL)',
             $query->getSql()
         );
 
@@ -137,9 +137,9 @@ class SelectTest extends TestCase
 
         $this->assertEquals(
             'SELECT `u`.*, (SELECT COUNT(p.id) FROM `projects` AS `p` WHERE '
-            . '(p.user_id = u.id) AND (p.status = :s0w0)) AS `total_projects` FROM `users` AS `u` '
-            . 'INNER JOIN `projects` AS `pp` ON (pp.user_id = u.id) AND (pp.id = :j0j0) '
-            . 'WHERE (u.first_name = :w0)',
+                . '(p.user_id = u.id) AND (p.status = :s0w0)) AS `total_projects` FROM `users` AS `u` '
+                . 'INNER JOIN `projects` AS `pp` ON (pp.user_id = u.id) AND (pp.id = :j0j0) '
+                . 'WHERE (u.first_name = :w0)',
             $query->getSql()
         );
 
@@ -148,6 +148,22 @@ class SelectTest extends TestCase
                 's0w0' => 'IN_PROGRESS',
                 'w0' => 'Dave',
                 'j0j0' => 1,
+            ],
+            $query->getValues()
+        );
+    }
+
+    public function testMultipleSimilarWheres(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->where('p.title LIKE ?', '%1%');
+        $query->where('p.title LIKE ?', '%2%');
+
+        $this->assertEquals('SELECT `p`.* FROM `projects` AS `p` WHERE (p.title LIKE :w0) AND (p.title LIKE :w1)', $query->getSql());
+        $this->assertEquals(
+            [
+                'w0' => '%1%',
+                'w1' => '%2%',
             ],
             $query->getValues()
         );

@@ -283,23 +283,23 @@ abstract class Query
     private function getConditionValues(&$indexedValues, array $conditions, string $prefix): void
     {
         $i = 0;
-        foreach ($conditions as $conditionKey => $conditionValue) {
-            if (is_int($conditionKey)) {
+        foreach ($conditions as $condition) {
+            if (!array_key_exists('value', $condition)) {
                 // where part only has a sql part, no value
                 continue;
-            } elseif ($conditionValue === null) {
+            } elseif ($condition['value'] === null) {
                 // sql is converted to `IS NULL`
                 continue;
-            } elseif ($conditionValue === true || $conditionValue === false) {
-                $indexedValues[$prefix . $i] = (int) $conditionValue;
+            } elseif ($condition['value'] === true || $condition['value'] === false) {
+                $indexedValues[$prefix . $i] = (int) $condition['value'];
                 $i++;
                 continue;
-            } elseif ($conditionValue instanceof \DateTimeInterface) {
-                $indexedValues[$prefix . $i] = $conditionValue->format(Entity::DATETIME_FORMAT);
+            } elseif ($condition['value'] instanceof \DateTimeInterface) {
+                $indexedValues[$prefix . $i] = $condition['value']->format(Entity::DATETIME_FORMAT);
                 $i++;
                 continue;
-            } elseif (is_array($conditionValue)) {
-                foreach ($conditionValue as $conditionValuePart) {
+            } elseif (is_array($condition['value'])) {
+                foreach ($condition['value'] as $conditionValuePart) {
                     $indexedValues[$prefix . $i] = $conditionValuePart;
                     $i++;
                 }
@@ -307,7 +307,7 @@ abstract class Query
                 continue;
             }
 
-            $indexedValues[$prefix . $i] = $conditionValue;
+            $indexedValues[$prefix . $i] = $condition['value'];
             $i++;
         }
     }
@@ -420,23 +420,23 @@ abstract class Query
      * EX: ''
      *
      * @param string $what Type of condition (WHERE/HAVING/ON)
-     * @param array $definition Definition of the condition
+     * @param array $conditions Definition of the condition
      * @param string $prefix Prefix for the placeholders
      * @return string
      */
-    private function getConditionSql(string $what, array $definition, string $prefix): string
+    private function getConditionSql(string $what, array $conditions, string $prefix): string
     {
-        if (empty($definition)) {
+        if (empty($conditions)) {
             return '';
         }
 
         $conditionParts = [];
 
-        foreach ($definition as $definitionKey => $definitionValue) {
-            if (is_int($definitionKey)) {
-                $conditionParts[] = $definitionValue;
+        foreach ($conditions as $condition) {
+            if (!array_key_exists('value', $condition)) {
+                $conditionParts[] = $condition['condition'];
                 continue;
-            } elseif ($definitionValue === null) {
+            } elseif ($condition['value'] === null) {
                 $conditionParts[] = str_replace(
                     [
                         '!= ?',
@@ -446,31 +446,31 @@ abstract class Query
                         'IS NOT NULL',
                         'IS NULL',
                     ],
-                    $definitionKey
+                    $condition['condition'],
                 );
 
                 continue;
-            } elseif (is_array($definitionValue)) {
+            } elseif (is_array($condition['value'])) {
                 $conditionParts[] = str_replace(
                     '?',
-                    implode(', ', array_fill(0, count($definitionValue), '?')),
-                    $definitionKey
+                    implode(', ', array_fill(0, count($condition['value']), '?')),
+                    $condition['condition'],
                 );
 
                 continue;
             }
 
-            $conditionParts[] = $definitionKey;
+            $conditionParts[] = $condition['condition'];
         }
 
-        $enclosedDefinitionParts = array_map(
+        $enclosedConditionParts = array_map(
             function ($conditionPart) {
                 return "($conditionPart)";
             },
             $conditionParts
         );
 
-        $condition = implode(' AND ', $enclosedDefinitionParts);
+        $condition = implode(' AND ', $enclosedConditionParts);
         $sqlCondition = " {$what} {$condition}";
 
         return $this->replaceQuestionMarks($sqlCondition, $prefix);
@@ -578,12 +578,17 @@ abstract class Query
 
             if ($valueWasProvided) {
                 return [
-                    $condition => $value,
+                    [
+                        'condition' => $condition,
+                        'value' => $value,
+                    ],
                 ];
             }
 
             return [
-                $condition,
+                [
+                    'condition' => $condition,
+                ],
             ];
         }
 
@@ -591,6 +596,24 @@ abstract class Query
             throw new Exception('Values should be in condition array');
         }
 
-        return $condition;
+        $result = [];
+
+        foreach ($condition as $conditionCondition => $conditionValue) {
+            // where part only has a sql part, no value
+            if (is_int($conditionCondition)) {
+                $result[] = [
+                    'condition' => $conditionValue,
+                ];
+
+                continue;
+            }
+
+            $result[] = [
+                'condition' => $conditionCondition,
+                'value' => $conditionValue,
+            ];
+        }
+
+        return $result;
     }
 }
