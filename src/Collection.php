@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Database;
+use Access\Collection\Iterator;
 use Access\Entity;
 use Access\Exception;
 
@@ -23,7 +24,7 @@ use Access\Exception;
  * @psalm-template TEntity of Entity
  * @author Tim <me@justim.net>
  */
-class Collection implements \ArrayAccess, \Countable, \Iterator
+class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 {
     /**
      * @var Database
@@ -34,11 +35,6 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
      * @var Entity[] $entities
      */
     private $entities = [];
-
-    /**
-     * @var int $iteratorIndex
-     */
-    private $iteratorIndex = 0;
 
     /**
      * Create a entity batch
@@ -267,65 +263,15 @@ class Collection implements \ArrayAccess, \Countable, \Iterator
     }
 
     /**
-     * Get the current entity
+     * Get the collection iterator
      *
      * Iterator implementation
      *
      * @return Entity
      */
-    public function current()
+    public function getIterator()
     {
-        return $this->entities[$this->iteratorIndex];
-    }
-
-    /**
-     * Get the current entity's ID
-     *
-     * Iterator implementation
-     *
-     * @return int
-     */
-    public function key()
-    {
-        $entity = $this->entities[$this->iteratorIndex];
-
-        return $entity->getId();
-    }
-
-    /**
-     * Get the current entity's ID
-     *
-     * Iterator implementation
-     *
-     * @return void
-     */
-    public function next()
-    {
-        $this->iteratorIndex++;
-    }
-
-    /**
-     * Reset interator pointer
-     *
-     * Iterator implementation
-     *
-     * @return void
-     */
-    public function rewind()
-    {
-        $this->iteratorIndex = 0;
-    }
-
-    /**
-     * Is the current interator pointer valid?
-     *
-     * Iterator implementation
-     *
-     * @return bool
-     */
-    public function valid()
-    {
-        return isset($this->entities[$this->iteratorIndex]);
+        return new Iterator($this->entities);
     }
 
     /**
