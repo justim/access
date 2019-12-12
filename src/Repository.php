@@ -228,9 +228,7 @@ class Repository
 
         $result = $this->select($query);
 
-        foreach ($result as $entity) {
-            $collection->addEntity($entity);
-        }
+        $collection->fromIterable($result);
 
         return $collection;
     }

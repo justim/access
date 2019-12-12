@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use Access\Batch;
+use Access\Collection;
 use Access\Exception;
 
 use Tests\AbstractBaseTestCase;
@@ -71,6 +72,7 @@ class CollectionTest extends AbstractBaseTestCase
 
         $this->assertEquals([1, 2], $ids);
         $this->assertTrue(isset($projects[1]));
+        $this->assertEquals(2, $projects->count());
 
         /** @var Project $project */
         $project = $projects->find(function (Project $project) {
@@ -106,6 +108,100 @@ class CollectionTest extends AbstractBaseTestCase
 
         $this->assertEquals(0, count($users));
         $this->assertFalse(isset($users[1]));
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testMergeCollection(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+        $projects = $projectRepo->findNothing();
+
+        $this->assertEquals(0, count($projects));
+
+        $projects->merge($projectRepo->findAllAsCollection());
+
+        $this->assertEquals(2, count($projects));
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testGroupByCollection(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+        $projects = $projectRepo->findAllAsCollection();
+
+        $this->assertEquals(2, count($projects));
+
+        $grouped = $projects->groupBy(function (Project $project) {
+            return $project->getOwnerId();
+        });
+
+        $this->assertEquals(2, count($grouped));
+
+        foreach ($grouped as $ownerId => $projectsPerOwner) {
+            $this->assertTrue($ownerId > 0);
+            $this->assertEquals(1, count($projectsPerOwner));
+        }
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testSortCollection(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+        $projects = $projectRepo->findAllAsCollection();
+
+        $ids = $projects->getIds();
+        $this->assertEquals([1, 2], $ids);
+
+        $projects->sort(function (Project $one, Project $two) {
+            return $two->getId() <=> $one->getId();
+        });
+
+        $sortedIds = $projects->getIds();
+        $this->assertEquals([2, 1], $sortedIds);
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testMapCollection(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+        $projects = $projectRepo->findAllAsCollection();
+
+        $names = $projects->map(function (Project $project) {
+            return $project->getName();
+        });
+
+        $this->assertEquals(['Access', 'Access fork'], $names);
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testFromIterableCollection(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+        $projects = $projectRepo->findAll();
+
+        $collection = new Collection(self::$db);
+
+        $this->assertEquals(0, count($collection));
+
+        // consume the generator
+        $collection->fromIterable($projects);
+
+        $this->assertEquals(2, count($collection));
     }
 
     /**
