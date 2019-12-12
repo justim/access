@@ -21,6 +21,10 @@ use Access\Query;
  * Manage a lock for tables
  *
  * @author Tim <me@justim.net>
+ *
+ * Skip code coverage because testing this is not possible with SQLite,
+ * re-enable when we start testing this with a different db driver.
+ * @codeCoverageIgnore
  */
 class Lock
 {
