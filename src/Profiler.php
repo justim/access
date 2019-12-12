@@ -86,9 +86,13 @@ class Profiler
             'durationWithHydrate' => $this->getTotalDurationWithHydrate(),
             'queries' => array_map(
                 function (QueryProfile $queryProfile) {
+                    $query = $queryProfile->getQuery();
+                    $debugQuery = new DebugQuery($query);
+
                     return [
-                        'sql' => $queryProfile->getQuery()->getSql(),
-                        'values' => $queryProfile->getQuery()->getValues(),
+                        'sql' => $query->getSql(),
+                        'values' => $query->getValues(),
+                        'runnableSql' => $debugQuery->toRunnableQuery(),
                         'duration' => $queryProfile->getTotalDuration(),
                         'durationWithHydrate' => $queryProfile->getTotalDurationWithHydrate(),
                     ];
