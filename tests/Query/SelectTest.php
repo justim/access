@@ -179,4 +179,38 @@ class SelectTest extends TestCase
             $query->getValues()
         );
     }
+
+    public function testNullValue(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->where('p.updated_at = ?', null);
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.updated_at IS NULL)',
+            $query->getSql(),
+        );
+
+        $this->assertEquals(
+            [],
+            $query->getValues()
+        );
+    }
+
+    public function testInvalidWherConditionOne(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Values should be in condition array');
+
+        $query = new Select(Project::class, 'p');
+        $query->where([], 'bla');
+    }
+
+    public function testInvalidWherConditionTwo(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Condition should be a string');
+
+        $query = new Select(Project::class, 'p');
+        $query->where(1, 'bla');
+    }
 }
