@@ -6,12 +6,23 @@ namespace Tests\Query;
 
 use PHPUnit\Framework\TestCase;
 
+use Access\Exception;
 use Access\Query\Select;
-use Tests\Fixtures\Entity\User;
+
+use Tests\Fixtures\Entity\MissingTableEntity;
 use Tests\Fixtures\Entity\Project;
+use Tests\Fixtures\Entity\User;
 
 class SelectTest extends TestCase
 {
+    public function testMissingTableName(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('No table given for query');
+
+        new Select(MissingTableEntity::class);
+    }
+
     public function testQuery(): void
     {
         $query = new Select(User::class);

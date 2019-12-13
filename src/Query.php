@@ -93,7 +93,7 @@ abstract class Query
             $this->tableName = $tableName::tableName();
         }
 
-        if (!isset($this->tableName)) {
+        if (empty($this->tableName)) {
             throw new Exception('No table given for query');
         }
 

@@ -39,7 +39,7 @@ class Raw extends Query
      */
     public function __construct(string $sql, array $values = [])
     {
-        parent::__construct('');
+        parent::__construct('__dummy__');
 
         $this->sql = $sql;
         $this->values = $values;
