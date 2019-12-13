@@ -60,6 +60,10 @@ class DebugQuery
         return $sql;
     }
 
+    /**
+     * @param mixed $value
+     * @return string
+     */
     private function toSqlValue($value): string
     {
         if (is_int($value)) {

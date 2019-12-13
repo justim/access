@@ -267,7 +267,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * Iterator implementation
      *
-     * @return Entity
+     * @return Iterator
      */
     public function getIterator()
     {
