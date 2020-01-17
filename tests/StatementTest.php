@@ -26,12 +26,30 @@ class StatementTest extends AbstractBaseTestCase
         $this->assertTrue(true);
     }
 
-    public function testInvalidExectute(): void
+    public function testInvalidPrepare(): void
     {
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Unable to prepare query');
 
         $query = new Query\Raw('SELECT foo FRM bar');
+        self::$db->query($query);
+    }
+
+    public function testInvalidExectute(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Unable to execute query');
+
+        $query = new Query\Insert(User::class);
+        $query->values([
+            'id' => 1,
+            'name' => 'Dave',
+            'email' => 'dave@example.com',
+        ]);
+
+        self::$db->query($query);
+
+        // insert with same primary key value
         self::$db->query($query);
     }
 
@@ -43,7 +61,7 @@ class StatementTest extends AbstractBaseTestCase
 
         self::$db->save($user);
 
-        $this->assertEquals(1, $user->getId());
+        $this->assertEquals(2, $user->getId());
         self::$db->save($user);
     }
 }
