@@ -13,8 +13,9 @@ declare(strict_types=1);
 
 namespace Access;
 
-use Access\Database;
+use Access\Collection\GroupedCollection;
 use Access\Collection\Iterator;
+use Access\Database;
 use Access\Entity;
 use Access\Exception;
 
@@ -163,24 +164,24 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Group collection by a specified index
      *
      * @param callable $groupIndexMapper Should return the index of the group
-     * @return array<mixed, Collection>
+     * @return GroupedCollection
      */
-    public function groupBy(callable $groupIndexMapper): array
+    public function groupBy(callable $groupIndexMapper): GroupedCollection
     {
-        /** @var array<mixed, Collection> $result */
-        $result = [];
+        /** @var array<mixed, Collection> $groups */
+        $groups = [];
 
         foreach ($this->entities as $entity) {
             $groupIndex = $groupIndexMapper($entity);
 
-            if (!isset($result[$groupIndex])) {
-                $result[$groupIndex] = new self($this->db);
+            if (!isset($groups[$groupIndex])) {
+                $groups[$groupIndex] = new self($this->db);
             }
 
-            $result[$groupIndex]->addEntity($entity);
+            $groups[$groupIndex]->addEntity($entity);
         }
 
-        return $result;
+        return new GroupedCollection($groups);
     }
 
     /**

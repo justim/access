@@ -147,6 +147,9 @@ class CollectionTest extends AbstractBaseTestCase
             $this->assertTrue($ownerId > 0);
             $this->assertEquals(1, count($projectsPerOwner));
         }
+
+        $this->assertNotNull($grouped[$ownerId]);
+        $this->assertNull($grouped[99999999]);
     }
 
     /**
@@ -234,5 +237,45 @@ class CollectionTest extends AbstractBaseTestCase
         $this->expectExceptionMessage('Not possible to add new entities through array access');
 
         $projects[3] = new Project();
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testGroupedCollectionNoSet(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+        $projects = $projectRepo->findAllAsCollection();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Not possible to remove collections through array access');
+
+        $grouped = $projects->groupBy(function (Project $project) {
+            return $project->getOwnerId();
+        });
+
+        unset($grouped[1]);
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testGroupedCollectionNoUnset(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+        $projects = $projectRepo->findAllAsCollection();
+
+        $this->assertEquals(2, count($projects));
+
+        $grouped = $projects->groupBy(function (Project $project) {
+            return $project->getOwnerId();
+        });
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Not possible to add new collections through array access');
+
+        $grouped[3] = new Collection(self::$db);
     }
 }
