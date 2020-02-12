@@ -20,7 +20,7 @@ use Access\Entity;
  *
  * @author Tim <me@justim.net>
  */
-class Iterator implements \Countable, \Iterator
+class Iterator implements \Iterator
 {
     /**
      * @var Entity[] $entities
@@ -102,17 +102,5 @@ class Iterator implements \Countable, \Iterator
     public function valid()
     {
         return isset($this->entities[$this->iteratorIndex]);
-    }
-
-    /**
-     * Get the number of entities in collection
-     *
-     * \Countable implementation
-     *
-     * @return int
-     */
-    public function count()
-    {
-        return count($this->entities);
     }
 }
