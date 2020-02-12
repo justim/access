@@ -108,7 +108,15 @@ class Repository
             if (strpos((string) $field, '?') !== false) {
                 $condition = $field;
             } elseif (is_array($value)) {
-                $condition = "{$field} IN (?)";
+                if (!empty($value)) {
+                    $condition = "{$field} IN (?)";
+                } else {
+                    // empty collections make no sense...
+                    // droppping the whole condition is risky because you may
+                    // over-select a whole bunch of records, better is to
+                    // under-select.
+                    $condition = "1 = 2";
+                }
             }
 
             $where[$condition] = $value;

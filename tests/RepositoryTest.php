@@ -67,4 +67,20 @@ class RepositoryTest extends AbstractBaseTestCase
         $project = $projectRepo->findOne(1);
         $this->assertEquals('Access2', $project->getName());
     }
+
+    /**
+     * @depends testInsert
+     */
+    public function testFindByEmptyIds(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+
+        $projects = $projectRepo->findByIds([]);
+
+        $this->assertEquals(
+            0,
+            count(iterator_to_array($projects)),
+        );
+    }
 }
