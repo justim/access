@@ -23,7 +23,7 @@ use Access\Collection;
 class GroupedCollectionIterator implements \Iterator
 {
     /**
-     * @var Collection<mixed, Collection> $groups
+     * @var array<mixed, Collection> $groups
      */
     private $groups;
 
@@ -42,7 +42,7 @@ class GroupedCollectionIterator implements \Iterator
      *
      * Iterator implementation
      *
-     * @return Entity
+     * @return Collection
      */
     public function current()
     {
@@ -54,7 +54,7 @@ class GroupedCollectionIterator implements \Iterator
      *
      * Iterator implementation
      *
-     * @return int
+     * @return mixed
      */
     public function key()
     {

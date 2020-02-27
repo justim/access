@@ -170,7 +170,10 @@ class SelectTest extends TestCase
         $query->where('p.title LIKE ?', '%1%');
         $query->where('p.title LIKE ?', '%2%');
 
-        $this->assertEquals('SELECT `p`.* FROM `projects` AS `p` WHERE (p.title LIKE :w0) AND (p.title LIKE :w1)', $query->getSql());
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.title LIKE :w0) AND (p.title LIKE :w1)',
+            $query->getSql(),
+        );
         $this->assertEquals(
             [
                 'w0' => '%1%',

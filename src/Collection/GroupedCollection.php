@@ -13,14 +13,13 @@ declare(strict_types=1);
 
 namespace Access\Collection;
 
+use Access\Collection;
 use Access\Collection\GroupedCollectionIterator;
-use Access\Entity;
 use Access\Exception;
 
 /**
  * Grouped collections of entities
  *
- * @psalm-template TEntity of Entity
  * @author Tim <me@justim.net>
  */
 class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
@@ -55,7 +54,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Get a collection by its group ID
      *
      * @param int $id
-     * @return ?Entity
+     * @return ?Collection
      */
     public function offsetGet($id)
     {

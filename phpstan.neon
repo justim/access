@@ -4,3 +4,7 @@ parameters:
   paths:
     - src
     - tests
+  ignoreErrors:
+    # This is triggered on purpose to test validation inside the where method
+    - message: "/Parameter #1 $condition of method Access\\\\Query::where\\(\\) expects array<int|string, mixed>|string, int given./"
+      path: tests/Query/SelectTest.php

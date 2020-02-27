@@ -144,12 +144,16 @@ class CollectionTest extends AbstractBaseTestCase
 
         $this->assertEquals(2, count($grouped));
 
+        $lastOwnerId = null;
+
         foreach ($grouped as $ownerId => $projectsPerOwner) {
             $this->assertTrue($ownerId > 0);
             $this->assertEquals(1, count($projectsPerOwner));
+
+            $lastOwnerId = $ownerId;
         }
 
-        $this->assertNotNull($grouped[$ownerId]);
+        $this->assertNotNull($grouped[$lastOwnerId]);
         $this->assertNull($grouped[99999999]);
     }
 
