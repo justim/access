@@ -92,10 +92,13 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Find the refs in a collection
      *
+     * Create a new collection of given entity name with an ID equal to the
+     * result of the ID mapper
+     *
      * @psalm-param class-string<TEntity> $klass
      *
      * @param string $klass Entity class name
-     * @param callable $mapper
+     * @param callable $mapper ID mapper, ID of the targeted entity
      * @return Collection
      */
     public function findRefs(string $klass, callable $mapper): Collection
@@ -120,9 +123,47 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
         $ids = array_unique($ids);
         $refs = $this->db->findByIds($klass, $ids);
 
-        foreach ($refs as $ref) {
-            $result->addEntity($ref);
+        $result->fromIterable($refs);
+
+        return $result;
+    }
+
+    /**
+     * Find the inversed refs in a collection
+     *
+     * Create a new collection of given entity name that have a value for the
+     * column name equal to the ID of the entities in this collection
+     *
+     * @psalm-param class-string<TEntity> $klass
+     *
+     * @param string $klass Entity class name
+     * @param string $fieldName Name of the field you want to search
+     * @return Collection
+     */
+    public function findInversedRefs(string $klass, string $fieldName): Collection
+    {
+        $this->db->assertValidEntityClass($klass);
+
+        $validFieldNames = array_keys($klass::fields());
+
+        if (!in_array($fieldName, $validFieldNames)) {
+            throw new Exception('Unknown field name for inversed refs');
         }
+
+        $ids = $this->getIds();
+
+        $result = new self($this->db);
+
+        if (empty($ids)) {
+            return $result;
+        }
+
+        $ids = array_unique($ids);
+        $refs = $this->db->findBy($klass, [
+            $fieldName => $ids,
+        ]);
+
+        $result->fromIterable($refs);
 
         return $result;
     }

@@ -21,6 +21,7 @@ use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\Repository\ProjectRepository;
+use Tests\Fixtures\Repository\UserRepository;
 
 class CollectionTest extends AbstractBaseTestCase
 {
@@ -277,5 +278,54 @@ class CollectionTest extends AbstractBaseTestCase
         $this->expectExceptionMessage('Not possible to add new collections through array access');
 
         $grouped[3] = new Collection(self::$db);
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testInversedRefs(): void
+    {
+        /** @var UserRepository $userRepo */
+        $userRepo = self::$db->getRepository(User::class);
+        $users = $userRepo->findAllAsCollection();
+
+        $this->assertEquals(2, count($users));
+
+        $projects = $users->findInversedRefs(Project::class, 'owner_id');
+
+        $this->assertEquals(2, count($projects));
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testInversedRefsEmpty(): void
+    {
+        /** @var UserRepository $userRepo */
+        $userRepo = self::$db->getRepository(User::class);
+        $users = $userRepo->findNothing();
+
+        $this->assertEquals(0, count($users));
+
+        $projects = $users->findInversedRefs(Project::class, 'owner_id');
+
+        $this->assertEquals(0, count($projects));
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testInversedRefsInvalidFieldName(): void
+    {
+        /** @var UserRepository $userRepo */
+        $userRepo = self::$db->getRepository(User::class);
+        $users = $userRepo->findNothing();
+
+        $this->assertEquals(0, count($users));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Unknown field name for inversed refs');
+
+        $users->findInversedRefs(Project::class, 'some_invalid_id');
     }
 }

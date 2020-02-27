@@ -13,10 +13,17 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Entity;
 
+use Tests\Fixtures\Repository\UserRepository;
+
 use Access\Entity;
 
 class User extends Entity
 {
+    public static function getRepository(): string
+    {
+        return UserRepository::class;
+    }
+
     public static function tableName(): string
     {
         return 'users';
