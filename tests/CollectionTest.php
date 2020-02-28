@@ -67,7 +67,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAllAsCollection();
+        $projects = $projectRepo->findAllCollection();
 
         $ids = $projects->getIds();
 
@@ -122,7 +122,7 @@ class CollectionTest extends AbstractBaseTestCase
 
         $this->assertEquals(0, count($projects));
 
-        $projects->merge($projectRepo->findAllAsCollection());
+        $projects->merge($projectRepo->findAllCollection());
 
         $this->assertEquals(2, count($projects));
     }
@@ -134,7 +134,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAllAsCollection();
+        $projects = $projectRepo->findAllCollection();
 
         $this->assertEquals(2, count($projects));
 
@@ -164,7 +164,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAllAsCollection();
+        $projects = $projectRepo->findAllCollection();
 
         $ids = $projects->getIds();
         $this->assertEquals([1, 2], $ids);
@@ -184,7 +184,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAllAsCollection();
+        $projects = $projectRepo->findAllCollection();
 
         $names = $projects->map(function (Project $project) {
             return $project->getName();
@@ -219,7 +219,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAllAsCollection();
+        $projects = $projectRepo->findAllCollection();
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to remove entities through array access');
@@ -234,7 +234,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAllAsCollection();
+        $projects = $projectRepo->findAllCollection();
 
         $this->assertEquals(2, count($projects));
 
@@ -251,7 +251,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAllAsCollection();
+        $projects = $projectRepo->findAllCollection();
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to remove collections through array access');
@@ -270,7 +270,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var ProjectRepository $projectRepo */
         $projectRepo = self::$db->getRepository(Project::class);
-        $projects = $projectRepo->findAllAsCollection();
+        $projects = $projectRepo->findAllCollection();
 
         $this->assertEquals(2, count($projects));
 
@@ -291,7 +291,7 @@ class CollectionTest extends AbstractBaseTestCase
     {
         /** @var UserRepository $userRepo */
         $userRepo = self::$db->getRepository(User::class);
-        $users = $userRepo->findAllAsCollection();
+        $users = $userRepo->findAllCollection();
 
         $this->assertEquals(2, count($users));
 

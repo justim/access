@@ -21,14 +21,6 @@ use Access\Repository;
 
 class UserRepository extends Repository
 {
-    public function findAllAsCollection(): Collection
-    {
-        $query = new Select(User::class);
-        $query->orderBy('id ASC');
-
-        return $this->selectCollection($query);
-    }
-
     public function findNothing(): Collection
     {
         return $this->createEmptyCollection();

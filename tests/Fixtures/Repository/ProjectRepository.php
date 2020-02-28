@@ -32,14 +32,6 @@ class ProjectRepository extends Repository
         return $this->selectBatched($query);
     }
 
-    public function findAllAsCollection(): Collection
-    {
-        $query = new Select(Project::class);
-        $query->orderBy('id ASC');
-
-        return $this->selectCollection($query);
-    }
-
     public function findNothing(): Collection
     {
         return $this->createEmptyCollection();

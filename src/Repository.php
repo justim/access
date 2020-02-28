@@ -173,6 +173,23 @@ class Repository
     }
 
     /**
+     * Find all entities as a collection (default sort `id ASC`)
+     *
+     * @param ?int $limit A a limit to the query
+     * @param string $orderBy The order to use to find all entities
+     * @return Collection Collection with `Entity`s
+     */
+    public function findAllCollection(?int $limit = null, string $orderBy = 'id ASC'): Collection
+    {
+        $iterator = $this->findAll($limit, $orderBy);
+
+        $collection = new Collection($this->db);
+        $collection->fromIterable($iterator);
+
+        return $collection;
+    }
+
+    /**
      * Execute a select query
      *
      * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
