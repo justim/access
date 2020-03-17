@@ -51,7 +51,7 @@ class ProjectRepository extends Repository
 
     public function setNameWithDirectQuery(int $id, string $name): void
     {
-        $query = new Update(Project::class, 'p');
+        $query = new Update(Project::class);
         $query->where('id = ?', $id);
         $query->values([
             'name' => $name,
