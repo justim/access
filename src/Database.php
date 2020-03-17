@@ -37,21 +37,21 @@ class Database
      *
      * @var \PDO $connection
      */
-    private $connection;
+    private \PDO $connection;
 
     /**
      * Statement pool
      *
      * @var StatementPool $statementPool
      */
-    private $statementPool;
+    private StatementPool $statementPool;
 
     /**
      * Profiler
      *
      * @var Profiler $profiler
      */
-    private $profiler;
+    private Profiler $profiler;
 
     /**
      * Create a Access database with a PDO connection
@@ -64,7 +64,7 @@ class Database
         $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->connection = $connection;
         $this->statementPool = new StatementPool($this);
-        $this->profiler = $profiler ?: new Profiler();
+        $this->profiler = $profiler ?? new Profiler();
     }
 
     /**

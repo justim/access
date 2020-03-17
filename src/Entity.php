@@ -88,21 +88,21 @@ abstract class Entity
      *
      * @var int|null
      */
-    private $id = null;
+    private ?int $id = null;
 
     /**
      * Data of in the entity
      *
      * @var array<string, mixed>
      */
-    private $values = [];
+    private array $values = [];
 
     /**
      * Diff for updating entities
      *
      * @var array<string, mixed>
      */
-    private $updatedFields = [];
+    private array $updatedFields = [];
 
     /**
      * Get the value of a field

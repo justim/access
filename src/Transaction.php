@@ -26,14 +26,14 @@ class Transaction
     /**
      * @var Database
      */
-    private $db;
+    private Database $db;
 
     /**
      * Is the transaction currently in motion
      *
      * @var bool $inTransaction
      */
-    private $inTransaction = false;
+    private bool $inTransaction = false;
 
     /**
      * Create a transaction

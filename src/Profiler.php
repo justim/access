@@ -26,7 +26,7 @@ class Profiler
     /**
      * @var QueryProfile[] $queryProfiles
      */
-    private $queryProfiles = [];
+    private array $queryProfiles = [];
 
     /**
      * Create a query profile for query

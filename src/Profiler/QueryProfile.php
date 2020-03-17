@@ -25,37 +25,37 @@ class QueryProfile
     /**
      * @var Query $query
      */
-    private $query;
+    private Query $query;
 
     /**
      * @var float
      */
-    private $prepareDurationStart = 0.0;
+    private float $prepareDurationStart = 0.0;
 
     /**
      * @var float
      */
-    private $prepareDurationEnd = 0.0;
+    private float $prepareDurationEnd = 0.0;
 
     /**
      * @var float
      */
-    private $executeDurationStart = 0.0;
+    private float $executeDurationStart = 0.0;
 
     /**
      * @var float
      */
-    private $executeDurationEnd = 0.0;
+    private float $executeDurationEnd = 0.0;
 
     /**
      * @var float
      */
-    private $hydrateDurationStart = 0.0;
+    private float $hydrateDurationStart = 0.0;
 
     /**
-        * @var float
+     * @var float
      */
-    private $hydrateDurationEnd = 0.0;
+    private float $hydrateDurationEnd = 0.0;
 
     /**
      * @param Query $query

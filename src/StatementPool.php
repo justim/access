@@ -29,14 +29,14 @@ final class StatementPool
      *
      * @var \PDOStatement[]
      */
-    private $stmtPool = [];
+    private array $stmtPool = [];
 
     /**
      * Database connection
      *
      * @var \PDO
      */
-    private $connection;
+    private \PDO $connection;
 
     /**
      * Create a pool of prepared PDO statements

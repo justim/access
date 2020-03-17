@@ -27,7 +27,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * @var array<mixed, Collection> $groups
      */
-    private $groups;
+    private array $groups;
 
     /**
      * Create a grouped collection with a indexed list of collections

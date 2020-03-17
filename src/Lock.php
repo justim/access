@@ -31,17 +31,17 @@ class Lock
     /**
      * @var Database $db
      */
-    private $db;
+    private Database $db;
 
     /**
      * @var string[] $locks
      */
-    private $locks = [];
+    private array $locks = [];
 
     /**
      * @var bool $locked
      */
-    private $locked = false;
+    private bool $locked = false;
 
     /**
      * @param Database $db

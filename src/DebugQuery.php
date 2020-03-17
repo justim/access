@@ -25,7 +25,7 @@ class DebugQuery
     /**
      * @var Query
      */
-    private $query;
+    private Query $query;
 
     public function __construct(Query $query)
     {

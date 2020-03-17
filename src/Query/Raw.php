@@ -26,12 +26,12 @@ class Raw extends Query
      * @readonly
      * @var string $sql
      */
-    private $sql;
+    private string $sql;
 
     /**
      * @var mixed[]
      */
-    protected $values = [];
+    protected array $values = [];
 
     /**
      * @param string $sql

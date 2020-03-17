@@ -32,33 +32,33 @@ final class Statement
      *
      * @var \PDO
      */
-    private $connection;
+    private \PDO $connection;
 
     /**
      * @var StatementPool $statementPool
      */
-    private $statementPool;
+    private StatementPool $statementPool;
 
     /**
      * The query to execute
      *
      * @var Query
      */
-    private $query;
+    private Query $query;
 
     /**
      * The SQL to execute
      *
      * @var string|null
      */
-    private $sql;
+    private ?string $sql;
 
     /**
      * Profiler
      *
      * @var Profiler $profiler
      */
-    private $profiler;
+    private Profiler $profiler;
 
     /**
      * Create a statement

@@ -25,7 +25,7 @@ class GroupedCollectionIterator implements \Iterator
     /**
      * @var array<mixed, Collection> $groups
      */
-    private $groups;
+    private array $groups;
 
     /**
      * Create a collection iterator

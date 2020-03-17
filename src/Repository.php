@@ -32,14 +32,14 @@ class Repository
     /**
      * @var Database
      */
-    private $db;
+    private Database $db;
 
     /**
      * @psalm-var class-string<TEntity> $klass
      *
      * @var string Entity class name
      */
-    private $klass;
+    private string $klass;
 
     /**
      * Create a entity repository

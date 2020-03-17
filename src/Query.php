@@ -36,48 +36,48 @@ abstract class Query
     /**
      * @var string
      */
-    protected $tableName;
+    protected string $tableName;
 
     /**
      * @var string|null
      */
-    protected $alias = null;
+    protected ?string $alias = null;
 
     /**
      * @var array
      */
-    protected $where = [];
+    protected array $where = [];
 
     /**
      * @var array
      */
-    protected $having = [];
+    protected array $having = [];
 
     /**
      * @var int|null
      */
-    protected $limit = null;
+    protected ?int $limit = null;
 
     /**
      * @psalm-var array<array-key, array{type: string, tableName: string, alias: string, on: array}>
      * @var array
      */
-    protected $joins = [];
+    protected array $joins = [];
 
     /**
      * @var array<string, mixed>
      */
-    protected $values = [];
+    protected array $values = [];
 
     /**
      * @var string[]
      */
-    protected $groupBy = [];
+    protected array $groupBy = [];
 
     /**
      * @var string|null
      */
-    protected $orderBy = null;
+    protected ?string $orderBy = null;
 
     /**
      * Create a query
@@ -349,7 +349,6 @@ abstract class Query
     protected function getJoinSql(): string
     {
         $i = 0;
-        $parts = [];
 
         $joins = array_map(function ($join) use (&$i) {
             /** @var int $i */

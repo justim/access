@@ -25,7 +25,7 @@ class Iterator implements \Iterator
     /**
      * @var Entity[] $entities
      */
-    private $entities;
+    private array $entities;
 
     /**
      * Create a collection iterator

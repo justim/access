@@ -25,12 +25,12 @@ class Select extends Query
     /**
      * @var array<string, string|self>
      */
-    private $virtualFields = [];
+    private array $virtualFields = [];
 
     /**
      * @var string|null $select
      */
-    private $select = null;
+    private ?string $select = null;
 
     /**
      * @param string $tableName Name of the table (or name of entity class)
