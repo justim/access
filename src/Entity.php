@@ -27,6 +27,7 @@ abstract class Entity
     protected const FIELD_TYPE_INT = 'int';
     protected const FIELD_TYPE_BOOL = 'bool';
     protected const FIELD_TYPE_DATETIME = 'datetime';
+    protected const FIELD_TYPE_DATE = 'date';
     protected const FIELD_TYPE_JSON = 'json';
 
     /**
@@ -82,6 +83,11 @@ abstract class Entity
      * Date time format
      */
     public const DATETIME_FORMAT = 'Y-m-d H:i:s';
+
+    /**
+     * Date format
+     */
+    public const DATE_FORMAT = 'Y-m-d';
 
     /**
      * ID of the entity
@@ -377,6 +383,12 @@ abstract class Entity
                     ->fromMutable($value)
                     ->setTimezone(new \DateTimeZone('UTC'))
                     ->format(self::DATETIME_FORMAT);
+            case self::FIELD_TYPE_DATE:
+                /** @var \DateTimeInterface $value */
+                return $this
+                    ->fromMutable($value)
+                    ->setTimezone(new \DateTimeZone('UTC'))
+                    ->format(self::DATE_FORMAT);
             case self::FIELD_TYPE_JSON:
                 return json_encode($value);
 
@@ -434,6 +446,16 @@ abstract class Entity
 
                 return \DateTimeImmutable::createFromFormat(
                     self::DATETIME_FORMAT,
+                    $value,
+                    new \DateTimeZone('UTC')
+                );
+            case self::FIELD_TYPE_DATE:
+                if (!is_string($value)) {
+                    throw new Exception('Invalid date value');
+                }
+
+                return \DateTimeImmutable::createFromFormat(
+                    self::DATE_FORMAT,
                     $value,
                     new \DateTimeZone('UTC')
                 );

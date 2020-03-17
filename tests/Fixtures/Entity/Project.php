@@ -41,6 +41,9 @@ class Project extends Entity
             'owner_id' => [
                 'type' => self::FIELD_TYPE_INT,
             ],
+            'published_at' => [
+                'type' => self::FIELD_TYPE_DATE,
+            ],
         ];
     }
 
@@ -77,5 +80,15 @@ class Project extends Entity
     public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->get('updated_at');
+    }
+
+    public function getPublishedAt(): ?\DateTimeImmutable
+    {
+        return $this->get('published_at');
+    }
+
+    public function setPublishedAt(?\DateTime $publishedAt): void
+    {
+        $this->set('published_at', $publishedAt);
     }
 }

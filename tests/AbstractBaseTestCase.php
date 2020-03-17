@@ -47,6 +47,7 @@ abstract class AbstractBaseTestCase extends TestCase
             `status` VARCHAR(20) DEFAULT NULL,
             `owner_id` INTEGER,
             `name` VARCHAR(50) DEFAULT NULL,
+            `published_at` DATE DEFAULT NULL,
             `created_at` DATETIME,
             `updated_at` DATETIME
         )');
@@ -86,6 +87,7 @@ abstract class AbstractBaseTestCase extends TestCase
         $access = new Project();
         $access->setOwnerId($dave->getId());
         $access->setName('Access');
+        $access->setPublishedAt(\DateTime::createFromFormat('Y-m-d', '2019-02-07'));
 
         $this->assertFalse($access->hasId());
 
