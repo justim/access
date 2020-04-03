@@ -194,6 +194,18 @@ abstract class Entity
     }
 
     /**
+     * Has the entity changes
+     *
+     * Setting a field to the same value (===) will not change the output of this check
+     *
+     * @return bool
+     */
+    final public function hasChanges(): bool
+    {
+        return !empty($this->updatedFields);
+    }
+
+    /**
      * Get all the values needed to insert the entity
      *
      * @return array<string, mixed>

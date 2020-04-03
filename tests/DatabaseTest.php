@@ -91,7 +91,9 @@ class DatabaseTest extends AbstractBaseTestCase
         $user = self::$db->findOne(User::class, 1);
         $this->assertNotNull($user);
 
+        $this->assertFalse($user->hasChanges());
         $user->setName('Dave 2');
+        $this->assertTrue($user->hasChanges());
 
         self::$db->update($user);
 
@@ -152,8 +154,8 @@ class DatabaseTest extends AbstractBaseTestCase
     public function testQueryUpdate()
     {
         $query = new Query\Update(Project::class);
-        $query->values([ 'name' => 'Access' ]);
-        $query->where([ 'name = ?' => 'Access' ]);
+        $query->values(['name' => 'Access']);
+        $query->where(['name = ?' => 'Access']);
 
         self::$db->query($query);
 
