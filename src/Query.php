@@ -33,6 +33,10 @@ abstract class Query
     protected const PREFIX_HAVING = 'h';
     protected const PREFIX_SUBQUERY = 's';
 
+    // possible combiners
+    private const COMBINE_WITH_AND = 'AND';
+    private const COMBINE_WITH_OR = 'OR';
+
     /**
      * @var string
      */
@@ -151,7 +155,13 @@ abstract class Query
             $tableName = $tableName::tableName();
         }
 
-        $conditions = $this->processNewCondition($on, null, false);
+        $conditions = $this->processNewCondition(
+            $on,
+            null,
+            false,
+            self::COMBINE_WITH_AND,
+        );
+
         $this->joins[] = [
             'type' => $type,
             'tableName' => $tableName,
@@ -165,13 +175,39 @@ abstract class Query
     /**
      * Add WHERE clause to query
      *
-     * @param array<int|string, mixed>|string $condition List of clauses (joined it AND) or a single one
+     * @param array<int|string, mixed>|string $condition List of clauses (combined with AND) or a single one
      * @param mixed $value Value of the single where clause
      * @return $this
      */
     public function where($condition, $value = null)
     {
-        $newConditions = $this->processNewCondition($condition, $value, func_num_args() === 2);
+        $newConditions = $this->processNewCondition(
+            $condition,
+            $value,
+            func_num_args() === 2,
+            self::COMBINE_WITH_AND,
+        );
+
+        $this->where = array_merge($this->where, $newConditions);
+
+        return $this;
+    }
+
+    /**
+     * Add WHERE clause to query combined with OR
+     *
+     * @param array<int|string, mixed> $conditions List of clauses (combined with OR)
+     * @return $this
+     */
+    public function whereOr(array $conditions)
+    {
+        $newConditions = $this->processNewCondition(
+            $conditions,
+            null,
+            false,
+            self::COMBINE_WITH_OR,
+        );
+
         $this->where = array_merge($this->where, $newConditions);
 
         return $this;
@@ -201,7 +237,13 @@ abstract class Query
      */
     public function having($condition, $value = null)
     {
-        $newConditions = $this->processNewCondition($condition, $value, func_num_args() === 2);
+        $newConditions = $this->processNewCondition(
+            $condition,
+            $value,
+            func_num_args() === 2,
+            self::COMBINE_WITH_AND,
+        );
+
         $this->having = array_merge($this->having, $newConditions);
 
         return $this;
@@ -277,38 +319,40 @@ abstract class Query
      * Get the values used in a list of conditions
      *
      * @param array $indexedValues (by ref) New condition values will added to this array
-     * @param array $conditions List of conditions
+     * @param array $definition Definition of conditions
      * @param string $prefix Prefix used for the indexed values
      */
-    private function getConditionValues(&$indexedValues, array $conditions, string $prefix): void
+    private function getConditionValues(&$indexedValues, array $definition, string $prefix): void
     {
         $i = 0;
-        foreach ($conditions as $condition) {
-            if (!array_key_exists('value', $condition)) {
-                // where part only has a sql part, no value
-                continue;
-            } elseif ($condition['value'] === null) {
-                // sql is converted to `IS NULL`
-                continue;
-            } elseif ($condition['value'] === true || $condition['value'] === false) {
-                $indexedValues[$prefix . $i] = (int) $condition['value'];
-                $i++;
-                continue;
-            } elseif ($condition['value'] instanceof \DateTimeInterface) {
-                $indexedValues[$prefix . $i] = $condition['value']->format(Entity::DATETIME_FORMAT);
-                $i++;
-                continue;
-            } elseif (is_array($condition['value'])) {
-                foreach ($condition['value'] as $conditionValuePart) {
-                    $indexedValues[$prefix . $i] = $conditionValuePart;
+        foreach ($definition as $definitionPart) {
+            foreach ($definitionPart['conditions'] as $condition) {
+                if (!array_key_exists('value', $condition)) {
+                    // where part only has a sql part, no value
+                    continue;
+                } elseif ($condition['value'] === null) {
+                    // sql is converted to `IS NULL`
+                    continue;
+                } elseif ($condition['value'] === true || $condition['value'] === false) {
+                    $indexedValues[$prefix . $i] = (int) $condition['value'];
                     $i++;
+                    continue;
+                } elseif ($condition['value'] instanceof \DateTimeInterface) {
+                    $indexedValues[$prefix . $i] = $condition['value']->format(Entity::DATETIME_FORMAT);
+                    $i++;
+                    continue;
+                } elseif (is_array($condition['value'])) {
+                    foreach ($condition['value'] as $conditionValuePart) {
+                        $indexedValues[$prefix . $i] = $conditionValuePart;
+                        $i++;
+                    }
+
+                    continue;
                 }
 
-                continue;
+                $indexedValues[$prefix . $i] = $condition['value'];
+                $i++;
             }
-
-            $indexedValues[$prefix . $i] = $condition['value'];
-            $i++;
         }
     }
 
@@ -419,57 +463,79 @@ abstract class Query
      * EX: ''
      *
      * @param string $what Type of condition (WHERE/HAVING/ON)
-     * @param array $conditions Definition of the condition
+     * @param array $definition Definition of the condition
      * @param string $prefix Prefix for the placeholders
      * @return string
      */
-    private function getConditionSql(string $what, array $conditions, string $prefix): string
+    private function getConditionSql(string $what, array $definition, string $prefix): string
     {
-        if (empty($conditions)) {
+        if (empty($definition)) {
             return '';
         }
 
-        $conditionParts = [];
+        $resultParts = [];
 
-        foreach ($conditions as $condition) {
-            if (!array_key_exists('value', $condition)) {
+        foreach ($definition as $definitionPart) {
+            $conditionParts = [];
+
+            foreach ($definitionPart['conditions'] as $condition) {
+                if (!array_key_exists('value', $condition)) {
+                    $conditionParts[] = $condition['condition'];
+                    continue;
+                } elseif ($condition['value'] === null) {
+                    $conditionParts[] = str_replace(
+                        [
+                            '!= ?',
+                            '= ?',
+                        ],
+                        [
+                            'IS NOT NULL',
+                            'IS NULL',
+                        ],
+                        $condition['condition'],
+                    );
+
+                    continue;
+                } elseif (is_array($condition['value'])) {
+                    $conditionParts[] = str_replace(
+                        '?',
+                        implode(', ', array_fill(0, count($condition['value']), '?')),
+                        $condition['condition'],
+                    );
+
+                    continue;
+                }
+
                 $conditionParts[] = $condition['condition'];
-                continue;
-            } elseif ($condition['value'] === null) {
-                $conditionParts[] = str_replace(
-                    [
-                        '!= ?',
-                        '= ?',
-                    ],
-                    [
-                        'IS NOT NULL',
-                        'IS NULL',
-                    ],
-                    $condition['condition'],
-                );
-
-                continue;
-            } elseif (is_array($condition['value'])) {
-                $conditionParts[] = str_replace(
-                    '?',
-                    implode(', ', array_fill(0, count($condition['value']), '?')),
-                    $condition['condition'],
-                );
-
-                continue;
             }
 
-            $conditionParts[] = $condition['condition'];
+            $enclosedConditionParts = $conditionParts;
+
+            // prevent double parentheses, they look ugly and are harder to read
+            if (count($conditionParts) > 1) {
+                $enclosedConditionParts = array_map(
+                    function ($conditionPart) {
+                        return "($conditionPart)";
+                    },
+                    $conditionParts
+                );
+            }
+
+            $combineWithSql = $this->getCombineWithSql($definitionPart['combineWith']);
+            $condition = implode($combineWithSql, $enclosedConditionParts);
+
+            $resultParts[] = $condition;
         }
 
-        $enclosedConditionParts = array_map(
+        $enclosedResultParts = array_map(
             function ($conditionPart) {
                 return "($conditionPart)";
             },
-            $conditionParts
+            $resultParts,
         );
 
-        $condition = implode(' AND ', $enclosedConditionParts);
+        $combineWithSql = $this->getCombineWithSql(self::COMBINE_WITH_AND);
+        $condition = implode($combineWithSql, $enclosedResultParts);
         $sqlCondition = " {$what} {$condition}";
 
         return $this->replaceQuestionMarks($sqlCondition, $prefix);
@@ -527,6 +593,26 @@ abstract class Query
     }
 
     /**
+     * Get SQL for combine with
+     *
+     * Ex: self::COMBINE_WITH_AND => ' AND '
+     *
+     * @param string $combineWith Combine conditions with (AND or OR)
+     * @return string
+     */
+    private function getCombineWithSql(string $combineWith): string
+    {
+        switch ($combineWith) {
+            case self::COMBINE_WITH_OR:
+                return ' OR ';
+
+            case self::COMBINE_WITH_AND:
+            default:
+                return ' AND ';
+        }
+    }
+
+    /**
      * Escape identifier
      *
      * MySQL only
@@ -562,13 +648,18 @@ abstract class Query
     /**
      * Process condition input
      *
-     * @param array|string $condition List of clauses (joined it AND) or a single one
+     * @param array|string $condition List of clauses or a single one
      * @param mixed $value Value of the single condition
      * @param bool $valueWasProvided Was the value provided
+     * @param string $combineWith Combine conditions with (AND or OR)
      * @return array
      */
-    private function processNewCondition($condition, $value, bool $valueWasProvided): array
-    {
+    private function processNewCondition(
+        $condition,
+        $value,
+        bool $valueWasProvided,
+        string $combineWith
+    ): array {
         if (!is_array($condition)) {
             /** @psalm-suppress DocblockTypeContradiction */
             if (!is_string($condition)) {
@@ -578,15 +669,25 @@ abstract class Query
             if ($valueWasProvided) {
                 return [
                     [
-                        'condition' => $condition,
-                        'value' => $value,
+                        'combineWith' => $combineWith,
+                        'conditions' => [
+                            [
+                                'condition' => $condition,
+                                'value' => $value,
+                            ],
+                        ],
                     ],
                 ];
             }
 
             return [
                 [
-                    'condition' => $condition,
+                    'combineWith' => $combineWith,
+                    'conditions' => [
+                        [
+                            'condition' => $condition,
+                        ],
+                    ],
                 ],
             ];
         }
@@ -613,6 +714,15 @@ abstract class Query
             ];
         }
 
-        return $result;
+        if (empty($result)) {
+            return [];
+        }
+
+        return [
+            [
+                'combineWith' => $combineWith,
+                'conditions' => $result,
+            ],
+        ];
     }
 }

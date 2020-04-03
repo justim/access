@@ -132,4 +132,22 @@ class DebugQueryTest extends AbstractBaseTestCase
             $runnableSql,
         );
     }
+
+    public function testQueryWhereOr(): void
+    {
+        $query = new Query\Select(User::class, 'u');
+        $query->whereOr([
+            'u.id = ?' => 1,
+            'u.name = ?' => 'Dave',
+        ]);
+
+        $debug = new DebugQuery($query);
+
+        $runnableSql = $debug->toRunnableQuery();
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` WHERE ((u.id = 1) OR (u.name = "Dave"))',
+            $runnableSql,
+        );
+    }
 }

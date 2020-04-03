@@ -149,7 +149,7 @@ class SelectTest extends TestCase
         $this->assertEquals(
             'SELECT `u`.*, (SELECT COUNT(p.id) FROM `projects` AS `p` WHERE '
                 . '(p.user_id = u.id) AND (p.status = :s0w0)) AS `total_projects` FROM `users` AS `u` '
-                . 'INNER JOIN `projects` AS `pp` ON (pp.user_id = u.id) AND (pp.id = :j0j0) '
+                . 'INNER JOIN `projects` AS `pp` ON ((pp.user_id = u.id) AND (pp.id = :j0j0)) '
                 . 'WHERE (u.first_name = :w0)',
             $query->getSql()
         );
