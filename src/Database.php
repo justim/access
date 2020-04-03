@@ -244,6 +244,30 @@ class Database
     }
 
     /**
+     * Execute a select query with a entity provider
+     *
+     * @psalm-template TEntity of Entity
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param EntityProvider $entityProvider Creator the empty enitty shells
+     * @param Query\Select $query Select query to be executed
+     * @return \Generator - yields Entity
+     */
+    public function selectWithEntityProvider(
+        EntityProvider $entityProvider,
+        Query\Select $query
+    ): \Generator {
+        $stmt = new Statement($this, $this->profiler, $query);
+
+        /** @var array<string, mixed> $record */
+        foreach ($stmt->execute() as $record) {
+            $model = $entityProvider->create();
+            $model->hydrate($record);
+            yield $model->getId() => $model;
+        }
+    }
+
+    /**
      * Execute a select query
      *
      * @psalm-template TEntity of Entity
@@ -258,14 +282,12 @@ class Database
     {
         $this->assertValidEntityClass($klass);
 
-        $stmt = new Statement($this, $this->profiler, $query);
+        $entityProvider = new EntityProvider($klass);
 
-        /** @var array<string, mixed> $record */
-        foreach ($stmt->execute() as $record) {
-            $model = new $klass();
-            $model->hydrate($record);
-            yield $model->getId() => $model;
-        }
+        return $this->selectWithEntityProvider(
+            $entityProvider,
+            $query,
+        );
     }
 
     /**
@@ -433,7 +455,8 @@ class Database
      */
     private function assertValidRepositoryClass(string $repositoryClassName): void
     {
-        if (!is_subclass_of($repositoryClassName, Repository::class) &&
+        if (
+            !is_subclass_of($repositoryClassName, Repository::class) &&
             $repositoryClassName !== Repository::class
         ) {
             throw new Exception('Invalid repository: ' . $repositoryClassName);

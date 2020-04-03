@@ -213,7 +213,7 @@ abstract class Entity
     final public function getInsertValues(): array
     {
         $values = [];
-        $fields = static::fields();
+        $fields = $this->getResolvedFields();
 
         foreach ($fields as $field => $options) {
             if (isset($options['virtual']) && $options['virtual'] === true) {
@@ -257,7 +257,7 @@ abstract class Entity
     {
         /** @var array<string, mixed> $values */
         $values = [];
-        $fields = static::fields();
+        $fields = $this->getResolvedFields();
 
         foreach ($this->updatedFields as $field => $value) {
             if (isset($fields[$field])) {
@@ -295,9 +295,10 @@ abstract class Entity
 
         if ($updatedFields !== null) {
             foreach ($updatedFields as $field => $value) {
-                if (static::timestamps() &&
+                if (
+                    static::timestamps() &&
                     ($field === self::CREATED_AT_FIELD ||
-                    $field === self::UPDATED_AT_FIELD)
+                        $field === self::UPDATED_AT_FIELD)
                 ) {
                     $this->values[$field] = $this->fromDatabaseFormatValue(
                         self::FIELD_TYPE_DATETIME,
@@ -327,9 +328,10 @@ abstract class Entity
                 continue;
             }
 
-            if (static::timestamps() &&
+            if (
+                static::timestamps() &&
                 ($field === self::CREATED_AT_FIELD ||
-                $field === self::UPDATED_AT_FIELD)
+                    $field === self::UPDATED_AT_FIELD)
             ) {
                 $this->values[$field] = $this->fromDatabaseFormatValue(
                     self::FIELD_TYPE_DATETIME,
@@ -358,7 +360,7 @@ abstract class Entity
      */
     private function toDatabaseFormat(string $field, $value)
     {
-        $fields = static::fields();
+        $fields = $this->getResolvedFields();
 
         if (isset($fields[$field])) {
             $options = $fields[$field];
@@ -418,7 +420,7 @@ abstract class Entity
      */
     private function fromDatabaseFormat(string $field, $value)
     {
-        $fields = static::fields();
+        $fields = $this->getResolvedFields();
 
         if (isset($fields[$field])) {
             $options = $fields[$field];
@@ -498,5 +500,18 @@ abstract class Entity
             $date->format('Y-m-d H:i:s.u'),
             $date->getTimezone()
         );
+    }
+
+    /**
+     * Get the (resolved) field definitions
+     *
+     * Defaults to `self::fields`
+     *
+     * @return array<string, mixed>
+     * @psalm-return array<string, array{default: mixed, type: string, virual: bool}>
+     */
+    protected function getResolvedFields(): array
+    {
+        return static::fields();
     }
 }

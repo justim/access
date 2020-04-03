@@ -59,4 +59,17 @@ class ProjectRepository extends Repository
 
         $this->query($query);
     }
+
+    public function findTotalCount(): int
+    {
+        $query = new Select(Project::class, 'p', [
+            'total' => 'COUNT(*)',
+        ]);
+
+        return $this->selectOneVirtualField(
+            $query,
+            'total',
+            'int',
+        );
+    }
 }

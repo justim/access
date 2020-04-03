@@ -17,6 +17,8 @@ use Access\Batch;
 use Access\Collection;
 use Access\Database;
 use Access\Entity;
+use Access\EntityProvider\VirtualFieldEntity;
+use Access\EntityProvider\VirtualFieldEntityProvider;
 use Access\Query;
 
 /**
@@ -256,6 +258,71 @@ class Repository
         $collection->fromIterable($result);
 
         return $collection;
+    }
+
+    /**
+     * Select a virtual field in a query
+     *
+     * Useful to only fetch counts
+     *
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param string $virtualFieldName Field name to return
+     * @return \Generator
+     */
+    public function selectVirtualField(
+        Query\Select $query,
+        string $virtualFieldName,
+        string $virtualType = null
+    ): \Generator {
+        $entityProvider = new VirtualFieldEntityProvider($virtualFieldName, $virtualType);
+
+        $entities = $this->db->selectWithEntityProvider(
+            $entityProvider,
+            $query,
+        );
+
+        /** @var VirtualFieldEntity $entity */
+        foreach ($entities as $entity) {
+            if ($entity->hasId()) {
+                yield $entity->getId() => $entity->getVirtualField();
+            } else {
+                yield null => $entity->getVirtualField();
+            }
+        }
+    }
+
+    /**
+     * Select one virtual field in a query
+     *
+     * Useful to only fetch counts
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param string $virtualFieldName Field name to return
+     * @param string $virtualType Type of the virtual field
+     * @return mixed
+     */
+    public function selectOneVirtualField(
+        Query\Select $query,
+        string $virtualFieldName,
+        string $virtualType = null
+    ) {
+        $query->limit(1);
+
+        $gen = $this->selectVirtualField(
+            $query,
+            $virtualFieldName,
+            $virtualType,
+        );
+
+        $records = iterator_to_array($gen, false);
+
+        if (!empty($records)) {
+            return $records[0];
+        }
+
+        return null;
     }
 
     /**

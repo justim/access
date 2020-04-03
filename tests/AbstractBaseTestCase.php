@@ -87,7 +87,7 @@ abstract class AbstractBaseTestCase extends TestCase
         $access = new Project();
         $access->setOwnerId($dave->getId());
         $access->setName('Access');
-        $access->setPublishedAt(\DateTime::createFromFormat('Y-m-d', '2019-02-07'));
+        $access->setPublishedAt(\DateTime::createFromFormat('Y-m-d', '2019-02-07') ?: null);
 
         $this->assertFalse($access->hasId());
 

@@ -83,4 +83,20 @@ class RepositoryTest extends AbstractBaseTestCase
             count(iterator_to_array($projects)),
         );
     }
+
+    /**
+     * @depends testInsert
+     */
+    public function testSelectVirtualField(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+
+        $total = $projectRepo->findTotalCount();
+
+        $this->assertEquals(
+            2,
+            $total,
+        );
+    }
 }
