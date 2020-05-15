@@ -99,4 +99,32 @@ class RepositoryTest extends AbstractBaseTestCase
             $total,
         );
     }
+
+    /**
+     * @depends testInsert
+     */
+    public function testSelectdBatched(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+
+        $batches = $projectRepo->findBatchedAll();
+
+        $countBatches = 0;
+        $countEntities = 0;
+        foreach ($batches as $batch) {
+            $this->assertEquals(1, count($batch));
+
+            foreach ($batch as $project) {
+                $this->assertTrue($project->hasId());
+
+                $countEntities++;
+            }
+
+            $countBatches++;
+        }
+
+        $this->assertEquals(2, $countBatches);
+        $this->assertEquals(2, $countEntities);
+    }
 }

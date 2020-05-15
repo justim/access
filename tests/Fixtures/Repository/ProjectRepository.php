@@ -72,4 +72,11 @@ class ProjectRepository extends Repository
             'int',
         );
     }
+
+    public function findBatchedAll(): \Generator
+    {
+        $query = new Select(Project::class, 'p');
+
+        return $this->selectBatched($query, 1);
+    }
 }

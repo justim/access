@@ -24,15 +24,17 @@ use Access\Collection;
  */
 class Batch extends Collection
 {
-    private const MAX_BATCH_SIZE = 100;
+    private const DEFAULT_BATCH_SIZE = 100;
 
     /**
      * Is this batch full?
      *
+     * @param int|null $batchSize Size of the batches
      * @return bool
      */
-    public function isFull(): bool
+    public function isFull(?int $batchSize = null): bool
     {
-        return count($this) === self::MAX_BATCH_SIZE;
+        $batchSize ??= self::DEFAULT_BATCH_SIZE;
+        return count($this) >= $batchSize;
     }
 }

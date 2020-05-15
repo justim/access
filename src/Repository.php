@@ -219,8 +219,9 @@ class Repository
      * Execute a select query in a batched fashion
      *
      * @param Query\Select $query Select query to be executed
+     * @param int|null $batchSize Size of the batches
      */
-    public function selectBatched(Query\Select $query): \Generator
+    public function selectBatched(Query\Select $query, int $batchSize = null): \Generator
     {
         $batch = new Batch($this->db);
 
@@ -229,7 +230,7 @@ class Repository
         foreach ($result as $entity) {
             $batch->addEntity($entity);
 
-            if ($batch->isFull()) {
+            if ($batch->isFull($batchSize)) {
                 yield $batch;
 
                 $batch = new Batch($this->db);
