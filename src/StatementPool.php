@@ -53,7 +53,7 @@ final class StatementPool
      *
      * Returns previously prepared statement when available
      *
-     * @params string $sql
+     * @param string $sql
      * @return \PDOStatement
      */
     public function prepare(string $sql): \PDOStatement
