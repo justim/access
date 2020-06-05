@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Access\EntityProvider;
 
-use Access\Entity;
 use Access\EntityProvider;
 
 /**
@@ -43,10 +42,8 @@ class VirtualFieldEntityProvider extends EntityProvider
      * @param string $virtualFieldName Name of the virtual field
      * @param string|null $virtualType Type of the virtual field
      */
-    public function __construct(
-        string $virtualFieldName,
-        ?string $virtualType
-    ) {
+    public function __construct(string $virtualFieldName, ?string $virtualType)
+    {
         $this->virtualFieldName = $virtualFieldName;
         $this->virtualType = $virtualType;
 
@@ -60,9 +57,6 @@ class VirtualFieldEntityProvider extends EntityProvider
      */
     public function create(): VirtualFieldEntity
     {
-        return new VirtualFieldEntity(
-            $this->virtualFieldName,
-            $this->virtualType,
-        );
+        return new VirtualFieldEntity($this->virtualFieldName, $this->virtualType);
     }
 }

@@ -117,7 +117,7 @@ class Repository
                     // droppping the whole condition is risky because you may
                     // over-select a whole bunch of records, better is to
                     // under-select.
-                    $condition = "1 = 2";
+                    $condition = '1 = 2';
                 }
             }
 
@@ -279,10 +279,7 @@ class Repository
     ): \Generator {
         $entityProvider = new VirtualFieldEntityProvider($virtualFieldName, $virtualType);
 
-        $entities = $this->db->selectWithEntityProvider(
-            $entityProvider,
-            $query,
-        );
+        $entities = $this->db->selectWithEntityProvider($entityProvider, $query);
 
         /** @var VirtualFieldEntity $entity */
         foreach ($entities as $entity) {
@@ -311,11 +308,7 @@ class Repository
     ) {
         $query->limit(1);
 
-        $gen = $this->selectVirtualField(
-            $query,
-            $virtualFieldName,
-            $virtualType,
-        );
+        $gen = $this->selectVirtualField($query, $virtualFieldName, $virtualType);
 
         $records = iterator_to_array($gen, false);
 

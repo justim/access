@@ -42,10 +42,8 @@ class VirtualFieldEntity extends Entity
      * @param string $virtualFieldName Name of the virtual field
      * @param string|null $virtualType Type of the virtual field
      */
-    public function __construct(
-        string $virtualFieldName,
-        ?string $virtualType
-    ) {
+    public function __construct(string $virtualFieldName, ?string $virtualType)
+    {
         $this->virtualFieldName = $virtualFieldName;
         $this->virtualType = $virtualType;
     }

@@ -50,11 +50,7 @@ class DebugQuery
         $values = $this->query->getValues();
 
         foreach ($values as $placeholder => $value) {
-            $sql = str_replace(
-                ":$placeholder",
-                $this->toSqlValue($value),
-                $sql,
-            );
+            $sql = str_replace(":$placeholder", $this->toSqlValue($value), $sql);
         }
 
         return $sql;
@@ -78,9 +74,6 @@ class DebugQuery
 
         // bools and dates are already processed
 
-        return sprintf(
-            '"%s"',
-            addslashes((string) $value),
-        );
+        return sprintf('"%s"', addslashes((string) $value));
     }
 }

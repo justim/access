@@ -84,21 +84,18 @@ class Profiler
         return [
             'duration' => $this->getTotalDuration(),
             'durationWithHydrate' => $this->getTotalDurationWithHydrate(),
-            'queries' => array_map(
-                function (QueryProfile $queryProfile) {
-                    $query = $queryProfile->getQuery();
-                    $debugQuery = new DebugQuery($query);
+            'queries' => array_map(function (QueryProfile $queryProfile) {
+                $query = $queryProfile->getQuery();
+                $debugQuery = new DebugQuery($query);
 
-                    return [
-                        'sql' => $query->getSql(),
-                        'values' => $query->getValues(),
-                        'runnableSql' => $debugQuery->toRunnableQuery(),
-                        'duration' => $queryProfile->getTotalDuration(),
-                        'durationWithHydrate' => $queryProfile->getTotalDurationWithHydrate(),
-                    ];
-                },
-                $this->queryProfiles
-            ),
+                return [
+                    'sql' => $query->getSql(),
+                    'values' => $query->getValues(),
+                    'runnableSql' => $debugQuery->toRunnableQuery(),
+                    'duration' => $queryProfile->getTotalDuration(),
+                    'durationWithHydrate' => $queryProfile->getTotalDurationWithHydrate(),
+                ];
+            }, $this->queryProfiles),
         ];
     }
 }

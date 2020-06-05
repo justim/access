@@ -56,6 +56,6 @@ class Update extends Query
         $sqlWhere = $this->getWhereSql();
         $sqlLimit = $this->getLimitSql();
 
-        return $sqlUpdate. $sqlAlias . $sqlFields . $sqlWhere . $sqlLimit;
+        return $sqlUpdate . $sqlAlias . $sqlFields . $sqlWhere . $sqlLimit;
     }
 }

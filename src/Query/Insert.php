@@ -36,11 +36,9 @@ class Insert extends Query
      */
     public function getSql(): ?string
     {
-        $sqlInsert = 'INSERT INTO ' .
-            $this->escapeIdentifier($this->tableName);
+        $sqlInsert = 'INSERT INTO ' . $this->escapeIdentifier($this->tableName);
         $sqlFields = ' (' . implode(', ', array_keys($this->values)) . ')';
-        $sqlValues = ' VALUES (' .
-            implode(', ', array_fill(0, count($this->values), '?')) . ')';
+        $sqlValues = ' VALUES (' . implode(', ', array_fill(0, count($this->values), '?')) . ')';
 
         $sql = $sqlInsert . $sqlFields . $sqlValues;
 

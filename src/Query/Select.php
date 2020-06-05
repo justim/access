@@ -75,8 +75,14 @@ class Select extends Query
         $sqlLimit = $this->getLimitSql();
 
         return $sqlSelect .
-            $sqlFrom . $sqlAlias . $sqlJoins . $sqlWhere .
-            $sqlGroupBy . $sqlHaving . $sqlOrderBy . $sqlLimit;
+            $sqlFrom .
+            $sqlAlias .
+            $sqlJoins .
+            $sqlWhere .
+            $sqlGroupBy .
+            $sqlHaving .
+            $sqlOrderBy .
+            $sqlLimit;
     }
 
     /**

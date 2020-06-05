@@ -49,6 +49,6 @@ class EntityProvider
      */
     public function create(): Entity
     {
-        return new $this->klass;
+        return new $this->klass();
     }
 }

@@ -84,7 +84,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function getIds(): array
     {
-        return array_map(fn (Entity $entity) => $entity->getId(), $this->entities);
+        return array_map(fn(Entity $entity) => $entity->getId(), $this->entities);
     }
 
     /**

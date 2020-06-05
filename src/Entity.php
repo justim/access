@@ -236,12 +236,12 @@ abstract class Entity
         if (static::timestamps()) {
             $values['created_at'] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
-                new \DateTimeImmutable()
+                new \DateTimeImmutable(),
             );
 
             $values['updated_at'] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
-                new \DateTimeImmutable()
+                new \DateTimeImmutable(),
             );
         }
 
@@ -274,7 +274,7 @@ abstract class Entity
         if (!empty($values) && static::timestamps()) {
             $values['updated_at'] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
-                new \DateTimeImmutable()
+                new \DateTimeImmutable(),
             );
         }
 
@@ -297,19 +297,21 @@ abstract class Entity
             foreach ($updatedFields as $field => $value) {
                 if (
                     static::timestamps() &&
-                    ($field === self::CREATED_AT_FIELD ||
-                        $field === self::UPDATED_AT_FIELD)
+                    ($field === self::CREATED_AT_FIELD || $field === self::UPDATED_AT_FIELD)
                 ) {
                     $this->values[$field] = $this->fromDatabaseFormatValue(
                         self::FIELD_TYPE_DATETIME,
-                        $value
+                        $value,
                     );
 
                     continue;
                 }
 
                 if (!array_key_exists($field, $this->values)) {
-                    $this->values[(string) $field] = $this->fromDatabaseFormat((string) $field, $value);
+                    $this->values[(string) $field] = $this->fromDatabaseFormat(
+                        (string) $field,
+                        $value,
+                    );
                 }
             }
         }
@@ -330,12 +332,11 @@ abstract class Entity
 
             if (
                 static::timestamps() &&
-                ($field === self::CREATED_AT_FIELD ||
-                    $field === self::UPDATED_AT_FIELD)
+                ($field === self::CREATED_AT_FIELD || $field === self::UPDATED_AT_FIELD)
             ) {
                 $this->values[$field] = $this->fromDatabaseFormatValue(
                     self::FIELD_TYPE_DATETIME,
-                    $value
+                    $value,
                 );
 
                 continue;
@@ -393,14 +394,12 @@ abstract class Entity
                 return intval($value);
             case self::FIELD_TYPE_DATETIME:
                 /** @var \DateTimeInterface $value */
-                return $this
-                    ->fromMutable($value)
+                return $this->fromMutable($value)
                     ->setTimezone(new \DateTimeZone('UTC'))
                     ->format(self::DATETIME_FORMAT);
             case self::FIELD_TYPE_DATE:
                 /** @var \DateTimeInterface $value */
-                return $this
-                    ->fromMutable($value)
+                return $this->fromMutable($value)
                     ->setTimezone(new \DateTimeZone('UTC'))
                     ->format(self::DATE_FORMAT);
             case self::FIELD_TYPE_JSON:
@@ -461,7 +460,7 @@ abstract class Entity
                 return \DateTimeImmutable::createFromFormat(
                     self::DATETIME_FORMAT,
                     $value,
-                    new \DateTimeZone('UTC')
+                    new \DateTimeZone('UTC'),
                 );
             case self::FIELD_TYPE_DATE:
                 if (!is_string($value)) {
@@ -471,7 +470,7 @@ abstract class Entity
                 return \DateTimeImmutable::createFromFormat(
                     self::DATE_FORMAT,
                     $value,
-                    new \DateTimeZone('UTC')
+                    new \DateTimeZone('UTC'),
                 );
             case self::FIELD_TYPE_JSON:
                 if (!is_string($value)) {
@@ -496,10 +495,7 @@ abstract class Entity
             return $date;
         }
 
-        return new \DateTimeImmutable(
-            $date->format('Y-m-d H:i:s.u'),
-            $date->getTimezone()
-        );
+        return new \DateTimeImmutable($date->format('Y-m-d H:i:s.u'), $date->getTimezone());
     }
 
     /**

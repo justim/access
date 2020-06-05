@@ -238,8 +238,11 @@ class Database
      * @param string $orderBy The order to use to find all entities
      * @return \Generator - yields Entity
      */
-    public function findAll(string $klass, ?int $limit = null, string $orderBy = 'id ASC'): \Generator
-    {
+    public function findAll(
+        string $klass,
+        ?int $limit = null,
+        string $orderBy = 'id ASC'
+    ): \Generator {
         yield from $this->getRepository($klass)->findAll($limit, $orderBy);
     }
 
@@ -284,10 +287,7 @@ class Database
 
         $entityProvider = new EntityProvider($klass);
 
-        return $this->selectWithEntityProvider(
-            $entityProvider,
-            $query,
-        );
+        return $this->selectWithEntityProvider($entityProvider, $query);
     }
 
     /**
@@ -420,7 +420,9 @@ class Database
     public function query(Query $query): void
     {
         if ($query instanceof Query\Select) {
-            throw new Exception('Method does not allow select queries, use `select` or `selectOne`');
+            throw new Exception(
+                'Method does not allow select queries, use `select` or `selectOne`',
+            );
         }
 
         $stmt = new Statement($this, $this->profiler, $query);

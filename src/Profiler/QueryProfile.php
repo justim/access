@@ -168,8 +168,7 @@ class QueryProfile
      */
     public function getTotalDuration(): float
     {
-        return $this->getPrepareDuration()
-            + $this->getExecuteDuration();
+        return $this->getPrepareDuration() + $this->getExecuteDuration();
     }
 
     /**
@@ -183,8 +182,8 @@ class QueryProfile
      */
     public function getTotalDurationWithHydrate(): float
     {
-        return $this->getPrepareDuration()
-            + $this->getExecuteDuration()
-            + $this->getHydrateDuration();
+        return $this->getPrepareDuration() +
+            $this->getExecuteDuration() +
+            $this->getHydrateDuration();
     }
 }

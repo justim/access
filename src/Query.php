@@ -114,12 +114,7 @@ abstract class Query
      */
     public function leftJoin(string $tableName, string $alias, $on)
     {
-        return $this->join(
-            self::JOIN_TYPE_LEFT,
-            $tableName,
-            $alias,
-            $on
-        );
+        return $this->join(self::JOIN_TYPE_LEFT, $tableName, $alias, $on);
     }
 
     /**
@@ -132,12 +127,7 @@ abstract class Query
      */
     public function innerJoin(string $tableName, string $alias, $on)
     {
-        return $this->join(
-            self::JOIN_TYPE_INNER,
-            $tableName,
-            $alias,
-            $on
-        );
+        return $this->join(self::JOIN_TYPE_INNER, $tableName, $alias, $on);
     }
 
     /**
@@ -155,12 +145,7 @@ abstract class Query
             $tableName = $tableName::tableName();
         }
 
-        $conditions = $this->processNewCondition(
-            $on,
-            null,
-            false,
-            self::COMBINE_WITH_AND,
-        );
+        $conditions = $this->processNewCondition($on, null, false, self::COMBINE_WITH_AND);
 
         $this->joins[] = [
             'type' => $type,
@@ -306,7 +291,11 @@ abstract class Query
         }
 
         foreach ($this->joins as $i => $join) {
-            $this->getConditionValues($indexedValues, $join['on'], self::PREFIX_JOIN . $i . self::PREFIX_JOIN);
+            $this->getConditionValues(
+                $indexedValues,
+                $join['on'],
+                self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
+            );
         }
 
         $this->getConditionValues($indexedValues, $this->where, self::PREFIX_WHERE);
@@ -338,7 +327,9 @@ abstract class Query
                     $i++;
                     continue;
                 } elseif ($condition['value'] instanceof \DateTimeInterface) {
-                    $indexedValues[$prefix . $i] = $condition['value']->format(Entity::DATETIME_FORMAT);
+                    $indexedValues[$prefix . $i] = $condition['value']->format(
+                        Entity::DATETIME_FORMAT,
+                    );
                     $i++;
                     continue;
                 } elseif (is_array($condition['value'])) {
@@ -409,7 +400,11 @@ abstract class Query
                     break;
             }
 
-            $onSql = $this->getConditionSql('ON', $join['on'], self::PREFIX_JOIN . $i . self::PREFIX_JOIN);
+            $onSql = $this->getConditionSql(
+                'ON',
+                $join['on'],
+                self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
+            );
             $sql .= "{$escapedJoinTableName} AS {$escapedAlias}{$onSql}";
 
             $i++;
@@ -417,7 +412,7 @@ abstract class Query
             return $sql;
         }, $this->joins);
 
-        $sqlJoins = !empty($joins) ? ' ' . implode(" ", $joins) : '';
+        $sqlJoins = !empty($joins) ? ' ' . implode(' ', $joins) : '';
 
         return $sqlJoins;
     }
@@ -432,11 +427,7 @@ abstract class Query
      */
     protected function getWhereSql(): string
     {
-        return $this->getConditionSql(
-            'WHERE',
-            $this->where,
-            self::PREFIX_WHERE
-        );
+        return $this->getConditionSql('WHERE', $this->where, self::PREFIX_WHERE);
     }
 
     /**
@@ -449,11 +440,7 @@ abstract class Query
      */
     protected function getHavingSql(): string
     {
-        return $this->getConditionSql(
-            'HAVING',
-            $this->having,
-            self::PREFIX_HAVING
-        );
+        return $this->getConditionSql('HAVING', $this->having, self::PREFIX_HAVING);
     }
 
     /**
@@ -484,14 +471,8 @@ abstract class Query
                     continue;
                 } elseif ($condition['value'] === null) {
                     $conditionParts[] = str_replace(
-                        [
-                            '!= ?',
-                            '= ?',
-                        ],
-                        [
-                            'IS NOT NULL',
-                            'IS NULL',
-                        ],
+                        ['!= ?', '= ?'],
+                        ['IS NOT NULL', 'IS NULL'],
                         $condition['condition'],
                     );
 
@@ -514,10 +495,8 @@ abstract class Query
             // prevent double parentheses, they look ugly and are harder to read
             if (count($conditionParts) > 1) {
                 $enclosedConditionParts = array_map(
-                    function ($conditionPart) {
-                        return "($conditionPart)";
-                    },
-                    $conditionParts
+                    fn($conditionPart) => "($conditionPart)",
+                    $conditionParts,
                 );
             }
 
@@ -527,12 +506,7 @@ abstract class Query
             $resultParts[] = $condition;
         }
 
-        $enclosedResultParts = array_map(
-            function ($conditionPart) {
-                return "($conditionPart)";
-            },
-            $resultParts,
-        );
+        $enclosedResultParts = array_map(fn($conditionPart) => "($conditionPart)", $resultParts);
 
         $combineWithSql = $this->getCombineWithSql(self::COMBINE_WITH_AND);
         $condition = implode($combineWithSql, $enclosedResultParts);
@@ -641,7 +615,7 @@ abstract class Query
                 /** @var int $i */
                 return ':' . $prefix . (string) $i++;
             },
-            $sql
+            $sql,
         );
     }
 

@@ -102,12 +102,7 @@ class Lock
 
         $locks = implode(', ', $this->locks);
 
-        $lockQuery = new Query\Raw(
-            sprintf(
-                'LOCK TABLES %s',
-                $locks
-            )
-        );
+        $lockQuery = new Query\Raw(sprintf('LOCK TABLES %s', $locks));
 
         $this->db->query($lockQuery);
         $this->locked = true;
@@ -122,9 +117,7 @@ class Lock
             return;
         }
 
-        $unlockQuery = new Query\Raw(
-            'UNLOCK TABLES',
-        );
+        $unlockQuery = new Query\Raw('UNLOCK TABLES');
 
         $this->db->query($unlockQuery);
         $this->locked = false;

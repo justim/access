@@ -4,3 +4,5 @@ composer.lock
 /build/
 .phpunit.result.cache
 /xdebug
+/node_modules
+/yarn.lock
