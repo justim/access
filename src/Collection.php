@@ -229,10 +229,13 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * NOTE: uses `usort` with $comparer as compare function
      *
      * @param callable $comparer Function to sort/compare with
+     * @return $this
      */
-    public function sort(callable $comparer): void
+    public function sort(callable $comparer): self
     {
         usort($this->entities, $comparer);
+
+        return $this;
     }
 
     /**
@@ -249,6 +252,25 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
             $value = $mapper($entity);
 
             $result[] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Create a new filtered collection
+     *
+     * @param callable $finder Include entity when $finder returns `true`
+     * @return Collection Newly created, and filtered, collection
+     */
+    public function filter(callable $finder): Collection
+    {
+        $result = new self($this->db);
+
+        foreach ($this->entities as $entity) {
+            if ($finder($entity)) {
+                $result->addEntity($entity);
+            }
         }
 
         return $result;
