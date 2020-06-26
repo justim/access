@@ -135,6 +135,23 @@ class Repository
     }
 
     /**
+     * Find a list of entities by searching for column values as collection
+     *
+     * @param array<string, mixed> $fields List of fields with values
+     * @param ?int $limit A a limit to the query
+     * @return Collection Collection with `Entity`s
+     */
+    public function findByAsCollection($fields, int $limit = null): Collection
+    {
+        $iterator = $this->findBy($fields, $limit);
+
+        $collection = new Collection($this->db);
+        $collection->fromIterable($iterator);
+
+        return $collection;
+    }
+
+    /**
      * Find multiple entities by its ID
      *
      * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
@@ -150,6 +167,23 @@ class Repository
         ];
 
         yield from $this->findBy($fields, $limit);
+    }
+
+    /**
+     * Find multiple entities by its ID as a collection
+     *
+     * @param int[] $ids
+     * @param int $limit
+     * @return Collection Collection with `Entity`s
+     */
+    public function findByIdsAsCollection(array $ids, int $limit = null): Collection
+    {
+        $iterator = $this->findByIds($ids, $limit);
+
+        $collection = new Collection($this->db);
+        $collection->fromIterable($iterator);
+
+        return $collection;
     }
 
     /**

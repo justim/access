@@ -75,6 +75,16 @@ class Profiler
     }
 
     /**
+     * Return number of query profiles
+     *
+     * @return int
+     */
+    public function count(): int
+    {
+        return count($this->queryProfiles);
+    }
+
+    /**
      * Get a flat export of query profiles
      *
      * @return array

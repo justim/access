@@ -20,6 +20,7 @@ use Access\Collection;
  *
  * Specialized implementation of a collection
  *
+ * @psalm-template TEntity of Entity
  * @author Tim <me@justim.net>
  */
 class Batch extends Collection

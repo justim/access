@@ -18,6 +18,7 @@ use Access\Collection\Iterator;
 use Access\Database;
 use Access\Entity;
 use Access\Exception;
+use Access\Presenter;
 
 /**
  * Collection of entities
@@ -274,6 +275,24 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
         }
 
         return $result;
+    }
+
+    /**
+     * Present collection as a simple array
+     *
+     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-param class-string<TEntityPresenter> $presenterKlass
+     *
+     * @param string $presenterKlass Class to present the collection with
+     * @return array
+     */
+    public function present(string $presenterKlass): array
+    {
+        $this->db->assertValidPresenterClass($presenterKlass);
+
+        $presenter = new Presenter($this->db);
+
+        return $presenter->presentCollection($presenterKlass, $this);
     }
 
     /**

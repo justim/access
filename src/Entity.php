@@ -150,6 +150,16 @@ abstract class Entity
     }
 
     /**
+     * Get the values behind this entity
+     *
+     * @return array
+     */
+    final public function getValues(): array
+    {
+        return $this->values;
+    }
+
+    /**
      * Get the ID of the entity
      *
      * Only available for entities also in the database

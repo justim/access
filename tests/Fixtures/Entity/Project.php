@@ -52,6 +52,11 @@ class Project extends Entity
         return true;
     }
 
+    public function getStatus(): string
+    {
+        return $this->get('status');
+    }
+
     public function setOwnerId(int $email): void
     {
         $this->set('owner_id', $email);

@@ -16,12 +16,15 @@ namespace Access;
 use Access\Entity;
 use Access\Exception;
 use Access\Lock;
+use Access\Presenter;
+use Access\Presenter\EntityPresenter;
 use Access\Profiler;
 use Access\Query;
 use Access\Repository;
 use Access\Statement;
 use Access\StatementPool;
 use Access\Transaction;
+use ReflectionClassConstant;
 
 /**
  * An Access database
@@ -433,6 +436,23 @@ class Database
     }
 
     /**
+     * Present a single entity as a simple array
+     *
+     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-param class-string<TEntityPresenter> $presenterKlass
+     *
+     * @param string $presenterKlass Class to present the entity with
+     * @param Entity $entity Entity to present
+     * @return array|null
+     */
+    public function presentEntity(string $presenterKlass, Entity $entity): ?array
+    {
+        $presenter = new Presenter($this);
+
+        return $presenter->presentEntity($presenterKlass, $entity);
+    }
+
+    /**
      * Check for a valid entity class name
      *
      * @param string $klass Entity class name
@@ -446,6 +466,23 @@ class Database
 
         if (empty($klass::tableName())) {
             throw new Exception('Invalid table name, can not be empty');
+        }
+    }
+
+    /**
+     * Check for a valid presenter class name
+     *
+     * @param string $presenterClassName Presenter class name
+     * @throws Exception When presenter class name is invalid
+     */
+    public function assertValidPresenterClass(string $presenterClassName): void
+    {
+        if (!is_subclass_of($presenterClassName, EntityPresenter::class)) {
+            throw new Exception('Invalid presenter: ' . $presenterClassName);
+        }
+
+        if (empty($presenterClassName::getEntityKlass())) {
+            throw new Exception('Missing entity klass for presenter: ' . $presenterClassName);
         }
     }
 
