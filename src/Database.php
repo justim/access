@@ -24,7 +24,6 @@ use Access\Repository;
 use Access\Statement;
 use Access\StatementPool;
 use Access\Transaction;
-use ReflectionClassConstant;
 
 /**
  * An Access database
