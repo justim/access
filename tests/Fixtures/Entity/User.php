@@ -49,6 +49,11 @@ class User extends Entity
         return true;
     }
 
+    public static function isSoftDeletable(): bool
+    {
+        return true;
+    }
+
     public function setEmail(string $email): void
     {
         $this->set('email', $email);

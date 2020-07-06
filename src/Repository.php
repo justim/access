@@ -124,6 +124,10 @@ class Repository
             $where[$condition] = $value;
         }
 
+        if ($this->klass::isSoftDeletable()) {
+            $where['deleted_at = ?'] = null;
+        }
+
         $query = new Query\Select($this->klass::tableName());
         $query->where($where);
 
@@ -198,6 +202,10 @@ class Repository
     public function findAll(?int $limit = null, string $orderBy = 'id ASC'): \Generator
     {
         $query = new Query\Select($this->klass::tableName());
+
+        if ($this->klass::isSoftDeletable()) {
+            $query->where('deleted_at = ?', null);
+        }
 
         $query->orderBy($orderBy);
 

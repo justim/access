@@ -58,6 +58,18 @@ abstract class Entity
     }
 
     /**
+     * Is the entity soft deletable
+     *
+     * A `deleted_at` must be present
+     *
+     * @return bool
+     */
+    public static function isSoftDeletable(): bool
+    {
+        return false;
+    }
+
+    /**
      * Get the repository class for entity
      *
      * @psalm-return class-string<TRepository>

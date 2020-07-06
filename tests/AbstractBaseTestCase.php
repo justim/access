@@ -37,7 +37,8 @@ abstract class AbstractBaseTestCase extends TestCase
             `name` VARCHAR(50) DEFAULT NULL,
             `email` VARCHAR(150) DEFAULT NULL,
             `created_at` DATETIME,
-            `updated_at` DATETIME
+            `updated_at` DATETIME,
+            `deleted_at` DATETIME DEFAULT NULL
         )');
 
         self::$db->query($createUsersQuery);

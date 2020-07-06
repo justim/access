@@ -143,7 +143,9 @@ class DatabaseTest extends AbstractBaseTestCase
         ]);
 
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Method does not allow select queries, use `select` or `selectOne`');
+        $this->expectExceptionMessage(
+            'Method does not allow select queries, use `select` or `selectOne`',
+        );
 
         self::$db->query($query);
     }
