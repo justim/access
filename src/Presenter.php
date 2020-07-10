@@ -36,6 +36,11 @@ class Presenter
     private const RECEIVE_DEPENDENCIES_METHOD_NAME = 'receiveDependencies';
 
     /**
+     * Marker to indicate a cleanup is required for array
+     */
+    public const CLEAN_UP_ARRAY_MARKER = '__clean_up_needed__';
+
+    /**
      * @var Database $db
      */
     private Database $db;
@@ -149,6 +154,8 @@ class Presenter
             // marker
             $this->resolveMarkers($presentation, $markers);
         }
+
+        $this->cleanUp($presentation);
 
         return $presentation;
     }
@@ -382,6 +389,35 @@ class Presenter
         }
 
         return $values[$marker->getFieldName()] === $marker->getRefId();
+    }
+
+    /**
+     * Clean up all markers that resolved to `null` in arrays
+     *
+     * We need to do this to prevent arrays with an non-sequential index after
+     * a array_filter, causing the array to be converted to an object when
+     * encoded as JSON
+     *
+     * ```
+     * [0 => 'zero', 1 => 'one']; // in JSON: ["zero", "one"]
+     * [0 => 'zero', 2 => 'two']; // in JSON: {"0": "zero", "2": "two"}
+     * ```
+     *
+     * @param array $presentation
+     */
+    private function cleanUp(array &$presentation): void
+    {
+        foreach ($presentation as &$item) {
+            if (is_array($item)) {
+                if (isset($item[self::CLEAN_UP_ARRAY_MARKER])) {
+                    unset($item[self::CLEAN_UP_ARRAY_MARKER]);
+
+                    $item = array_values(array_filter($item, fn($item) => $item !== null));
+                }
+
+                $this->cleanUp($item);
+            }
+        }
     }
 
     private function createEntityPresenter(string $presenterKlass, Collection $collection)

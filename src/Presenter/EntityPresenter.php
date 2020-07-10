@@ -16,6 +16,7 @@ namespace Access\Presenter;
 use Access\Collection;
 use Access\Database;
 use Access\Entity;
+use Access\Presenter;
 use Access\Presenter\PresentationMarker;
 
 /**
@@ -103,13 +104,20 @@ abstract class EntityPresenter
     {
         $this->db->assertValidPresenterClass($presenterKlass);
 
-        return array_values(
+        $result = array_values(
             array_filter(
                 array_map(function ($id) use ($presenterKlass) {
                     return $this->present($presenterKlass, $id);
                 }, $ids),
+                fn($item) => $item !== null,
             ),
         );
+
+        // mark for clean up to filter out `null` values from the presentation
+        // marker
+        $result[Presenter::CLEAN_UP_ARRAY_MARKER] = true;
+
+        return $result;
     }
 
     /**
