@@ -2,8 +2,19 @@ language: php
 
 php:
   - 7.4
+  - nightly
 
-before_script: composer install --dev
+matrix:
+  allow_failures:
+    - php: nightly
+
+install:
+    - |
+      if [ $TRAVIS_PHP_VERSION = 'nightly' ]; then
+        composer install --ignore-platform-reqs
+      else
+        composer install
+      fi
 
 after_success:
   - travis_retry php bin/php-coveralls -v
