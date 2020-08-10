@@ -149,17 +149,14 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
             throw new Exception('Unknown field name for inversed refs');
         }
 
-        $ids = $this->getIds();
-
         $result = new self($this->db);
 
-        if (empty($ids)) {
+        if ($this->isEmpty()) {
             return $result;
         }
 
-        $ids = array_unique($ids);
         $refs = $this->db->findBy($klass, [
-            $fieldName => $ids,
+            $fieldName => $this,
         ]);
 
         $result->fromIterable($refs);

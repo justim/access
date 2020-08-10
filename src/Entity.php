@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\IdentifiableInterface;
 use Access\Repository;
 
 /**
@@ -21,7 +22,7 @@ use Access\Repository;
  * @psalm-template TRepository of Repository
  * @author Tim <me@justim.net>
  */
-abstract class Entity
+abstract class Entity implements IdentifiableInterface
 {
     // list of supported field types
     protected const FIELD_TYPE_INT = 'int';
@@ -141,7 +142,7 @@ abstract class Entity
      * Set the value of a field
      *
      * @param string $field
-     * @param mixed $value
+     * @param IdentifiableInterface|mixed $value
      */
     final protected function set(string $field, $value): void
     {
@@ -151,14 +152,22 @@ abstract class Entity
                 return;
             }
 
-            $this->updatedFields[$field] = $value;
+            if ($value instanceof IdentifiableInterface) {
+                $this->updatedFields[$field] = $value->getId();
+            } else {
+                $this->updatedFields[$field] = $value;
+            }
         }
 
         if ($field === 'id') {
             throw new Exception('Not possible to change ID');
         }
 
-        $this->values[$field] = $value;
+        if ($value instanceof IdentifiableInterface) {
+            $this->values[$field] = $value->getId();
+        } else {
+            $this->values[$field] = $value;
+        }
     }
 
     /**

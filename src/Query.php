@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Entity;
+use Access\IdentifiableInterface;
 
 /**
  * Base class for building queries
@@ -286,7 +287,7 @@ abstract class Query
 
         $i = 0;
         foreach ($this->values as $value) {
-            $indexedValues[self::PREFIX_PARAM . $i] = $value;
+            $indexedValues[self::PREFIX_PARAM . $i] = $this->toDatabaseFormat($value);
             $i++;
         }
 
@@ -322,29 +323,55 @@ abstract class Query
                 } elseif ($condition['value'] === null) {
                     // sql is converted to `IS NULL`
                     continue;
-                } elseif ($condition['value'] === true || $condition['value'] === false) {
-                    $indexedValues[$prefix . $i] = (int) $condition['value'];
-                    $i++;
-                    continue;
-                } elseif ($condition['value'] instanceof \DateTimeInterface) {
-                    $indexedValues[$prefix . $i] = $condition['value']->format(
-                        Entity::DATETIME_FORMAT,
-                    );
-                    $i++;
-                    continue;
-                } elseif (is_array($condition['value'])) {
-                    foreach ($condition['value'] as $conditionValuePart) {
-                        $indexedValues[$prefix . $i] = $conditionValuePart;
+                } elseif (
+                    is_array($condition['value']) ||
+                    $condition['value'] instanceof Collection
+                ) {
+                    $values = $this->toDatabaseFormat($condition['value']);
+
+                    foreach ($values as $itemValue) {
+                        $indexedValues[$prefix . $i] = $itemValue;
                         $i++;
                     }
 
                     continue;
                 }
 
-                $indexedValues[$prefix . $i] = $condition['value'];
+                $indexedValues[$prefix . $i] = $this->toDatabaseFormat($condition['value']);
                 $i++;
             }
         }
+    }
+
+    /**
+     * Convert a value in a database usable format
+     *
+     * @param mixed $value Any value
+     * @return mixed Database usable format
+     */
+    private function toDatabaseFormat($value)
+    {
+        if ($value instanceof IdentifiableInterface) {
+            return $this->toDatabaseFormat($value->getId());
+        }
+
+        if ($value instanceof Collection) {
+            return $value->getIds();
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format(Entity::DATETIME_FORMAT);
+        }
+
+        if ($value === true || $value === false) {
+            return (int) $value;
+        }
+
+        if (is_array($value)) {
+            return array_map(fn($itemValue) => $this->toDatabaseFormat($itemValue), $value);
+        }
+
+        return $value;
     }
 
     /**
@@ -477,10 +504,18 @@ abstract class Query
                     );
 
                     continue;
-                } elseif (is_array($condition['value'])) {
+                } elseif (
+                    is_array($condition['value']) ||
+                    $condition['value'] instanceof Collection
+                ) {
+                    $values =
+                        $condition['value'] instanceof Collection
+                            ? $condition['value']->getIds()
+                            : $condition['value'];
+
                     $conditionParts[] = str_replace(
                         '?',
-                        implode(', ', array_fill(0, count($condition['value']), '?')),
+                        implode(', ', array_fill(0, count($values), '?')),
                         $condition['condition'],
                     );
 

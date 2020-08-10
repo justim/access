@@ -109,8 +109,11 @@ class Repository
 
             if (strpos((string) $field, '?') !== false) {
                 $condition = $field;
-            } elseif (is_array($value)) {
-                if (!empty($value)) {
+            } elseif (is_array($value) || $value instanceof Collection) {
+                if (
+                    (is_array($value) && !empty($value)) ||
+                    ($value instanceof Collection && !$value->isEmpty())
+                ) {
                     $condition = "{$field} IN (?)";
                 } else {
                     // empty collections make no sense...

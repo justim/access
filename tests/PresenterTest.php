@@ -35,7 +35,7 @@ class PresenterTest extends AbstractBaseTestCase
         self::$db->save($user);
 
         $project = new Project();
-        $project->setOwnerId($user->getId());
+        $project->setOwnerId($user);
         self::$db->save($project);
 
         $profiler = self::$db->getProfiler();
