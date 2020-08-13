@@ -96,6 +96,17 @@ abstract class Query
 
         if (is_subclass_of($tableName, Entity::class)) {
             $this->tableName = $tableName::tableName();
+
+            if ($tableName::isSoftDeletable()) {
+                $tableIdentifier = $alias ?: $this->tableName;
+                $deletedAtCondition = sprintf(
+                    '%s.%s IS NULL',
+                    $this->escapeIdentifier($tableIdentifier),
+                    $this->escapeIdentifier(Entity::DELETED_AT_FIELD),
+                );
+
+                $this->where($deletedAtCondition);
+            }
         }
 
         if (empty($this->tableName)) {
@@ -143,6 +154,21 @@ abstract class Query
     private function join(string $type, string $tableName, string $alias, $on)
     {
         if (is_subclass_of($tableName, Entity::class)) {
+            if ($tableName::isSoftDeletable()) {
+                $tableIdentifier = $alias ?: $tableName::tableName();
+                $deletedAtCondition = sprintf(
+                    '%s.%s IS NULL',
+                    $this->escapeIdentifier($tableIdentifier),
+                    $this->escapeIdentifier(Entity::DELETED_AT_FIELD),
+                );
+
+                if (is_string($on)) {
+                    $on = [$deletedAtCondition, $on];
+                } elseif (is_array($on)) {
+                    array_unshift($on, $deletedAtCondition);
+                }
+            }
+
             $tableName = $tableName::tableName();
         }
 
@@ -432,6 +458,7 @@ abstract class Query
                 $join['on'],
                 self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
             );
+
             $sql .= "{$escapedJoinTableName} AS {$escapedAlias}{$onSql}";
 
             $i++;

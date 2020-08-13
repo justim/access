@@ -44,6 +44,9 @@ class Project extends Entity
             'published_at' => [
                 'type' => self::FIELD_TYPE_DATE,
             ],
+            'user_name' => [
+                'virtual' => true,
+            ],
         ];
     }
 
@@ -77,14 +80,20 @@ class Project extends Entity
         return $this->get('name');
     }
 
+    public function getUserName(): string
+    {
+        // will throw an exception when the field was not selected with virtual field
+        return $this->get('user_name');
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->get('created_at');
+        return $this->get(Entity::CREATED_AT_FIELD);
     }
 
     public function getUpdatedAt(): \DateTimeImmutable
     {
-        return $this->get('updated_at');
+        return $this->get(Entity::UPDATED_AT_FIELD);
     }
 
     public function getPublishedAt(): ?\DateTimeImmutable

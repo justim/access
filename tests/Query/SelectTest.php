@@ -27,14 +27,28 @@ class SelectTest extends TestCase
     {
         $query = new Select(User::class);
 
-        $this->assertEquals('SELECT `users`.* FROM `users`', $query->getSql());
+        $this->assertEquals(
+            'SELECT `users`.* FROM `users` WHERE (`users`.`deleted_at` IS NULL)',
+            $query->getSql(),
+        );
+
+        $query = new Select(Project::class);
+
+        $this->assertEquals('SELECT `projects`.* FROM `projects`', $query->getSql());
     }
 
     public function testQueryWithAlias(): void
     {
         $query = new Select(User::class, 'u');
 
-        $this->assertEquals('SELECT `u`.* FROM `users` AS `u`', $query->getSql());
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` WHERE (`u`.`deleted_at` IS NULL)',
+            $query->getSql(),
+        );
+
+        $query = new Select(Project::class, 'p');
+
+        $this->assertEquals('SELECT `p`.* FROM `projects` AS `p`', $query->getSql());
     }
 
     public function testQueryWhere(): void
@@ -46,19 +60,28 @@ class SelectTest extends TestCase
             'name = ?' => $name,
         ]);
 
-        $this->assertEquals('SELECT `users`.* FROM `users` WHERE (name = :w0)', $query->getSql());
+        $this->assertEquals(
+            'SELECT `users`.* FROM `users` WHERE (`users`.`deleted_at` IS NULL) AND (name = :w0)',
+            $query->getSql(),
+        );
         $this->assertEquals(['w0' => $name], $query->getValues());
 
         $query = new Select(User::class);
         $query->where('name IS NOT NULL');
 
-        $this->assertEquals('SELECT `users`.* FROM `users` WHERE (name IS NOT NULL)', $query->getSql());
+        $this->assertEquals(
+            'SELECT `users`.* FROM `users` WHERE (`users`.`deleted_at` IS NULL) AND (name IS NOT NULL)',
+            $query->getSql(),
+        );
         $this->assertEquals([], $query->getValues());
 
         $query = new Select(User::class);
         $query->where('name = ?', $name);
 
-        $this->assertEquals('SELECT `users`.* FROM `users` WHERE (name = :w0)', $query->getSql());
+        $this->assertEquals(
+            'SELECT `users`.* FROM `users` WHERE (`users`.`deleted_at` IS NULL) AND (name = :w0)',
+            $query->getSql(),
+        );
         $this->assertEquals(['w0' => $name], $query->getValues());
     }
 
@@ -68,16 +91,16 @@ class SelectTest extends TestCase
         $query->innerJoin(User::class, 'u', 'p.owner_id = u.id');
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` INNER JOIN `users` AS `u` ON (p.owner_id = u.id)',
-            $query->getSql()
+            'SELECT `p`.* FROM `projects` AS `p` INNER JOIN `users` AS `u` ON ((`u`.`deleted_at` IS NULL) AND (p.owner_id = u.id))',
+            $query->getSql(),
         );
 
         $query = new Select(Project::class, 'p');
         $query->leftJoin(User::class, 'u', 'p.owner_id = u.id');
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` LEFT JOIN `users` AS `u` ON (p.owner_id = u.id)',
-            $query->getSql()
+            'SELECT `p`.* FROM `projects` AS `p` LEFT JOIN `users` AS `u` ON ((`u`.`deleted_at` IS NULL) AND (p.owner_id = u.id))',
+            $query->getSql(),
         );
     }
 
@@ -112,9 +135,12 @@ class SelectTest extends TestCase
         $query->having('u.name IS NOT NULL');
 
         $this->assertEquals(
-            'SELECT `u`.*, COUNT(p.id) AS `total_projects` FROM `users` AS `u` LEFT JOIN `projects` AS `p` ON '
-                . '(p.owner_id = u.id) GROUP BY u.id HAVING (total_projects > :h0) AND (u.name IS NOT NULL)',
-            $query->getSql()
+            'SELECT `u`.*, COUNT(p.id) AS `total_projects` FROM `users` AS `u` ' .
+                'LEFT JOIN `projects` AS `p` ON (p.owner_id = u.id) ' .
+                'WHERE (`u`.`deleted_at` IS NULL) ' .
+                'GROUP BY u.id ' .
+                'HAVING (total_projects > :h0) AND (u.name IS NOT NULL)',
+            $query->getSql(),
         );
 
         $this->assertEquals(['h0' => 1], $query->getValues());
@@ -125,7 +151,10 @@ class SelectTest extends TestCase
         $query = new Select(Project::class, 'p');
         $query->orderBy('p.name ASC');
 
-        $this->assertEquals('SELECT `p`.* FROM `projects` AS `p` ORDER BY p.name ASC', $query->getSql());
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` ORDER BY p.name ASC',
+            $query->getSql(),
+        );
     }
 
     public function testSubquery(): void
@@ -139,19 +168,16 @@ class SelectTest extends TestCase
             'total_projects' => $subQuery,
         ]);
 
-        $query->innerJoin(Project::class, 'pp', [
-            'pp.user_id = u.id',
-            'pp.id = ?' => 1,
-        ]);
+        $query->innerJoin(Project::class, 'pp', ['pp.user_id = u.id', 'pp.id = ?' => 1]);
 
         $query->where('u.first_name = ?', 'Dave');
 
         $this->assertEquals(
-            'SELECT `u`.*, (SELECT COUNT(p.id) FROM `projects` AS `p` WHERE '
-                . '(p.user_id = u.id) AND (p.status = :s0w0)) AS `total_projects` FROM `users` AS `u` '
-                . 'INNER JOIN `projects` AS `pp` ON ((pp.user_id = u.id) AND (pp.id = :j0j0)) '
-                . 'WHERE (u.first_name = :w0)',
-            $query->getSql()
+            'SELECT `u`.*, (SELECT COUNT(p.id) FROM `projects` AS `p` WHERE ' .
+                '(p.user_id = u.id) AND (p.status = :s0w0)) AS `total_projects` FROM `users` AS `u` ' .
+                'INNER JOIN `projects` AS `pp` ON ((pp.user_id = u.id) AND (pp.id = :j0j0)) ' .
+                'WHERE (`u`.`deleted_at` IS NULL) AND (u.first_name = :w0)',
+            $query->getSql(),
         );
 
         $this->assertEquals(
@@ -160,7 +186,7 @@ class SelectTest extends TestCase
                 'w0' => 'Dave',
                 'j0j0' => 1,
             ],
-            $query->getValues()
+            $query->getValues(),
         );
     }
 
@@ -179,7 +205,7 @@ class SelectTest extends TestCase
                 'w0' => '%1%',
                 'w1' => '%2%',
             ],
-            $query->getValues()
+            $query->getValues(),
         );
     }
 
@@ -193,10 +219,7 @@ class SelectTest extends TestCase
             $query->getSql(),
         );
 
-        $this->assertEquals(
-            [],
-            $query->getValues()
-        );
+        $this->assertEquals([], $query->getValues());
     }
 
     public function testInvalidWherConditionOne(): void

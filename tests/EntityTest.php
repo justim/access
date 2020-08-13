@@ -16,6 +16,7 @@ namespace Tests;
 use Access\Exception;
 
 use Tests\AbstractBaseTestCase;
+use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 
 class EntityTest extends AbstractBaseTestCase
@@ -70,5 +71,33 @@ class EntityTest extends AbstractBaseTestCase
         $this->expectExceptionMessage('Not possible to change ID');
 
         $user->overrideId(12);
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testSimpleDeletedAt(): void
+    {
+        /** @var User $user */
+        $user = self::$db->findOne(User::class, 1);
+
+        $user->setDeletedAt();
+        self::$db->save($user);
+
+        $user = self::$db->findOne(User::class, 1);
+        $this->assertNull($user);
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testDeletedAtJoin(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+
+        $projects = $projectRepo->findWithUserName();
+
+        $this->assertEquals(1, count($projects));
     }
 }

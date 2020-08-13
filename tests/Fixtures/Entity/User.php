@@ -16,9 +16,14 @@ namespace Tests\Fixtures\Entity;
 use Tests\Fixtures\Repository\UserRepository;
 
 use Access\Entity;
+use Access\Entity\SoftDeletableTrait;
+use Access\Entity\TimestampableTrait;
 
 class User extends Entity
 {
+    use TimestampableTrait;
+    use SoftDeletableTrait;
+
     public static function getRepository(): string
     {
         return UserRepository::class;
@@ -44,16 +49,6 @@ class User extends Entity
         ];
     }
 
-    public static function timestamps(): bool
-    {
-        return true;
-    }
-
-    public static function isSoftDeletable(): bool
-    {
-        return true;
-    }
-
     public function setEmail(string $email): void
     {
         $this->set('email', $email);
@@ -72,16 +67,6 @@ class User extends Entity
     public function getName(): string
     {
         return $this->get('name');
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        return $this->get('created_at');
-    }
-
-    public function getUpdatedAt(): \DateTimeImmutable
-    {
-        return $this->get('updated_at');
     }
 
     public function getTotalProjects(): int

@@ -16,6 +16,7 @@ namespace Tests;
 use Access\Batch;
 use Access\Collection;
 use Access\Exception;
+use Access\Query\Select;
 
 use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
@@ -331,5 +332,23 @@ class CollectionTest extends AbstractBaseTestCase
         $this->expectExceptionMessage('Unknown field name for inversed refs');
 
         $users->findInversedRefs(Project::class, 'some_invalid_id');
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testSelectQueryWithCollection(): void
+    {
+        /** @var UserRepository $userRepo */
+        $userRepo = self::$db->getRepository(User::class);
+        $users = $userRepo->findAllCollection();
+
+        $this->assertEquals(2, count($users));
+
+        $query = new Select(User::class);
+        $query->where('id IN (?)', $users);
+        $newUsers = iterator_to_array(self::$db->select(User::class, $query));
+
+        $this->assertEquals(2, count($newUsers));
     }
 }

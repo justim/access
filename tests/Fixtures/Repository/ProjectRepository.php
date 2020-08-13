@@ -19,6 +19,7 @@ use Access\Collection;
 use Access\Query\Select;
 use Access\Query\Update;
 use Access\Repository;
+use Tests\Fixtures\Entity\User;
 
 class ProjectRepository extends Repository
 {
@@ -66,11 +67,18 @@ class ProjectRepository extends Repository
             'total' => 'COUNT(*)',
         ]);
 
-        return $this->selectOneVirtualField(
-            $query,
-            'total',
-            'int',
-        );
+        return $this->selectOneVirtualField($query, 'total', 'int');
+    }
+
+    public function findWithUserName(): Collection
+    {
+        $query = new Select(Project::class, 'p', [
+            'user_name' => 'u.name',
+        ]);
+
+        $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
+
+        return $this->selectCollection($query);
     }
 
     public function findBatchedAll(): \Generator

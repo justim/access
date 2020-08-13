@@ -85,12 +85,17 @@ abstract class Entity implements IdentifiableInterface
     /**
      * Name of created at field
      */
-    private const CREATED_AT_FIELD = 'created_at';
+    public const CREATED_AT_FIELD = 'created_at';
 
     /**
      * Name of updated at field
      */
-    private const UPDATED_AT_FIELD = 'updated_at';
+    public const UPDATED_AT_FIELD = 'updated_at';
+
+    /**
+     * Name of deleted at field
+     */
+    public const DELETED_AT_FIELD = 'deleted_at';
 
     /**
      * Date time format
@@ -265,15 +270,19 @@ abstract class Entity implements IdentifiableInterface
         }
 
         if (static::timestamps()) {
-            $values['created_at'] = $this->toDatabaseFormatValue(
+            $values[self::CREATED_AT_FIELD] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
                 new \DateTimeImmutable(),
             );
 
-            $values['updated_at'] = $this->toDatabaseFormatValue(
+            $values[self::UPDATED_AT_FIELD] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
                 new \DateTimeImmutable(),
             );
+        }
+
+        if (static::isSoftDeletable() && !isset($values[self::DELETED_AT_FIELD])) {
+            $values[self::DELETED_AT_FIELD] = null;
         }
 
         return $values;
@@ -291,6 +300,15 @@ abstract class Entity implements IdentifiableInterface
         $fields = $this->getResolvedFields();
 
         foreach ($this->updatedFields as $field => $value) {
+            if ($field === self::DELETED_AT_FIELD) {
+                $values[self::DELETED_AT_FIELD] = $this->toDatabaseFormatValue(
+                    self::FIELD_TYPE_DATETIME,
+                    $value,
+                );
+
+                continue;
+            }
+
             if (isset($fields[$field])) {
                 $options = $fields[$field];
 
@@ -303,7 +321,7 @@ abstract class Entity implements IdentifiableInterface
         }
 
         if (!empty($values) && static::timestamps()) {
-            $values['updated_at'] = $this->toDatabaseFormatValue(
+            $values[self::UPDATED_AT_FIELD] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
                 new \DateTimeImmutable(),
             );
@@ -326,10 +344,7 @@ abstract class Entity implements IdentifiableInterface
 
         if ($updatedFields !== null) {
             foreach ($updatedFields as $field => $value) {
-                if (
-                    static::timestamps() &&
-                    ($field === self::CREATED_AT_FIELD || $field === self::UPDATED_AT_FIELD)
-                ) {
+                if ($this->isBuiltinDatetimeField($field)) {
                     $this->values[$field] = $this->fromDatabaseFormatValue(
                         self::FIELD_TYPE_DATETIME,
                         $value,
@@ -361,10 +376,7 @@ abstract class Entity implements IdentifiableInterface
                 continue;
             }
 
-            if (
-                static::timestamps() &&
-                ($field === self::CREATED_AT_FIELD || $field === self::UPDATED_AT_FIELD)
-            ) {
+            if ($this->isBuiltinDatetimeField($field)) {
                 $this->values[$field] = $this->fromDatabaseFormatValue(
                     self::FIELD_TYPE_DATETIME,
                     $value,
@@ -423,16 +435,19 @@ abstract class Entity implements IdentifiableInterface
         switch ($type) {
             case self::FIELD_TYPE_BOOL:
                 return intval($value);
+
             case self::FIELD_TYPE_DATETIME:
                 /** @var \DateTimeInterface $value */
                 return $this->fromMutable($value)
                     ->setTimezone(new \DateTimeZone('UTC'))
                     ->format(self::DATETIME_FORMAT);
+
             case self::FIELD_TYPE_DATE:
                 /** @var \DateTimeInterface $value */
                 return $this->fromMutable($value)
                     ->setTimezone(new \DateTimeZone('UTC'))
                     ->format(self::DATE_FORMAT);
+
             case self::FIELD_TYPE_JSON:
                 return json_encode($value);
 
@@ -481,8 +496,10 @@ abstract class Entity implements IdentifiableInterface
         switch ($type) {
             case self::FIELD_TYPE_INT:
                 return intval($value);
+
             case self::FIELD_TYPE_BOOL:
                 return boolval($value);
+
             case self::FIELD_TYPE_DATETIME:
                 if (!is_string($value)) {
                     throw new Exception('Invalid datetime value');
@@ -493,6 +510,7 @@ abstract class Entity implements IdentifiableInterface
                     $value,
                     new \DateTimeZone('UTC'),
                 );
+
             case self::FIELD_TYPE_DATE:
                 if (!is_string($value)) {
                     throw new Exception('Invalid date value');
@@ -503,15 +521,41 @@ abstract class Entity implements IdentifiableInterface
                     $value,
                     new \DateTimeZone('UTC'),
                 );
+
             case self::FIELD_TYPE_JSON:
                 if (!is_string($value)) {
                     throw new Exception('Invalid json value');
                 }
 
                 return json_decode($value, true);
+
             default:
                 return $value;
         }
+    }
+
+    /**
+     * Is the given field a built-in date time field
+     *
+     * Checks if the feature for those fields is enabled and the predetermined names
+     *
+     * @param string $field The field name
+     * @return bool Is a built-in date time field
+     */
+    private function isBuiltinDatetimeField(string $field): bool
+    {
+        if (
+            static::timestamps() &&
+            ($field === self::CREATED_AT_FIELD || $field === self::UPDATED_AT_FIELD)
+        ) {
+            return true;
+        }
+
+        if (static::isSoftDeletable() && $field === self::DELETED_AT_FIELD) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
