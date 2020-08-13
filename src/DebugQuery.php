@@ -50,7 +50,7 @@ class DebugQuery
         $values = $this->query->getValues();
 
         foreach ($values as $placeholder => $value) {
-            $sql = str_replace(":$placeholder", $this->toSqlValue($value), $sql);
+            $sql = preg_replace("/:$placeholder\b/", $this->toSqlValue($value), $sql);
         }
 
         return $sql;
