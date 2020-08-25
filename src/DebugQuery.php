@@ -62,6 +62,10 @@ class DebugQuery
      */
     private function toSqlValue($value): string
     {
+        if ($value === null) {
+            return 'NULL';
+        }
+
         if (is_int($value)) {
             return (string) $value;
         }

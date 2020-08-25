@@ -524,9 +524,11 @@ abstract class Query
                     $conditionParts[] = $condition['condition'];
                     continue;
                 } elseif ($condition['value'] === null) {
-                    $conditionParts[] = str_replace(
-                        ['!= ?', '= ?'],
-                        ['IS NOT NULL', 'IS NULL'],
+                    $conditionParts[] = preg_replace_callback_array(
+                        [
+                            '/!= ?\?/' => fn() => 'IS NOT NULL',
+                            '/= ?\?/' => fn() => 'IS NULL',
+                        ],
                         $condition['condition'],
                     );
 

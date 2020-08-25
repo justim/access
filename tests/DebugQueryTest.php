@@ -26,6 +26,60 @@ class DebugQueryTest extends AbstractBaseTestCase
         $this->assertTrue(true);
     }
 
+    public function testSimpleNull(): void
+    {
+        $query = new Query\Select(User::class, 'u');
+        $query->where('u.id = ?', null);
+
+        $debug = new DebugQuery($query);
+
+        $runnableSql = $debug->toRunnableQuery();
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` WHERE (`u`.`deleted_at` IS NULL) AND (u.id IS NULL)',
+            $runnableSql,
+        );
+
+        $query = new Query\Select(Project::class, 'p');
+        $query->where('p.id = ?', null);
+
+        $debug = new DebugQuery($query);
+
+        $runnableSql = $debug->toRunnableQuery();
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.id IS NULL)',
+            $runnableSql,
+        );
+    }
+
+    public function testSimpleNotNull(): void
+    {
+        $query = new Query\Select(User::class, 'u');
+        $query->where('u.id != ?', null);
+
+        $debug = new DebugQuery($query);
+
+        $runnableSql = $debug->toRunnableQuery();
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` WHERE (`u`.`deleted_at` IS NULL) AND (u.id IS NOT NULL)',
+            $runnableSql,
+        );
+
+        $query = new Query\Select(Project::class, 'p');
+        $query->where('p.id !=?', null);
+
+        $debug = new DebugQuery($query);
+
+        $runnableSql = $debug->toRunnableQuery();
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.id IS NOT NULL)',
+            $runnableSql,
+        );
+    }
+
     public function testSimpleInt(): void
     {
         $query = new Query\Select(User::class, 'u');
@@ -234,5 +288,17 @@ class DebugQueryTest extends AbstractBaseTestCase
             'SELECT `p`.* FROM `projects` AS `p` WHERE ((p.id = 1) OR (p.name = "Dave"))',
             $runnableSql,
         );
+    }
+
+    public function testSimpleNullInsert(): void
+    {
+        $query = new Query\Insert(User::class, 'u');
+        $query->values(['name' => null]);
+
+        $debug = new DebugQuery($query);
+
+        $runnableSql = $debug->toRunnableQuery();
+
+        $this->assertEquals('INSERT INTO `users` (name) VALUES (NULL)', $runnableSql);
     }
 }
