@@ -25,7 +25,7 @@ abstract class AbstractBaseTestCase extends TestCase
     /**
      * @var Database $db
      */
-    protected static $db;
+    protected static Database $db;
 
     public static function setUpBeforeClass(): void
     {

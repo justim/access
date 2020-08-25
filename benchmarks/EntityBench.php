@@ -24,7 +24,7 @@ use Tests\Fixtures\Entity\User;
  */
 class EntityBench
 {
-    private $db;
+    private Database $db;
 
     public function init()
     {
@@ -36,7 +36,8 @@ class EntityBench
             `name` VARCHAR(50) DEFAULT NULL,
             `email` VARCHAR(150) DEFAULT NULL,
             `created_at` DATETIME,
-            `updated_at` DATETIME
+            `updated_at` DATETIME,
+            `deleted_at` DATETIME DEFAULT NULL
         )');
 
         $this->db->query($createUsersQuery);
@@ -50,6 +51,7 @@ class EntityBench
 
     public function benchHydrate()
     {
+        /** @var User $user */
         $user = $this->db->findOne(User::class, 1);
         $user->getCreatedAt();
     }
