@@ -1,6 +1,5 @@
 /vendor/
 composer.lock
-/bin/
 /build/
 .phpunit.result.cache
 /xdebug
