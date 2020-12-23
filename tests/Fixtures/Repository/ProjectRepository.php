@@ -70,6 +70,26 @@ class ProjectRepository extends Repository
         return $this->selectOneVirtualField($query, 'total', 'int');
     }
 
+    public function findTotalCountAdded(): int
+    {
+        $query = new Select(Project::class, 'p');
+
+        $query->addVirtualField('total', 'COUNT(*)');
+
+        return $this->selectOneVirtualField($query, 'total', 'int');
+    }
+
+    public function findTotalCountReplaced(): int
+    {
+        $query = new Select(Project::class, 'p', [
+            'total' => '1',
+        ]);
+
+        $query->addVirtualField('total', 'COUNT(*)');
+
+        return $this->selectOneVirtualField($query, 'total', 'int');
+    }
+
     public function findWithUserName(): Collection
     {
         $query = new Select(Project::class, 'p', [

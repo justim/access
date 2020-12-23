@@ -78,10 +78,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $projects = $projectRepo->findByIds([]);
 
-        $this->assertEquals(
-            0,
-            count(iterator_to_array($projects)),
-        );
+        $this->assertEquals(0, count(iterator_to_array($projects)));
     }
 
     /**
@@ -94,10 +91,33 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $total = $projectRepo->findTotalCount();
 
-        $this->assertEquals(
-            2,
-            $total,
-        );
+        $this->assertEquals(2, $total);
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testSelectAddedVirtualField(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+
+        $total = $projectRepo->findTotalCountAdded();
+
+        $this->assertEquals(2, $total);
+    }
+
+    /**
+     * @depends testInsert
+     */
+    public function testSelectReplacedVirtualField(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+
+        $total = $projectRepo->findTotalCountReplaced();
+
+        $this->assertEquals(2, $total);
     }
 
     /**

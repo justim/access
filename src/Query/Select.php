@@ -58,6 +58,22 @@ class Select extends Query
     }
 
     /**
+     * Add a virtual field to select
+     *
+     * Will override existing virtual field with same name
+     *
+     * @param string $fieldName Name of the field
+     * @param string $fieldValue Value of the field in SQL
+     * @return $this
+     */
+    public function addVirtualField(string $fieldName, string $fieldValue)
+    {
+        $this->virtualFields[$fieldName] = $fieldValue;
+
+        return $this;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getSql(): ?string
