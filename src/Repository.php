@@ -303,7 +303,7 @@ class Repository
      *
      * Useful to only fetch counts
      *
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
      *
      * @param Query\Select $query Select query to be executed
      * @param string $virtualFieldName Field name to return
@@ -319,12 +319,8 @@ class Repository
         $entities = $this->db->selectWithEntityProvider($entityProvider, $query);
 
         /** @var VirtualFieldEntity $entity */
-        foreach ($entities as $entity) {
-            if ($entity->hasId()) {
-                yield $entity->getId() => $entity->getVirtualField();
-            } else {
-                yield null => $entity->getVirtualField();
-            }
+        foreach ($entities as $id => $entity) {
+            yield $id => $entity->getVirtualField();
         }
     }
 

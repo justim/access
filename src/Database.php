@@ -252,7 +252,7 @@ class Database
      * Execute a select query with a entity provider
      *
      * @psalm-template TEntity of Entity
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
      *
      * @param EntityProvider $entityProvider Creator the empty enitty shells
      * @param Query\Select $query Select query to be executed
@@ -268,7 +268,13 @@ class Database
         foreach ($stmt->execute() as $record) {
             $model = $entityProvider->create();
             $model->hydrate($record);
-            yield $model->getId() => $model;
+
+            // not every model has an ID
+            if ($model->hasId()) {
+                yield $model->getId() => $model;
+            } else {
+                yield null => $model;
+            }
         }
     }
 
