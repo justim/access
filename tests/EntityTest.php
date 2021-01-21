@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use Access\Entity;
 use Access\Exception;
 
 use Tests\AbstractBaseTestCase;
