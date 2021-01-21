@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Access\Entity;
 use Access\Exception;
 
 use Tests\AbstractBaseTestCase;
@@ -112,7 +113,6 @@ class EntityTest extends AbstractBaseTestCase
         /** @var Project $project */
         $project = self::$db->findOneBy(Project::class, ['name' => $projectToCopyName]);
 
-        /** @var Project $projectCopy */
         $projectCopy = $project->copy();
 
         $projectCopy->setName($copyProjectName);
