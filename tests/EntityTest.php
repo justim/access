@@ -100,4 +100,28 @@ class EntityTest extends AbstractBaseTestCase
 
         $this->assertEquals(1, count($projects));
     }
+
+    /**
+     * @depends testInsert
+     */
+    public function testCopy(): void
+    {
+        $projectToCopyName = 'Access';
+        $copyProjectName = 'Access copy';
+
+        /** @var Project $project */
+        $project = self::$db->findOneBy(Project::class, ['name' => $projectToCopyName]);
+
+        /** @var Project $projectCopy */
+        $projectCopy = $project->copy();
+
+        $projectCopy->setName($copyProjectName);
+
+        self::$db->save($projectCopy);
+
+        $this->assertNotEquals($project->getId(), $projectCopy->getId());
+        $this->assertEquals($project->getName(), $projectToCopyName);
+        $this->assertEquals($projectCopy->getName(), $copyProjectName);
+        $this->assertEquals($project->getStatus(), $projectCopy->getStatus());
+    }
 }

@@ -585,4 +585,23 @@ abstract class Entity implements IdentifiableInterface
     {
         return static::fields();
     }
+
+    /**
+     * Make new entity instance with copied fields
+     *
+     * @return Entity
+     */
+    public final function copy(): Entity
+    {
+        $class = get_called_class();
+
+        /** @var Entity $copy */
+        $copy = new $class();
+
+        $records = $this->getValues();
+
+        $copy->values = $records;
+
+        return $copy;
+    }
 }
