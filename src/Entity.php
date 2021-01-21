@@ -597,10 +597,9 @@ abstract class Entity implements IdentifiableInterface
 
         $record = $this->getValues();
 
-        if (static::timestamps()) {
-            unset($record[self::CREATED_AT_FIELD]);
-            unset($record[self::UPDATED_AT_FIELD]);
-        }
+        unset($record[self::CREATED_AT_FIELD]);
+        unset($record[self::UPDATED_AT_FIELD]);
+        unset($record[self::DELETED_AT_FIELD]);
 
         $copy->values = $record;
 
