@@ -19,7 +19,7 @@ use Access\Presenter\MarkerInterface;
  * Future presenter marker
  *
  * @internal
- * @psalm-template TEntity of Entity
+ * @psalm-template TEntity of \Access\Entity
  * @author Tim <me@justim.net>
  */
 final class FutureMarker implements MarkerInterface

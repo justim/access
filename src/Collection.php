@@ -277,7 +277,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Present collection as a simple array
      *
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenter of Presenter\EntityPresenter
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      *
      * @param string $presenterKlass Class to present the collection with

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <psalm
-    totallyTyped="true"
+    errorLevel="7"
     resolveFromConfigFile="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
@@ -12,12 +12,4 @@
             <directory name="vendor" />
         </ignoreFiles>
     </projectFiles>
-
-    <issueHandlers>
-        <LessSpecificReturnType errorLevel="info" />
-        <MixedAssignment errorLevel="info" />
-        <MixedArrayOffset errorLevel="info" />
-        <MixedArgument errorLevel="info" />
-        <MixedArgumentTypeCoercion errorLevel="info" />
-    </issueHandlers>
 </psalm>

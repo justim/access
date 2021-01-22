@@ -19,8 +19,8 @@ use Access\Presenter\MarkerInterface;
  * Presentation marker
  *
  * @internal
- * @psalm-template TEntityPresenter of Access\Presenter\EntityPresenter
- * @psalm-template TEntity of Access\Entity
+ * @psalm-template TEntityPresenter of \Access\Presenter\EntityPresenter
+ * @psalm-template TEntity of \Access\Entity
  * @author Tim <me@justim.net>
  */
 final class PresentationMarker implements MarkerInterface

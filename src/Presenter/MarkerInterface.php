@@ -17,7 +17,7 @@ namespace Access\Presenter;
  * Presentation marker
  *
  * @internal
- * @psalm-template TEntity of Entity
+ * @psalm-template TEntity of \Access\Entity
  * @author Tim <me@justim.net>
  */
 interface MarkerInterface
