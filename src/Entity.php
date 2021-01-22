@@ -42,7 +42,7 @@ abstract class Entity implements IdentifiableInterface
      * Get the field definitions
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default: mixed, type: string, virual: bool}>
+     * @psalm-return array<string, array{default: mixed, type: string, virual: bool, excludeInCopy: bool}>
      */
     abstract public static function fields(): array;
 
@@ -579,7 +579,7 @@ abstract class Entity implements IdentifiableInterface
      * Defaults to `self::fields`
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default: mixed, type: string, virual: bool}>
+     * @psalm-return array<string, array{default: mixed, type: string, virual: bool, excludeInCopy: bool}>
      */
     protected function getResolvedFields(): array
     {
@@ -600,6 +600,14 @@ abstract class Entity implements IdentifiableInterface
         unset($record[self::CREATED_AT_FIELD]);
         unset($record[self::UPDATED_AT_FIELD]);
         unset($record[self::DELETED_AT_FIELD]);
+
+        $fields = $this->getResolvedFields();
+
+        foreach ($fields as $field => $options) {
+            if (isset($options['excludeInCopy']) && $options['excludeInCopy']) {
+                unset($record[$field]);
+            }
+        }
 
         $copy->values = $record;
 

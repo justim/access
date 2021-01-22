@@ -122,5 +122,15 @@ class EntityTest extends AbstractBaseTestCase
         $this->assertEquals($project->getName(), $projectToCopyName);
         $this->assertEquals($projectCopy->getName(), $copyProjectName);
         $this->assertEquals($project->getStatus(), $projectCopy->getStatus());
+
+        $this->assertNotNull($project->getCreatedAt());
+        $this->assertNotNull($projectCopy->getCreatedAt());
+
+        $this->assertNotNull($project->getPublishedAt());
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Field "published_at" not available');
+
+        $projectCopy->getPublishedAt();
     }
 }

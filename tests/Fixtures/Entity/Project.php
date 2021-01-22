@@ -43,6 +43,7 @@ class Project extends Entity
             ],
             'published_at' => [
                 'type' => self::FIELD_TYPE_DATE,
+                'excludeInCopy' => true,
             ],
             'user_name' => [
                 'virtual' => true,
