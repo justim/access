@@ -42,7 +42,7 @@ abstract class Entity implements IdentifiableInterface
      * Get the field definitions
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default: mixed, type: string, virual: bool, excludeInCopy: bool}>
+     * @psalm-return array<string, array{default: mixed, type: string, virtual: bool, excludeInCopy: bool}>
      */
     abstract public static function fields(): array;
 
@@ -579,7 +579,7 @@ abstract class Entity implements IdentifiableInterface
      * Defaults to `self::fields`
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default: mixed, type: string, virual: bool, excludeInCopy: bool}>
+     * @psalm-return array<string, array{default: mixed, type: string, virtual: bool, excludeInCopy: bool}>
      */
     protected function getResolvedFields(): array
     {
