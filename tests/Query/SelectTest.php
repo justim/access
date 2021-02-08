@@ -190,6 +190,99 @@ class SelectTest extends TestCase
         );
     }
 
+    public function testSubqueryWhere(): void
+    {
+        $subQuery = new Select(Project::class, 'p');
+        $subQuery->select('p.user_id');
+        $subQuery->where('p.status = ?', 'IN_PROGRESS');
+        $subQuery->limit(1);
+
+        $query = new Select(User::class, 'u');
+        $query->where('u.id = ?', $subQuery);
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` WHERE (`u`.`deleted_at` IS NULL) AND (u.id = (SELECT p.user_id FROM `projects` AS `p` WHERE (p.status = :z0w0) LIMIT 1))',
+            $query->getSql(),
+        );
+
+        $this->assertEquals(
+            [
+                'z0w0' => 'IN_PROGRESS',
+            ],
+            $query->getValues(),
+        );
+    }
+
+    public function testSubqueryDoubleWhere(): void
+    {
+        $subQueryOne = new Select(Project::class, 'p1');
+        $subQueryOne->select('p1.user_id');
+        $subQueryOne->where('p1.status = ?', 'IN_PROGRESS');
+        $subQueryOne->limit(1);
+
+        $subQueryTwo = new Select(Project::class, 'p2');
+        $subQueryTwo->select('p2.user_id');
+        $subQueryTwo->where('p2.status != ?', 'FINISHED');
+        $subQueryTwo->where('p2.name = ?', 'Access');
+        $subQueryTwo->limit(1);
+
+        $query = new Select(User::class, 'u');
+        $query->whereOr([
+            'u.id = ?' => $subQueryOne,
+            'u.external_id = ?' => $subQueryTwo,
+        ]);
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` WHERE (`u`.`deleted_at` IS NULL) AND ' .
+                '((u.id = (SELECT p1.user_id FROM `projects` AS `p1` WHERE (p1.status = :z0w0) LIMIT 1)) ' .
+                'OR (u.external_id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE (p2.status != :z1w0) AND (p2.name = :z1w1) LIMIT 1)))',
+            $query->getSql(),
+        );
+
+        $this->assertEquals(
+            [
+                'z0w0' => 'IN_PROGRESS',
+                'z1w0' => 'FINISHED',
+                'z1w1' => 'Access',
+            ],
+            $query->getValues(),
+        );
+    }
+
+    public function testSubqueryMixed(): void
+    {
+        $subQueryTotal = new Select(Project::class, 'p1');
+        $subQueryTotal->select('COUNT(p1.id)');
+        $subQueryTotal->where('p1.user_id = u.id');
+        $subQueryTotal->where('p1.status = ?', 'IN_PROGRESS');
+
+        $subQueryInProgress = new Select(Project::class, 'p2');
+        $subQueryInProgress->select('p2.user_id');
+        $subQueryInProgress->where('p2.status = ?', 'IN_PROGRESS');
+        $subQueryInProgress->limit(1);
+
+        $query = new Select(User::class, 'u', [
+            'total_projects' => $subQueryTotal,
+        ]);
+
+        $query->where('u.id = ?', $subQueryInProgress);
+
+        $this->assertEquals(
+            'SELECT `u`.*, (SELECT COUNT(p1.id) FROM `projects` AS `p1` WHERE ' .
+                '(p1.user_id = u.id) AND (p1.status = :s0w0)) AS `total_projects` FROM `users` AS `u` ' .
+                'WHERE (`u`.`deleted_at` IS NULL) AND (u.id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE (p2.status = :z0w0) LIMIT 1))',
+            $query->getSql(),
+        );
+
+        $this->assertEquals(
+            [
+                's0w0' => 'IN_PROGRESS',
+                'z0w0' => 'IN_PROGRESS',
+            ],
+            $query->getValues(),
+        );
+    }
+
     public function testMultipleSimilarWheres(): void
     {
         $query = new Select(Project::class, 'p');

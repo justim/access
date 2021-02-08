@@ -15,6 +15,7 @@ namespace Access;
 
 use Access\Entity;
 use Access\IdentifiableInterface;
+use Access\Query\Select;
 
 /**
  * Base class for building queries
@@ -32,7 +33,8 @@ abstract class Query
     protected const PREFIX_JOIN = 'j';
     protected const PREFIX_WHERE = 'w';
     protected const PREFIX_HAVING = 'h';
-    protected const PREFIX_SUBQUERY = 's';
+    protected const PREFIX_SUBQUERY_VIRTUAL = 's';
+    protected const PREFIX_SUBQUERY_CONDITION = 'z';
 
     // possible combiners
     private const COMBINE_WITH_AND = 'AND';
@@ -341,10 +343,20 @@ abstract class Query
     private function getConditionValues(&$indexedValues, array $definition, string $prefix): void
     {
         $i = 0;
+        $subQueryIndex = 0;
         foreach ($definition as $definitionPart) {
             foreach ($definitionPart['conditions'] as $condition) {
                 if (!array_key_exists('value', $condition)) {
                     // where part only has a sql part, no value
+                    continue;
+                } elseif ($condition['value'] instanceof Select) {
+                    foreach ($condition['value']->getValues() as $nestedIndex => $nestedValue) {
+                        $indexedValues[
+                            self::PREFIX_SUBQUERY_CONDITION . $subQueryIndex . $nestedIndex
+                        ] = $nestedValue;
+                    }
+
+                    $subQueryIndex++;
                     continue;
                 } elseif ($condition['value'] === null) {
                     // sql is converted to `IS NULL`
@@ -515,6 +527,7 @@ abstract class Query
         }
 
         $resultParts = [];
+        $subQueryIndex = 0;
 
         foreach ($definition as $definitionPart) {
             $conditionParts = [];
@@ -522,6 +535,22 @@ abstract class Query
             foreach ($definitionPart['conditions'] as $condition) {
                 if (!array_key_exists('value', $condition)) {
                     $conditionParts[] = $condition['condition'];
+                    continue;
+                } elseif ($condition['value'] instanceof Select) {
+                    $conditionParts[] = preg_replace(
+                        '/(!)?= ?\?/',
+                        sprintf(
+                            '$1= (%s)',
+                            preg_replace(
+                                '/:(([a-z][0-9]+)+)/',
+                                ':' . self::PREFIX_SUBQUERY_CONDITION . $subQueryIndex . '$1',
+                                (string) $condition['value']->getSql(),
+                            ),
+                        ),
+                        $condition['condition'],
+                    );
+
+                    $subQueryIndex++;
                     continue;
                 } elseif ($condition['value'] === null) {
                     $conditionParts[] = preg_replace_callback_array(

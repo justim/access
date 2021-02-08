@@ -126,7 +126,7 @@ class Select extends Query
             if ($value instanceof self) {
                 $subSql = preg_replace(
                     '/:(([a-z][0-9]+)+)/',
-                    ':' . self::PREFIX_SUBQUERY . $i . '$1',
+                    ':' . self::PREFIX_SUBQUERY_VIRTUAL . $i . '$1',
                     (string) $value->getSql(),
                 );
 
@@ -154,7 +154,7 @@ class Select extends Query
         foreach ($this->virtualFields as $value) {
             if ($value instanceof self) {
                 foreach ($value->getValues() as $nestedIndex => $nestedValue) {
-                    $values[self::PREFIX_SUBQUERY . $i . $nestedIndex] = $nestedValue;
+                    $values[self::PREFIX_SUBQUERY_VIRTUAL . $i . $nestedIndex] = $nestedValue;
                 }
 
                 $i++;
