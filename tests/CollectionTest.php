@@ -351,4 +351,27 @@ class CollectionTest extends AbstractBaseTestCase
 
         $this->assertEquals(2, count($newUsers));
     }
+
+    /**
+     * @depends testInsert
+     */
+    public function testCollectionFirst(): void
+    {
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = self::$db->getRepository(Project::class);
+        $projects = $projectRepo->findAllCollection();
+
+        $this->assertEquals(2, count($projects));
+
+        $fakeId = 1;
+        foreach ($projects as $project) {
+            $this->assertEquals($fakeId, $project->getId());
+
+            $fakeId++;
+        }
+
+        $firstProject = $projects->first();
+
+        $this->assertEquals(1, $firstProject->getId());
+    }
 }

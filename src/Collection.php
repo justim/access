@@ -182,6 +182,20 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
+     * Get the first entity of this collection
+     *
+     * @return Entity|null
+     */
+    public function first(): ?Entity
+    {
+        if (isset($this->entities[0])) {
+            return $this->entities[0];
+        }
+
+        return null;
+    }
+
+    /**
      * Merge a collection into this collection
      *
      * @param Collection $source Collection to merge
