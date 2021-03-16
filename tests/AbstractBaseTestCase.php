@@ -27,9 +27,9 @@ abstract class AbstractBaseTestCase extends TestCase
      */
     protected static Database $db;
 
-    public static function setUpBeforeClass(): void
+    public static function createDatabase(): Database
     {
-        self::$db = Database::create('sqlite::memory:');
+        $db = Database::create('sqlite::memory:');
 
         $createUsersQuery = new Raw('CREATE TABLE `users` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +41,7 @@ abstract class AbstractBaseTestCase extends TestCase
             `deleted_at` DATETIME DEFAULT NULL
         )');
 
-        self::$db->query($createUsersQuery);
+        $db->query($createUsersQuery);
 
         $createProjectsQuery = new Raw('CREATE TABLE `projects` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,16 +53,28 @@ abstract class AbstractBaseTestCase extends TestCase
             `updated_at` DATETIME
         )');
 
-        self::$db->query($createProjectsQuery);
+        $db->query($createProjectsQuery);
+
+        return $db;
+    }
+
+    public static function nukeDatabase(Database $db): void
+    {
+        $dropUsersQuery = new Raw('DROP TABLE `users`');
+        $db->query($dropUsersQuery);
+
+        $dropProjectsQuery = new Raw('DROP TABLE `projects`');
+        $db->query($dropProjectsQuery);
+    }
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$db = self::createDatabase();
     }
 
     public static function tearDownAfterClass(): void
     {
-        $dropUsersQuery = new Raw('DROP TABLE `users`');
-        self::$db->query($dropUsersQuery);
-
-        $dropProjectsQuery = new Raw('DROP TABLE `projects`');
-        self::$db->query($dropProjectsQuery);
+        self::nukeDatabase(self::$db);
     }
 
     public function testInsert(): void
