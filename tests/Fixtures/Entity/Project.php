@@ -33,15 +33,14 @@ class Project extends Entity
     {
         return [
             'status' => [
-                'default' => function () {
-                    return 'IN_PROGRESS';
-                },
+                'default' => fn() => 'IN_PROGRESS',
             ],
             'name' => [],
             'owner_id' => [
                 'type' => self::FIELD_TYPE_INT,
             ],
             'published_at' => [
+                'default' => fn() => null,
                 'type' => self::FIELD_TYPE_DATE,
                 'excludeInCopy' => true,
             ],
@@ -102,7 +101,7 @@ class Project extends Entity
         return $this->get('published_at');
     }
 
-    public function setPublishedAt(?\DateTime $publishedAt): void
+    public function setPublishedAt(?\DateTimeInterface $publishedAt): void
     {
         $this->set('published_at', $publishedAt);
     }

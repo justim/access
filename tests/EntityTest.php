@@ -81,8 +81,12 @@ class EntityTest extends AbstractBaseTestCase
         /** @var User $user */
         $user = self::$db->findOne(User::class, 1);
 
+        $this->assertNull($user->getDeletedAt());
+
         $user->setDeletedAt();
         self::$db->save($user);
+
+        $this->assertNotNull($user->getDeletedAt());
 
         $user = self::$db->findOne(User::class, 1);
         $this->assertNull($user);
@@ -127,10 +131,5 @@ class EntityTest extends AbstractBaseTestCase
         $this->assertNotNull($projectCopy->getCreatedAt());
 
         $this->assertNotNull($project->getPublishedAt());
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Field "published_at" not available');
-
-        $projectCopy->getPublishedAt();
     }
 }

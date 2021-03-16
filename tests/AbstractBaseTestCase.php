@@ -87,6 +87,7 @@ abstract class AbstractBaseTestCase extends TestCase
 
         $this->assertEquals(1, $dave->getId());
         $this->assertNotNull($dave->getCreatedAt());
+        $this->assertNotNull($dave->getUpdatedAt());
 
         $bob = new User();
         $bob->setEmail('bob@example.com');
@@ -96,6 +97,7 @@ abstract class AbstractBaseTestCase extends TestCase
 
         $this->assertEquals(2, $bob->getId());
         $this->assertNotNull($bob->getCreatedAt());
+        $this->assertNotNull($bob->getUpdatedAt());
 
         $access = new Project();
         $access->setOwnerId($dave->getId());
