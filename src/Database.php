@@ -485,6 +485,16 @@ class Database
     }
 
     /**
+     * Create a new empty collection
+     *
+     * @return Collection Empty collection
+     */
+    public function createCollection(): Collection
+    {
+        return new Collection($this);
+    }
+
+    /**
      * Check for a valid entity class name
      *
      * @param string $klass Entity class name
