@@ -1,0 +1,31 @@
+/* stylelint-disable docusaurus/copyright-header */
+
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+main.content {
+    flex: 1;
+    background: var(--ifm-color-primary-darker);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
+    height: 100%;
+}
+
+div.hero {
+    background: var(--ifm-navbar-background-color);
+    padding: 2em;
+}
+
+.title {
+    font-size: 3em;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.tagline {
+    font-style: italic;
+}
