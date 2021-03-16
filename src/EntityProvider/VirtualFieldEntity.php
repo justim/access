@@ -72,7 +72,7 @@ class VirtualFieldEntity extends Entity
      * Resolved table definition with virtual field info
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default: mixed, type: string, virual: bool}>
+     * @psalm-return array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
      */
     protected function getResolvedFields(): array
     {
