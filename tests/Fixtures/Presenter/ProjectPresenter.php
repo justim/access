@@ -26,14 +26,14 @@ class ProjectPresenter extends EntityPresenter
 {
     private StatusFormatter $statusFormatter;
 
+    public function __construct(StatusFormatter $statusFormatter)
+    {
+        $this->statusFormatter = $statusFormatter;
+    }
+
     public static function getEntityKlass(): string
     {
         return Project::class;
-    }
-
-    public function receiveDependencies(StatusFormatter $statusFormatter): void
-    {
-        $this->statusFormatter = $statusFormatter;
     }
 
     /**

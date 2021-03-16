@@ -28,24 +28,6 @@ use Access\Presenter\PresentationMarker;
 abstract class EntityPresenter
 {
     /**
-     * @var Database $db
-     */
-    protected Database $db;
-
-    /**
-     * Create a presenter
-     *
-     * @param Database $db
-     * @param Collection $collection
-     */
-    public function __construct(Database $db, Collection $collection)
-    {
-        $this->db = $db;
-
-        $this->collectFromCollection($collection);
-    }
-
-    /**
      * Get the entity klass for presenter
      *
      * @psalm-return class-string<TEntity>
@@ -60,16 +42,6 @@ abstract class EntityPresenter
      * @return array|null Array representation
      */
     abstract public function fromEntity(Entity $entity): ?array;
-
-    /**
-     * Collect ref data for collection
-     *
-     * @param Collection $collection
-     */
-    protected function collectFromCollection(Collection $collection): void
-    {
-        // empty implementation
-    }
 
     /**
      * Present a entity in array form from ID

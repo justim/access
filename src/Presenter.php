@@ -21,7 +21,6 @@ use Access\Presenter\EntityPresenter;
 use Access\Presenter\FutureMarker;
 use Access\Presenter\MarkerInterface;
 use Access\Presenter\PresentationMarker;
-use ReflectionMethod;
 
 /**
  * Present entities as simple arrays with ease
@@ -30,11 +29,6 @@ use ReflectionMethod;
  */
 class Presenter
 {
-    /**
-     * Name of the method that can receive dependencies
-     */
-    private const RECEIVE_DEPENDENCIES_METHOD_NAME = 'receiveDependencies';
-
     /**
      * Marker to indicate a cleanup is required for array
      */
@@ -64,6 +58,8 @@ class Presenter
     {
         $this->db = $db;
         $this->entityPool = new EntityPool($db);
+
+        $this->dependencies[Database::class] = $db;
     }
 
     /**
@@ -274,7 +270,7 @@ class Presenter
             foreach ($info as $fieldName => $ids) {
                 $entityKlass = $presenterKlass::getEntityKlass();
                 $collection = $this->entityPool->getCollection($entityKlass, $fieldName, $ids);
-                $presenter = $this->createEntityPresenter($presenterKlass, $collection);
+                $presenter = $this->createEntityPresenter($presenterKlass);
 
                 array_walk_recursive($presentation, function (&$item) use (
                     $presenterKlass,
@@ -420,54 +416,106 @@ class Presenter
         }
     }
 
-    private function createEntityPresenter(string $presenterKlass, Collection $collection)
+    /**
+     * Create an entity presenter instance
+     *
+     * Will resolve dependencies by injecting them into the constructor
+     *
+     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-param class-string<TEntityPresenter> $presenterKlass
+     *
+     * @param string $presenterKlass Class to present the entity/collection
+     * @return EntityPresenter
+     */
+    private function createEntityPresenter(string $presenterKlass): EntityPresenter
     {
-        $presenter = new $presenterKlass($this->db, $collection);
-
         try {
-            $receiveDependencies = new ReflectionMethod(
-                $presenter,
-                self::RECEIVE_DEPENDENCIES_METHOD_NAME,
-            );
-        } catch (\Exception $e) {
+            $klassReflection = new \ReflectionClass($presenterKlass);
+            $constructorMethod = $klassReflection->getConstructor();
+        } catch (\ReflectionException $e) {
             // don't care about existence
         }
 
-        if (isset($receiveDependencies)) {
-            if (!$receiveDependencies->isPublic()) {
-                throw new Exception('Unsupported dependency demand: method not public');
+        if (isset($constructorMethod)) {
+            $arguments = $this->matchDependencies($constructorMethod);
+            /** @psalm-suppress UnsafeInstantiation */
+            $entityPresenter = new $presenterKlass(...$arguments);
+        } else {
+            /** @psalm-suppress UnsafeInstantiation */
+            $entityPresenter = new $presenterKlass();
+
+            try {
+                // still possible for backwards compatibility
+                $receiveDependencies = new \ReflectionMethod(
+                    $entityPresenter,
+                    'receiveDependencies',
+                );
+
+                $arguments = $this->matchDependencies($receiveDependencies);
+
+                $receiveDependencies->invokeArgs($entityPresenter, $arguments);
+            } catch (\ReflectionException $e) {
+                // don't care about existence
             }
-
-            $arguments = [];
-
-            foreach ($receiveDependencies->getParameters() as $parameter) {
-                if ($parameter->isVariadic()) {
-                    throw new Exception('Unsupported dependency demand: no variadic parameters');
-                }
-
-                $type = $parameter->getType();
-
-                if ($type === null) {
-                    throw new Exception('Unsupported dependency demand: missing type');
-                }
-
-                if (isset($this->dependencies[$type->getName()])) {
-                    $arguments[] = $this->dependencies[$type->getName()];
-                } elseif ($type->allowsNull()) {
-                    $arguments[] = null;
-                } else {
-                    throw new Exception(
-                        sprintf(
-                            'Unsupported dependency demand: "%s" not available',
-                            $type->getName(),
-                        ),
-                    );
-                }
-            }
-
-            $receiveDependencies->invokeArgs($presenter, $arguments);
         }
 
-        return $presenter;
+        return $entityPresenter;
+    }
+
+    /**
+     * Match dependencies of this presenter to arguments of given method
+     *
+     * Dependency injection, if you will
+     *
+     * @param \ReflectionMethod $method Method to match arguments for
+     * @return mixed[] List of dependencies
+     */
+    private function matchDependencies(\ReflectionMethod $method): array
+    {
+        if (!$method->isPublic()) {
+            throw new Exception('Unsupported dependency demand: method not public');
+        }
+
+        $arguments = [];
+
+        foreach ($method->getParameters() as $parameter) {
+            if ($parameter->isVariadic()) {
+                throw new Exception('Unsupported dependency demand: no variadic parameters');
+            }
+
+            $type = $parameter->getType();
+
+            if ($type === null) {
+                throw new Exception('Unsupported dependency demand: missing type');
+            }
+
+            /** @var string $typeName */
+            $typeName = $type->getName();
+
+            if (isset($this->dependencies[$typeName])) {
+                $arguments[] = $this->dependencies[$typeName];
+                continue;
+            }
+
+            foreach ($this->dependencies as $dependency) {
+                if ($dependency instanceof $typeName) {
+                    $arguments[] = $dependency;
+
+                    // goto next dependency
+                    continue 2;
+                }
+            }
+
+            if ($type->allowsNull()) {
+                $arguments[] = null;
+                continue;
+            }
+
+            throw new Exception(
+                sprintf('Unsupported dependency demand: "%s" not available', $typeName),
+            );
+        }
+
+        return $arguments;
     }
 }
