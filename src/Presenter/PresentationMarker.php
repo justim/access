@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Presenter;
 
+use Access\Clause\ClauseInterface;
 use Access\Presenter\MarkerInterface;
 
 /**
@@ -48,6 +49,11 @@ final class PresentationMarker implements MarkerInterface
     private bool $multiple;
 
     /**
+     * Extra clause for matching/sorting purposes
+     */
+    private ?ClauseInterface $clause;
+
+    /**
      * Create a marker with presentation information
      *
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
@@ -59,12 +65,14 @@ final class PresentationMarker implements MarkerInterface
         string $presenterKlass,
         string $fieldName,
         int $refId,
-        bool $multiple
+        bool $multiple,
+        ClauseInterface $clause = null
     ) {
         $this->presenterKlass = $presenterKlass;
         $this->fieldName = $fieldName;
         $this->refId = $refId;
         $this->multiple = $multiple;
+        $this->clause = $clause;
     }
 
     /**
@@ -115,10 +123,20 @@ final class PresentationMarker implements MarkerInterface
     /**
      * Marker expects multiple entities when filled
      *
-     * @retun int
+     * @retun bool
      */
     public function getMultiple(): bool
     {
         return $this->multiple;
+    }
+
+    /**
+     * Get (optional) extra clause for matching/sorting purposes
+     *
+     * @return ClauseInterface|null
+     */
+    public function getClause(): ?ClauseInterface
+    {
+        return $this->clause;
     }
 }

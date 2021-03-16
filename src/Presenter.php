@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Clause\ConditionInterface;
+use Access\Clause\OrderByInterface;
 use Access\Collection;
 use Access\Database;
 use Access\Entity;
@@ -84,6 +86,8 @@ class Presenter
      */
     public function presentEntity(string $presenterKlass, ?Entity $entity): ?array
     {
+        $this->db->assertValidPresenterClass($presenterKlass);
+
         if ($entity === null) {
             return null;
         }
@@ -92,6 +96,11 @@ class Presenter
         $collection->addEntity($entity);
 
         $collectionPresentation = $this->presentCollection($presenterKlass, $collection);
+
+        if (empty($collectionPresentation)) {
+            return null;
+        }
+
         $entityPresentation = reset($collectionPresentation);
 
         return $entityPresentation ?? null;
@@ -111,7 +120,9 @@ class Presenter
      */
     public function presentCollection(string $presenterKlass, Collection $collection): array
     {
-        $presenter = $this->createEntityPresenter($presenterKlass, $collection);
+        $this->db->assertValidPresenterClass($presenterKlass);
+
+        $presenter = $this->createEntityPresenter($presenterKlass);
 
         $presentation = array_filter(
             $collection->map(fn(Entity $entity) => $presenter->fromEntity($entity)),
@@ -181,7 +192,7 @@ class Presenter
     /**
      * Collect all markers left by present calls
      *
-     * @return array
+     * @return array{presenters: array, futures: array, entities: array}
      */
     private function collectMarkers(array $presentation): array
     {
@@ -290,6 +301,13 @@ class Presenter
         }
     }
 
+    /**
+     * Resolve future markers
+     *
+     * @param array $presentation Current presentation data
+     * @param array $markers List of markers to resolve in presentation
+     * @param array $currentFutureMarkers List of future markers currently in presentation data
+     */
     private function resolveFutureMarkers(
         array &$presentation,
         array $markers,
@@ -317,12 +335,59 @@ class Presenter
     }
 
     /**
-     * @return mixed
+     * Resolve a single presentation marker
+     *
+     * @param PresentationMarker $marker Presentation marker to resolve
+     * @param Collection $collection Collection that contains the entit(y|ies) linked to marker
+     * @param EntityPresenter $presenter Presenter to convert marker to array
+     * @return array|null
      */
     private function resolvePresentationMarker(
         PresentationMarker $marker,
         Collection $collection,
         EntityPresenter $presenter
+    ): ?array {
+        return $this->resolveMarker(
+            $marker,
+            $collection,
+            fn(Entity $entity) => $presenter->fromEntity($entity),
+            fn(Collection $entities) => array_values(
+                array_filter($entities->map(fn(Entity $entity) => $presenter->fromEntity($entity))),
+            ),
+        );
+    }
+
+    /**
+     * Resolve a single future marker
+     *
+     * @param FutureMarker $marker Future marker to resolve
+     * @param Collection $collection Collection that contains the entit(y|ies) linked to marker
+     * @return mixed
+     */
+    private function resolveFutureMarker(FutureMarker $marker, Collection $collection)
+    {
+        $callback = $marker->getCallback();
+
+        return $this->resolveMarker($marker, $collection, $callback, $callback);
+    }
+
+    /**
+     * Resolve a single marker
+     *
+     * @psalm-param callable(Entity): mixed $callbackSingle
+     * @psalm-param callable(Collection): mixed $callbackMultiple
+     *
+     * @param MarkerInterface $marker Marker to resolve
+     * @param Collection $collection Collection that contains the entit(y|ies) linked to marker
+     * @param callable $callbackSingle Called when the marker is single
+     * @param callable $callbackMultiple Called when the marker is multiple
+     * @return mixed
+     */
+    private function resolveMarker(
+        MarkerInterface $marker,
+        Collection $collection,
+        callable $callbackSingle,
+        callable $callbackMultiple
     ) {
         if (!$marker->getMultiple()) {
             $entity = $collection->find(function (Entity $entity) use ($marker) {
@@ -333,45 +398,27 @@ class Presenter
                 return null;
             }
 
-            return $presenter->fromEntity($entity);
+            return $callbackSingle($entity);
         }
 
-        return array_values(
-            array_filter(
-                $collection->map(function (Entity $entity) use ($marker, $presenter) {
-                    if ($this->matchMarker($marker, $entity)) {
-                        return $presenter->fromEntity($entity);
-                    }
+        $entities = $collection->filter(fn(Entity $entity) => $this->matchMarker($marker, $entity));
 
-                    return null;
-                }),
-            ),
-        );
+        $clause = $marker->getClause();
+
+        if ($clause !== null) {
+            if ($clause instanceof OrderByInterface) {
+                $clause->sortCollection($entities);
+            }
+        }
+
+        return $callbackMultiple($entities);
     }
 
-    private function resolveFutureMarker(FutureMarker $marker, Collection $collection)
-    {
-        $callback = $marker->getCallback();
-
-        if ($marker->getMultiple()) {
-            return $callback(
-                $collection->filter(function (Entity $entity) use ($marker) {
-                    return $this->matchMarker($marker, $entity);
-                }),
-            );
-        }
-
-        $entity = $collection->find(function (Entity $entity) use ($marker) {
-            return $this->matchMarker($marker, $entity);
-        });
-
-        if ($entity === null) {
-            return null;
-        }
-
-        return $callback($entity);
-    }
-
+    /**
+     * Match a marker against an entity
+     *
+     * Uses the field name and the optionally some clauses in the marker
+     */
     private function matchMarker(MarkerInterface $marker, Entity $entity): bool
     {
         $values = $entity->getValues();
@@ -384,7 +431,21 @@ class Presenter
             return false;
         }
 
-        return $values[$marker->getFieldName()] === $marker->getRefId();
+        if ($values[$marker->getFieldName()] !== $marker->getRefId()) {
+            return false;
+        }
+
+        $clause = $marker->getClause();
+
+        if ($clause !== null) {
+            if ($clause instanceof ConditionInterface) {
+                if (!$clause->matchesEntity($entity)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**

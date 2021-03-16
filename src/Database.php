@@ -452,9 +452,36 @@ class Database
      */
     public function presentEntity(string $presenterKlass, Entity $entity): ?array
     {
-        $presenter = new Presenter($this);
+        $this->assertValidPresenterClass($presenterKlass);
+
+        $presenter = $this->createPresenter();
 
         return $presenter->presentEntity($presenterKlass, $entity);
+    }
+
+    /**
+     * Present collection as a simple array
+     *
+     * @psalm-template TEntityPresenter of Presenter\EntityPresenter
+     * @psalm-param class-string<TEntityPresenter> $presenterKlass
+     *
+     * @param string $presenterKlass Class to present the collection with
+     * @param Collection $collection Collection to present
+     * @return array
+     */
+    public function presentCollection(string $presenterKlass, Collection $collection): array
+    {
+        return $collection->present($presenterKlass);
+    }
+
+    /**
+     * Create an presenter instance
+     *
+     * @return Presenter An presenter instance
+     */
+    public function createPresenter(): Presenter
+    {
+        return new Presenter($this);
     }
 
     /**
@@ -463,7 +490,7 @@ class Database
      * @param string $klass Entity class name
      * @throws Exception When entity class name is invalid
      */
-    public function assertValidEntityClass(string $klass): void
+    public static function assertValidEntityClass(string $klass): void
     {
         if (!is_subclass_of($klass, Entity::class)) {
             throw new Exception('Invalid entity: ' . $klass);
@@ -480,7 +507,7 @@ class Database
      * @param string $presenterClassName Presenter class name
      * @throws Exception When presenter class name is invalid
      */
-    public function assertValidPresenterClass(string $presenterClassName): void
+    public static function assertValidPresenterClass(string $presenterClassName): void
     {
         if (!is_subclass_of($presenterClassName, EntityPresenter::class)) {
             throw new Exception('Invalid presenter: ' . $presenterClassName);
@@ -497,7 +524,7 @@ class Database
      * @param string $repositoryClassName Repository class name
      * @throws Exception When repository class name is invalid
      */
-    private function assertValidRepositoryClass(string $repositoryClassName): void
+    private static function assertValidRepositoryClass(string $repositoryClassName): void
     {
         if (
             !is_subclass_of($repositoryClassName, Repository::class) &&

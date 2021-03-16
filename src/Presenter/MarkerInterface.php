@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Presenter;
 
+use Access\Clause\ClauseInterface;
+
 /**
  * Presentation marker
  *
@@ -43,4 +45,18 @@ interface MarkerInterface
      * @retun int
      */
     public function getRefId(): int;
+
+    /**
+     * Marker expects multiple entities when filled
+     *
+     * @retun bool
+     */
+    public function getMultiple(): bool;
+
+    /**
+     * Get (optional) extra clause for matching/sorting purposes
+     *
+     * @return ClauseInterface|null
+     */
+    public function getClause(): ?ClauseInterface;
 }

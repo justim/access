@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Presenter;
 
+use Access\Clause\ClauseInterface;
 use Access\Presenter\MarkerInterface;
 
 /**
@@ -52,6 +53,11 @@ final class FutureMarker implements MarkerInterface
     private \Closure $callback;
 
     /**
+     * Extra clause for matching/sorting purposes
+     */
+    private ?ClauseInterface $clause;
+
+    /**
      * Create a marker with future presentation information
      *
      * @psalm-param class-string<TEntity> $entityKlass
@@ -65,13 +71,15 @@ final class FutureMarker implements MarkerInterface
         string $fieldName,
         int $refId,
         bool $multiple,
-        \Closure $callback
+        \Closure $callback,
+        ClauseInterface $clause = null
     ) {
         $this->entityKlass = $entityKlass;
         $this->fieldName = $fieldName;
         $this->refId = $refId;
         $this->multiple = $multiple;
         $this->callback = $callback;
+        $this->clause = $clause;
     }
 
     /**
@@ -123,5 +131,15 @@ final class FutureMarker implements MarkerInterface
     public function getCallback(): \Closure
     {
         return $this->callback;
+    }
+
+    /**
+     * Get (optional) extra clause for matching/sorting purposes
+     *
+     * @return ClauseInterface|null
+     */
+    public function getClause(): ?ClauseInterface
+    {
+        return $this->clause;
     }
 }

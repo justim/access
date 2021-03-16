@@ -299,8 +299,6 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function present(string $presenterKlass): array
     {
-        $this->db->assertValidPresenterClass($presenterKlass);
-
         $presenter = new Presenter($this->db);
 
         return $presenter->presentCollection($presenterKlass, $this);
