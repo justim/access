@@ -52,10 +52,11 @@ class Update extends Query
 
         $sqlUpdate = 'UPDATE ' . $this->escapeIdentifier($this->tableName);
         $sqlAlias = $this->getAliasSql();
+        $sqlJoins = $this->getJoinSql();
         $sqlFields = ' SET ' . $fields;
         $sqlWhere = $this->getWhereSql();
         $sqlLimit = $this->getLimitSql();
 
-        return $sqlUpdate . $sqlAlias . $sqlFields . $sqlWhere . $sqlLimit;
+        return $sqlUpdate . $sqlAlias . $sqlJoins . $sqlFields . $sqlWhere . $sqlLimit;
     }
 }
