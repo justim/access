@@ -51,6 +51,9 @@ class VirtualFieldEntity extends Entity
     /**
      * Return a dummy table name
      *
+     * Method is never executed due to nature of this class, its all fake
+     * @codeCoverageIgnore
+     *
      * @return string
      */
     public static function tableName(): string
@@ -60,6 +63,9 @@ class VirtualFieldEntity extends Entity
 
     /**
      * Return a empty table definition
+     *
+     * Method is never executed due to overload of `getResolvedFields` method
+     * @codeCoverageIgnore
      *
      * @return array
      */
