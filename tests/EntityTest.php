@@ -88,14 +88,30 @@ class EntityTest extends AbstractBaseTestCase
         $this->assertNull($user);
     }
 
+    public function testSimpleDeletedAtDatabaseHelper(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var User $user */
+        $user = $db->findOne(User::class, 2);
+
+        $this->assertNull($user->getDeletedAt());
+
+        $db->softDelete($user);
+
+        $this->assertNotNull($user->getDeletedAt());
+
+        $user = $db->findOne(User::class, 2);
+        $this->assertNull($user);
+    }
+
     public function testDeletedAtJoin(): void
     {
         $db = self::createDatabaseWithDummyData();
 
         /** @var User $user */
         $user = $db->findOne(User::class, 1);
-        $user->setDeletedAt();
-        $db->save($user);
+        $db->softDelete($user);
         $this->assertNotNull($user->getDeletedAt());
 
         /** @var ProjectRepository $projectRepo */

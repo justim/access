@@ -418,6 +418,33 @@ class Database
     }
 
     /**
+     * Mark the entity as soft-deleted and save to database
+     *
+     * @param Entity $model Entity to soft delete
+     * @return bool Was something actually soft deleted
+     */
+    public function softDelete(Entity $model): bool
+    {
+        if (!$model::isSoftDeletable()) {
+            throw new Exception('Entity is not soft deletable');
+        }
+
+        try {
+            $setDeletedAt = new \ReflectionMethod($model, 'setDeletedAt');
+
+            if (!$setDeletedAt->isPublic()) {
+                throw new Exception('Soft delete method is not public');
+            }
+
+            $setDeletedAt->invoke($model);
+
+            return $this->update($model);
+        } catch (\Exception $e) {
+            throw new Exception('Entity is not soft deletable', 0, $e);
+        }
+    }
+
+    /**
      * Execute a raw query
      *
      * Has no return value, not suited for select queries

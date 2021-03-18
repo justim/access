@@ -140,6 +140,10 @@ entity from any of the query it runs. An easy way to get this working is by
 using the `SoftDeletableTrait`, this will implement the `isSoftDeletable` method
 and provide a couple of getters/setters for the fields.
 
+The `Database` instance has a helper method to soft delete with a single method
+call, instead of setting the `deleted_at` field and saving it:
+`Database::softDelete()`.
+
 ### Access fields
 
 Now that we have all fields defined, we need a way to access them from the

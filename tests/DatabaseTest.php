@@ -237,4 +237,17 @@ class DatabaseTest extends AbstractBaseTestCase
 
         $db->getRepository(Photo::class);
     }
+
+    public function testNonSoftDeletable(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var Project $project */
+        $project = $db->findOne(Project::class, 1);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Entity is not soft deletable');
+
+        $db->softDelete($project);
+    }
 }
