@@ -20,23 +20,21 @@ use Tests\Fixtures\Entity\User;
 
 class StatementTest extends AbstractBaseTestCase
 {
-    public function testInsert(): void
-    {
-        // override test insert, we dont need it here
-        $this->assertTrue(true);
-    }
-
     public function testInvalidPrepare(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Unable to prepare query');
 
         $query = new Query\Raw('SELECT foo FRM bar');
-        self::$db->query($query);
+        $db->query($query);
     }
 
     public function testInvalidExectute(): void
     {
+        $db = self::createDatabase();
+
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Unable to execute query');
 
@@ -47,21 +45,9 @@ class StatementTest extends AbstractBaseTestCase
             'email' => 'dave@example.com',
         ]);
 
-        self::$db->query($query);
+        $db->query($query);
 
         // insert with same primary key value
-        self::$db->query($query);
-    }
-
-    public function testEmptyReturnValue(): void
-    {
-        $user = new User();
-        $user->setName('Dave');
-        $user->setEmail('dave@example.com');
-
-        self::$db->save($user);
-
-        $this->assertEquals(2, $user->getId());
-        self::$db->save($user);
+        $db->query($query);
     }
 }

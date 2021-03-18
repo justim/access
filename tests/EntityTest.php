@@ -21,13 +21,12 @@ use Tests\Fixtures\Entity\User;
 
 class EntityTest extends AbstractBaseTestCase
 {
-    /**
-     * @depends testInsert
-     */
     public function testIdAlreadySet(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var User $user */
-        $user = self::$db->findOne(User::class, 1);
+        $user = $db->findOne(User::class, 1);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('ID already set');
@@ -45,13 +44,12 @@ class EntityTest extends AbstractBaseTestCase
         $user->getId();
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testUnavailableField(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var User $user */
-        $user = self::$db->findOne(User::class, 1);
+        $user = $db->findOne(User::class, 1);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Field "username" not available');
@@ -59,13 +57,12 @@ class EntityTest extends AbstractBaseTestCase
         $user->getUsername();
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testOverrideId(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var User $user */
-        $user = self::$db->findOne(User::class, 1);
+        $user = $db->findOne(User::class, 1);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to change ID');
@@ -73,54 +70,57 @@ class EntityTest extends AbstractBaseTestCase
         $user->overrideId(12);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testSimpleDeletedAt(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var User $user */
-        $user = self::$db->findOne(User::class, 1);
+        $user = $db->findOne(User::class, 1);
 
         $this->assertNull($user->getDeletedAt());
 
         $user->setDeletedAt();
-        self::$db->save($user);
+        $db->save($user);
 
         $this->assertNotNull($user->getDeletedAt());
 
-        $user = self::$db->findOne(User::class, 1);
+        $user = $db->findOne(User::class, 1);
         $this->assertNull($user);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testDeletedAtJoin(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var User $user */
+        $user = $db->findOne(User::class, 1);
+        $user->setDeletedAt();
+        $db->save($user);
+        $this->assertNotNull($user->getDeletedAt());
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
 
         $projects = $projectRepo->findWithUserName();
 
         $this->assertEquals(1, count($projects));
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testCopy(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         $projectToCopyName = 'Access';
         $copyProjectName = 'Access copy';
 
         /** @var Project $project */
-        $project = self::$db->findOneBy(Project::class, ['name' => $projectToCopyName]);
+        $project = $db->findOneBy(Project::class, ['name' => $projectToCopyName]);
 
         $projectCopy = $project->copy();
 
         $projectCopy->setName($copyProjectName);
 
-        self::$db->save($projectCopy);
+        $db->save($projectCopy);
 
         $this->assertNotEquals($project->getId(), $projectCopy->getId());
         $this->assertEquals($project->getName(), $projectToCopyName);

@@ -19,64 +19,61 @@ use Tests\Fixtures\Entity\User;
 
 class TransactionTest extends AbstractBaseTestCase
 {
-    public function testInsert(): void
-    {
-        // override test insert, we dont need it here
-        $this->assertTrue(true);
-    }
-
     public function testTransactionCommit(): void
     {
-        $users = self::$db->findAll(User::class);
+        $db = self::createDatabase();
+
+        $users = $db->findAll(User::class);
         $this->assertEquals(0, count(iterator_to_array($users)));
 
-        $transaction = self::$db->beginTransaction();
+        $transaction = $db->beginTransaction();
 
         $dave = new User();
         $dave->setEmail('dave@example.com');
         $dave->setName('Dave');
 
-        self::$db->insert($dave);
+        $db->insert($dave);
 
         $transaction->commit();
 
         // second time is a no-op
         $transaction->commit();
 
-        $users = self::$db->findAll(User::class);
+        $users = $db->findAll(User::class);
         $this->assertEquals(1, count(iterator_to_array($users)));
     }
 
-    /**
-     * @depends testTransactionCommit
-     */
     public function testTransactionRollBack(): void
     {
-        $users = self::$db->findAll(User::class);
-        $this->assertEquals(1, count(iterator_to_array($users)));
+        $db = self::createDatabaseWithDummyData();
 
-        $transaction = self::$db->beginTransaction();
+        $users = $db->findAll(User::class);
+        $this->assertEquals(2, count(iterator_to_array($users)));
+
+        $transaction = $db->beginTransaction();
 
         $dave = new User();
         $dave->setEmail('dave@example.com');
         $dave->setName('Dave');
 
-        self::$db->insert($dave);
+        $db->insert($dave);
 
         $transaction->rollBack();
 
         // second time is a no-op
         $transaction->rollBack();
 
-        $users = self::$db->findAll(User::class);
-        $this->assertEquals(1, count(iterator_to_array($users)));
+        $users = $db->findAll(User::class);
+        $this->assertEquals(2, count(iterator_to_array($users)));
     }
 
     public function testTransactionUnfinished(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Transaction still in progress');
 
-        $transaction = self::$db->beginTransaction();
+        $transaction = $db->beginTransaction();
     }
 }

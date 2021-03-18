@@ -26,13 +26,12 @@ use Tests\Fixtures\Repository\UserRepository;
 
 class CollectionTest extends AbstractBaseTestCase
 {
-    /**
-     * @depends testInsert
-     */
     public function testBatch(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findInProgress();
 
         $batchCount = 0;
@@ -61,13 +60,12 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertEquals(2, $projectCount);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testCollection(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
 
         $ids = $projects->getIds();
@@ -92,13 +90,12 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertNull($project);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testEmptyCollection(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findNothing();
 
         $this->assertEquals(0, count($projects));
@@ -112,13 +109,12 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertFalse(isset($users[1]));
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testMergeCollection(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findNothing();
 
         $this->assertEquals(0, count($projects));
@@ -128,13 +124,12 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertEquals(2, count($projects));
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testGroupByCollection(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
 
         $this->assertEquals(2, count($projects));
@@ -158,13 +153,12 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertNull($grouped[99999999]);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testSortCollection(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
 
         $ids = $projects->getIds();
@@ -178,13 +172,12 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertEquals([2, 1], $sortedIds);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testMapCollection(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
 
         $names = $projects->map(function (Project $project) {
@@ -194,16 +187,15 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertEquals(['Access', 'Access fork'], $names);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testFromIterableCollection(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAll();
 
-        $collection = new Collection(self::$db);
+        $collection = new Collection($db);
 
         $this->assertEquals(0, count($collection));
 
@@ -213,13 +205,12 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertEquals(2, count($collection));
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testCollectionNoSet(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
 
         $this->expectException(Exception::class);
@@ -228,13 +219,12 @@ class CollectionTest extends AbstractBaseTestCase
         unset($projects[1]);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testCollectionNoUnset(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
 
         $this->assertEquals(2, count($projects));
@@ -245,13 +235,12 @@ class CollectionTest extends AbstractBaseTestCase
         $projects[3] = new Project();
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testGroupedCollectionNoSet(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
 
         $this->expectException(Exception::class);
@@ -264,13 +253,12 @@ class CollectionTest extends AbstractBaseTestCase
         unset($grouped[1]);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testGroupedCollectionNoUnset(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
 
         $this->assertEquals(2, count($projects));
@@ -282,16 +270,15 @@ class CollectionTest extends AbstractBaseTestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to add new collections through array access');
 
-        $grouped[3] = new Collection(self::$db);
+        $grouped[3] = new Collection($db);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testInversedRefs(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var UserRepository $userRepo */
-        $userRepo = self::$db->getRepository(User::class);
+        $userRepo = $db->getRepository(User::class);
         $users = $userRepo->findAllCollection();
 
         $this->assertEquals(2, count($users));
@@ -301,13 +288,12 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertEquals(2, count($projects));
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testInversedRefsEmpty(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var UserRepository $userRepo */
-        $userRepo = self::$db->getRepository(User::class);
+        $userRepo = $db->getRepository(User::class);
         $users = $userRepo->findNothing();
 
         $this->assertEquals(0, count($users));
@@ -317,13 +303,12 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertEquals(0, count($projects));
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testInversedRefsInvalidFieldName(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var UserRepository $userRepo */
-        $userRepo = self::$db->getRepository(User::class);
+        $userRepo = $db->getRepository(User::class);
         $users = $userRepo->findNothing();
 
         $this->assertEquals(0, count($users));
@@ -334,31 +319,29 @@ class CollectionTest extends AbstractBaseTestCase
         $users->findInversedRefs(Project::class, 'some_invalid_id');
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testSelectQueryWithCollection(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var UserRepository $userRepo */
-        $userRepo = self::$db->getRepository(User::class);
+        $userRepo = $db->getRepository(User::class);
         $users = $userRepo->findAllCollection();
 
         $this->assertEquals(2, count($users));
 
         $query = new Select(User::class);
         $query->where('id IN (?)', $users);
-        $newUsers = iterator_to_array(self::$db->select(User::class, $query));
+        $newUsers = iterator_to_array($db->select(User::class, $query));
 
         $this->assertEquals(2, count($newUsers));
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testCollectionFirst(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
 
         $this->assertEquals(2, count($projects));

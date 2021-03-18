@@ -20,12 +20,6 @@ use Tests\Fixtures\Entity\User;
 
 class DebugQueryTest extends AbstractBaseTestCase
 {
-    public function testInsert(): void
-    {
-        // override test insert, we dont need it here
-        $this->assertTrue(true);
-    }
-
     public function testSimpleNull(): void
     {
         $query = new Query\Select(User::class, 'u');

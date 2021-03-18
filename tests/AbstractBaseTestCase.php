@@ -22,11 +22,6 @@ use Tests\Fixtures\Entity\User;
 
 abstract class AbstractBaseTestCase extends TestCase
 {
-    /**
-     * @var Database $db
-     */
-    protected static Database $db;
-
     public static function createDatabase(): Database
     {
         $db = Database::create('sqlite::memory:');
@@ -67,62 +62,31 @@ abstract class AbstractBaseTestCase extends TestCase
         $db->query($dropProjectsQuery);
     }
 
-    public static function setUpBeforeClass(): void
+    public static function createDatabaseWithDummyData(): Database
     {
-        self::$db = self::createDatabase();
-    }
+        $db = self::createDatabase();
 
-    public static function tearDownAfterClass(): void
-    {
-        self::nukeDatabase(self::$db);
-    }
-
-    public function testInsert(): void
-    {
         $dave = new User();
         $dave->setEmail('dave@example.com');
         $dave->setName('Dave');
-
-        self::$db->insert($dave);
-
-        $this->assertEquals(1, $dave->getId());
-        $this->assertNotNull($dave->getCreatedAt());
-        $this->assertNotNull($dave->getUpdatedAt());
+        $db->insert($dave);
 
         $bob = new User();
         $bob->setEmail('bob@example.com');
         $bob->setName('Bob');
-
-        self::$db->insert($bob);
-
-        $this->assertEquals(2, $bob->getId());
-        $this->assertNotNull($bob->getCreatedAt());
-        $this->assertNotNull($bob->getUpdatedAt());
+        $db->insert($bob);
 
         $access = new Project();
         $access->setOwnerId($dave->getId());
         $access->setName('Access');
         $access->setPublishedAt(\DateTime::createFromFormat('Y-m-d', '2019-02-07') ?: null);
-
-        $this->assertFalse($access->hasId());
-
-        self::$db->save($access);
-
-        $this->assertTrue($access->hasId());
-        $this->assertEquals(1, $access->getId());
-        $this->assertNotNull($access->getCreatedAt());
-
-        self::$db->save($access);
-
-        $this->assertTrue($access->hasId());
+        $db->save($access);
 
         $accessFork = new Project();
         $accessFork->setOwnerId($bob->getId());
         $accessFork->setName('Access fork');
+        $db->insert($accessFork);
 
-        self::$db->insert($accessFork);
-
-        $this->assertEquals(2, $accessFork->getId());
-        $this->assertNotNull($accessFork->getCreatedAt());
+        return $db;
     }
 }

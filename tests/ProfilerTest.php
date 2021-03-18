@@ -22,19 +22,18 @@ use Tests\Fixtures\Entity\User;
 
 class ProfilerTest extends AbstractBaseTestCase
 {
-    /**
-     * @depends testInsert
-     */
     public function testProfiler(): void
     {
-        $profiler = self::$db->getProfiler();
+        $db = self::createDatabaseWithDummyData();
+
+        $profiler = $db->getProfiler();
         $export = $profiler->export();
 
         $this->assertIsFloat($export['duration']);
         $this->assertIsFloat($profiler->getTotalDuration());
 
-        // create table and inserts
-        $this->assertEquals(7, count($export['queries']));
+        // two create tables and four inserts
+        $this->assertEquals(6, count($export['queries']));
     }
 
     public function testBlackholeProfiler(): void

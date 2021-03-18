@@ -46,20 +46,6 @@ class PresenterTest extends AbstractBaseTestCase
     private const OPTION_SINGLE_PROJECT = 1;
     private const OPTION_EXTRA_USER = 2;
 
-    public static function setUpBeforeClass(): void
-    {
-    }
-
-    public static function tearDownAfterClass(): void
-    {
-    }
-
-    public function testInsert(): void
-    {
-        // override test insert, we dont need it here
-        $this->assertTrue(true);
-    }
-
     private function createAndSetupEntities(int $options = 0): array
     {
         $db = self::createDatabase();

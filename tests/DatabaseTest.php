@@ -40,34 +40,82 @@ class DatabaseTest extends AbstractBaseTestCase
         $this->assertNotNull($db);
     }
 
-    /**
-     * @depends testInsert
-     */
+    public function testInsert(): void
+    {
+        $db = self::createDatabase();
+
+        $dave = new User();
+        $dave->setEmail('dave@example.com');
+        $dave->setName('Dave');
+
+        $db->insert($dave);
+
+        $this->assertEquals(1, $dave->getId());
+        $this->assertNotNull($dave->getCreatedAt());
+        $this->assertNotNull($dave->getUpdatedAt());
+
+        $bob = new User();
+        $bob->setEmail('bob@example.com');
+        $bob->setName('Bob');
+
+        $db->insert($bob);
+
+        $this->assertEquals(2, $bob->getId());
+        $this->assertNotNull($bob->getCreatedAt());
+        $this->assertNotNull($bob->getUpdatedAt());
+
+        $access = new Project();
+        $access->setOwnerId($dave->getId());
+        $access->setName('Access');
+        $access->setPublishedAt(\DateTime::createFromFormat('Y-m-d', '2019-02-07') ?: null);
+
+        $this->assertFalse($access->hasId());
+
+        $db->save($access);
+
+        $this->assertTrue($access->hasId());
+        $this->assertEquals(1, $access->getId());
+        $this->assertNotNull($access->getCreatedAt());
+
+        $db->save($access);
+
+        $this->assertTrue($access->hasId());
+
+        $accessFork = new Project();
+        $accessFork->setOwnerId($bob->getId());
+        $accessFork->setName('Access fork');
+
+        $db->insert($accessFork);
+
+        $this->assertEquals(2, $accessFork->getId());
+        $this->assertNotNull($accessFork->getCreatedAt());
+    }
+
     public function testFindOne(): void
     {
-        $user = self::$db->findOne(User::class, 1);
+        $db = self::createDatabaseWithDummyData();
+
+        $user = $db->findOne(User::class, 1);
 
         $this->assertNotNull($user);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testFindOneBy(): void
     {
-        $user = self::$db->findOneBy(User::class, [
+        $db = self::createDatabaseWithDummyData();
+
+        $user = $db->findOneBy(User::class, [
             'name' => 'Dave',
         ]);
 
         $this->assertNotNull($user);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testFindBy(): void
     {
-        $users = self::$db->findBy(User::class, []);
+        $db = self::createDatabaseWithDummyData();
+
+        $users = $db->findBy(User::class, []);
         $count = 0;
 
         $this->assertIsIterable($users);
@@ -82,61 +130,57 @@ class DatabaseTest extends AbstractBaseTestCase
         $this->assertEquals(2, $count);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testUpdate(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var User $user */
-        $user = self::$db->findOne(User::class, 1);
+        $user = $db->findOne(User::class, 1);
         $this->assertNotNull($user);
 
         $this->assertFalse($user->hasChanges());
         $user->setName('Dave 2');
         $this->assertTrue($user->hasChanges());
 
-        self::$db->update($user);
+        $db->update($user);
 
         $this->assertEquals('Dave 2', $user->getName());
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testUpdateSame(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var User $user */
-        $user = self::$db->findOne(User::class, 1);
+        $user = $db->findOne(User::class, 1);
         $this->assertNotNull($user);
 
         $user->setName('Dave 2');
 
-        self::$db->update($user);
+        $db->update($user);
 
         $this->assertEquals('Dave 2', $user->getName());
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testDelete(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var User $user */
-        $user = self::$db->findOne(User::class, 2);
+        $user = $db->findOne(User::class, 2);
         $this->assertNotNull($user);
 
-        self::$db->delete($user);
+        $db->delete($user);
 
         /** @var User|null $user */
-        $user = self::$db->findOne(User::class, 2);
+        $user = $db->findOne(User::class, 2);
         $this->assertNull($user);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testQuerySelect()
     {
+        $db = self::createDatabaseWithDummyData();
+
         $query = new Query\Select(Project::class);
         $query->where([
             'name = ?' => 'Access',
@@ -147,19 +191,18 @@ class DatabaseTest extends AbstractBaseTestCase
             'Method does not allow select queries, use `select` or `selectOne`',
         );
 
-        self::$db->query($query);
+        $db->query($query);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testQueryUpdate()
     {
+        $db = self::createDatabaseWithDummyData();
+
         $query = new Query\Update(Project::class);
         $query->values(['name' => 'Access']);
         $query->where(['name = ?' => 'Access']);
 
-        self::$db->query($query);
+        $db->query($query);
 
         // no exception
         $this->assertEquals(1, 1);
@@ -167,25 +210,31 @@ class DatabaseTest extends AbstractBaseTestCase
 
     public function testKlassValidationInvalid()
     {
+        $db = self::createDatabaseWithDummyData();
+
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Invalid entity: BLABLA');
 
-        self::$db->findOne('BLABLA', 1);
+        $db->findOne('BLABLA', 1);
     }
 
     public function testKlassValidationEmpty()
     {
+        $db = self::createDatabaseWithDummyData();
+
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Invalid table name, can not be empty');
 
-        self::$db->findOne(Role::class, 1);
+        $db->findOne(Role::class, 1);
     }
 
     public function testRepositoryValidation()
     {
+        $db = self::createDatabaseWithDummyData();
+
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Invalid repository: BLABLA');
 
-        self::$db->getRepository(Photo::class);
+        $db->getRepository(Photo::class);
     }
 }

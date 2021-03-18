@@ -19,13 +19,12 @@ use Tests\Fixtures\Repository\ProjectRepository;
 
 class RepositoryTest extends AbstractBaseTestCase
 {
-    /**
-     * @depends testInsert
-     */
     public function testSelectOne(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
 
         /** @var Project $project */
         $project = $projectRepo->findByName('Access');
@@ -38,25 +37,23 @@ class RepositoryTest extends AbstractBaseTestCase
         $this->assertNull($project);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testFindAllWithLimit(): void
     {
-        $projects = self::$db->findAll(Project::class, 1);
+        $db = self::createDatabaseWithDummyData();
+
+        $projects = $db->findAll(Project::class, 1);
 
         foreach ($projects as $project) {
             $this->assertEquals('Access', $project->getName());
         }
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testDirectQuery(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
 
         /** @var Project $project */
         $project = $projectRepo->findOne(1);
@@ -68,65 +65,60 @@ class RepositoryTest extends AbstractBaseTestCase
         $this->assertEquals('Access2', $project->getName());
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testFindByEmptyIds(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
 
         $projects = $projectRepo->findByIds([]);
 
         $this->assertEquals(0, count(iterator_to_array($projects)));
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testSelectVirtualField(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
 
         $total = $projectRepo->findTotalCount();
 
         $this->assertEquals(2, $total);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testSelectAddedVirtualField(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
 
         $total = $projectRepo->findTotalCountAdded();
 
         $this->assertEquals(2, $total);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testSelectReplacedVirtualField(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
 
         $total = $projectRepo->findTotalCountReplaced();
 
         $this->assertEquals(2, $total);
     }
 
-    /**
-     * @depends testInsert
-     */
     public function testSelectdBatched(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
         /** @var ProjectRepository $projectRepo */
-        $projectRepo = self::$db->getRepository(Project::class);
+        $projectRepo = $db->getRepository(Project::class);
 
         $batches = $projectRepo->findBatchedAll();
 

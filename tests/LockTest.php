@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use Access\Exception;
 use Tests\AbstractBaseTestCase;
-use Tests\Fixtures\Entity\User;
 
 /**
  * SQLite has no support for locks
@@ -24,12 +22,6 @@ use Tests\Fixtures\Entity\User;
  */
 class LockTest extends AbstractBaseTestCase
 {
-    public function testInsert(): void
-    {
-        // override test insert, we dont need it here
-        $this->assertTrue(true);
-    }
-
     public function testLockRead(): void
     {
         $this->assertTrue(true);
