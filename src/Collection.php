@@ -53,9 +53,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function fromIterable(iterable $iterable): void
     {
-        foreach ($iterable as $entity) {
-            $this->addEntity($entity);
-        }
+        array_push($this->entities, ...$iterable);
     }
 
     /**
@@ -81,11 +79,11 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Get a list of the ids of the entities
      *
-     * @return int[]
+     * @return int[] IDs of all entities in collection
      */
     public function getIds(): array
     {
-        return array_map(fn(Entity $entity) => $entity->getId(), $this->entities);
+        return $this->map(fn(Entity $entity) => $entity->getId());
     }
 
     /**
@@ -145,7 +143,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 
         $validFieldNames = array_keys($klass::fields());
 
-        if (!in_array($fieldName, $validFieldNames)) {
+        if (!in_array($fieldName, $validFieldNames, true)) {
             throw new Exception('Unknown field name for inversed refs');
         }
 
@@ -205,7 +203,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
         $ids = $this->getIds();
 
         foreach ($source as $entity) {
-            if (!in_array($entity->getId(), $ids)) {
+            if (!in_array($entity->getId(), $ids, true)) {
                 $this->addEntity($entity);
             }
         }
@@ -254,19 +252,23 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Map over collection
      *
      * @param callable $mapper Function to call for every entity
-     * @return mixed[]
+     * @return mixed[] Your mapped values
      */
     public function map(callable $mapper): array
     {
-        $result = [];
+        return array_map($mapper, $this->entities);
+    }
 
-        foreach ($this->entities as $entity) {
-            $value = $mapper($entity);
-
-            $result[] = $value;
-        }
-
-        return $result;
+    /**
+     * Reduce collection to something different
+     *
+     * @param callable $reducer Function to call for every entity
+     * @param mixed $initial Initial (or final on empty collection) value
+     * @return mixed The reduced result
+     */
+    public function reduce(callable $reducer, $initial = null)
+    {
+        return array_reduce($this->entities, $reducer, $initial);
     }
 
     /**
@@ -278,12 +280,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     public function filter(callable $finder): Collection
     {
         $result = new self($this->db);
-
-        foreach ($this->entities as $entity) {
-            if ($finder($entity)) {
-                $result->addEntity($entity);
-            }
-        }
+        $result->fromIterable(array_filter($this->entities, $finder));
 
         return $result;
     }

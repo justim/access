@@ -187,6 +187,21 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertEquals(['Access', 'Access fork'], $names);
     }
 
+    public function testReduceCollection(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+        $projects = $projectRepo->findAllCollection();
+
+        $idSum = $projects->reduce(function (int $carry, Project $project) {
+            return $carry + $project->getId();
+        }, 0);
+
+        $this->assertEquals(3, $idSum);
+    }
+
     public function testFromIterableCollection(): void
     {
         $db = self::createDatabaseWithDummyData();
