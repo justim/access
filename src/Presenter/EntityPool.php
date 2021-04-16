@@ -20,11 +20,17 @@ use Access\Entity;
 /**
  * Hold a pool of entities
  *
+ * @psalm-template TEntity of Entity
  * @author Tim <me@justim.net>
  */
 final class EntityPool
 {
     private Database $db;
+
+    /**
+     * @var array<string, array<string, Collection>>
+     * @psalm-var array<class-string<TEntity>, array<string, Collection<TEntity>>>
+     */
     private array $entites = [];
 
     /**
@@ -40,12 +46,11 @@ final class EntityPool
     /**
      * Provide a collection to the entity pool
      *
-     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $entityKlass
      *
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
-     * @param Collection $collection Provided collection
+     * @param Collection<TEntity> $collection Provided collection
      */
     public function provideCollection(
         string $entityKlass,
@@ -59,7 +64,6 @@ final class EntityPool
     /**
      * Get a collection from the pool by ID
      *
-     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $entityKlass
      *
      * @param string $entityKlass Entity class name
@@ -71,9 +75,9 @@ final class EntityPool
     {
         $currentCollection = $this->getOrCreateCurrentCollection($entityKlass, $fieldName);
 
-        $currentIds = $currentCollection->map(function (Entity $entity) use ($fieldName) {
-            return $this->getValue($entity, $fieldName);
-        });
+        $currentIds = $currentCollection->map(
+            fn(Entity $entity) => $this->getValue($entity, $fieldName),
+        );
 
         $newIds = array_unique(array_diff($ids, $currentIds));
 
@@ -121,16 +125,19 @@ final class EntityPool
     /**
      * Get or create a new collection for entity klass
      *
+     * @psalm-param class-string<TEntity> $entityKlass
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
-     * @return Collection
+     * @return Collection<TEntity>
      */
     private function getOrCreateCurrentCollection(
         string $entityKlass,
         string $fieldName
     ): Collection {
         if (!isset($this->entites[$entityKlass][$fieldName])) {
-            $this->entites[$entityKlass][$fieldName] = new Collection($this->db);
+            /** @var Collection<TEntity> $collection */
+            $collection = new Collection($this->db);
+            $this->entites[$entityKlass][$fieldName] = $collection;
         }
 
         return $this->entites[$entityKlass][$fieldName];

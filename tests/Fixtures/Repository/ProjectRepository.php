@@ -21,6 +21,9 @@ use Access\Query\Update;
 use Access\Repository;
 use Tests\Fixtures\Entity\User;
 
+/**
+ * @template-extends Repository<Project>
+ */
 class ProjectRepository extends Repository
 {
     public function findInProgress(): \Generator

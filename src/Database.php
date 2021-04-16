@@ -144,6 +144,7 @@ class Database
      *
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
+     * @psalm-return Repository<TEntity>
      *
      * @param string $klass Entity class name
      */
@@ -155,7 +156,7 @@ class Database
 
         $this->assertValidRepositoryClass($repositoryClassName);
 
-        /** @var Repository $repository */
+        /** @var Repository<TEntity> $repository */
         $repository = new $repositoryClassName($this, $klass);
 
         return $repository;
@@ -166,6 +167,7 @@ class Database
      *
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
+     * @psalm-return ?TEntity
      *
      * @param string $klass Entity class name
      * @param int $id ID of the entity
@@ -181,6 +183,7 @@ class Database
      *
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
+     * @psalm-return ?TEntity
      *
      * @param string $klass Entity class name
      * @param array<string, mixed> $fields List of fields with values
@@ -254,7 +257,7 @@ class Database
      * @psalm-template TEntity of Entity
      * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
      *
-     * @param EntityProvider $entityProvider Creator the empty enitty shells
+     * @param EntityProvider<TEntity> $entityProvider Creator the empty entity shells
      * @param Query\Select $query Select query to be executed
      * @return \Generator - yields Entity
      */
@@ -283,7 +286,7 @@ class Database
      *
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
      *
      * @param string $klass Entity class name
      * @param Query\Select $query Select query to be executed
@@ -313,7 +316,7 @@ class Database
     {
         $query->limit(1);
 
-        $records = iterator_to_array($this->select($klass, $query));
+        $records = iterator_to_array($this->select($klass, $query), false);
 
         if (empty($records)) {
             return null;

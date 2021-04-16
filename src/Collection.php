@@ -35,6 +35,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 
     /**
      * @var Entity[] $entities
+     * @psalm-var list<TEntity> $entities
      */
     private array $entities = [];
 
@@ -50,16 +51,24 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 
     /**
      * @param iterable<Entity> $iterable List of entities
+     * @psalm-param iterable<TEntity> $iterable List of entities
      */
     public function fromIterable(iterable $iterable): void
     {
-        array_push($this->entities, ...$iterable);
+        if (is_array($iterable)) {
+            $entities = array_values($iterable);
+        } else {
+            $entities = iterator_to_array($iterable, false);
+        }
+
+        $this->entities = array_merge($this->entities, $entities);
     }
 
     /**
      * Add a entity to the collection
      *
      * @param Entity $entity
+     * @psalm-param TEntity $entity
      */
     public function addEntity(Entity $entity): void
     {
@@ -92,11 +101,12 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Create a new collection of given entity name with an ID equal to the
      * result of the ID mapper
      *
-     * @psalm-param class-string<TEntity> $klass
+     * @psalm-template TRefEntity of Entity
+     * @psalm-param class-string<TRefEntity> $klass
      *
      * @param string $klass Entity class name
      * @param callable $mapper ID mapper, ID of the targeted entity
-     * @return Collection
+     * @return Collection<TRefEntity>
      */
     public function findRefs(string $klass, callable $mapper): Collection
     {
@@ -111,6 +121,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
             }
         }
 
+        /** @var self<TRefEntity> $result */
         $result = new self($this->db);
 
         if (empty($ids)) {
@@ -131,11 +142,12 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Create a new collection of given entity name that have a value for the
      * column name equal to the ID of the entities in this collection
      *
-     * @psalm-param class-string<TEntity> $klass
+     * @psalm-template TRefEntity of Entity
+     * @psalm-param class-string<TRefEntity> $klass
      *
      * @param string $klass Entity class name
      * @param string $fieldName Name of the field you want to search
-     * @return Collection
+     * @return Collection<TRefEntity>
      */
     public function findInversedRefs(string $klass, string $fieldName): Collection
     {
@@ -147,6 +159,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
             throw new Exception('Unknown field name for inversed refs');
         }
 
+        /** @var self<TRefEntity> $result */
         $result = new self($this->db);
 
         if ($this->isEmpty()) {
@@ -196,7 +209,8 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Merge a collection into this collection
      *
-     * @param Collection $source Collection to merge
+     * @param Collection<Entity> $source Collection to merge
+     * @psalm-param Collection<TEntity> $source Collection to merge
      */
     public function merge(Collection $source): void
     {
@@ -212,19 +226,22 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Group collection by a specified index
      *
+     * @psalm-param callable(Entity): array-key $groupIndexMapper
      * @param callable $groupIndexMapper Should return the index of the group
      * @return GroupedCollection
      */
     public function groupBy(callable $groupIndexMapper): GroupedCollection
     {
-        /** @var array<mixed, Collection> $groups */
+        /** @var array<array-key, self<TEntity>> $groups */
         $groups = [];
 
         foreach ($this->entities as $entity) {
             $groupIndex = $groupIndexMapper($entity);
 
             if (!isset($groups[$groupIndex])) {
-                $groups[$groupIndex] = new self($this->db);
+                /** @var self<TEntity> $collection */
+                $collection = new self($this->db);
+                $groups[$groupIndex] = $collection;
             }
 
             $groups[$groupIndex]->addEntity($entity);
@@ -238,6 +255,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * NOTE: uses `usort` with $comparer as compare function
      *
+     * @psalm-param callable(mixed, mixed): int $comparer
      * @param callable $comparer Function to sort/compare with
      * @return $this
      */
@@ -251,6 +269,9 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Map over collection
      *
+     * @psalm-template T
+     * @psalm-param callable(Entity): T $mapper
+     * @psalm-return T[]
      * @param callable $mapper Function to call for every entity
      * @return mixed[] Your mapped values
      */
@@ -262,6 +283,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Reduce collection to something different
      *
+     * @psalm-param callable(mixed, Entity): mixed $reducer
      * @param callable $reducer Function to call for every entity
      * @param mixed $initial Initial (or final on empty collection) value
      * @return mixed The reduced result
@@ -274,11 +296,13 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Create a new filtered collection
      *
+     * @psalm-param callable(mixed, mixed=):scalar $finder
      * @param callable $finder Include entity when $finder returns `true`
-     * @return Collection Newly created, and filtered, collection
+     * @return Collection<TEntity> Newly created, and filtered, collection
      */
     public function filter(callable $finder): Collection
     {
+        /** @var self<TEntity> $result */
         $result = new self($this->db);
         $result->fromIterable(array_filter($this->entities, $finder));
 
@@ -355,6 +379,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Iterator implementation
      *
      * @return Iterator
+     * @psalm-return Iterator<TEntity>
      */
     public function getIterator()
     {

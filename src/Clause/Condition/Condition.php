@@ -79,6 +79,7 @@ abstract class Condition implements ConditionInterface
                 return false;
             }
 
+            /** @var mixed $value */
             $value = $values[$this->fieldName];
         }
 

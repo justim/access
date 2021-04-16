@@ -29,13 +29,13 @@ class Raw extends Query
     private string $sql;
 
     /**
-     * @var mixed[]
+     * @var array<string, mixed>
      */
     protected array $values = [];
 
     /**
      * @param string $sql
-     * @param mixed[] $values
+     * @param array<string, mixed> $values
      */
     public function __construct(string $sql, array $values = [])
     {

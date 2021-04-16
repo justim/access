@@ -20,19 +20,20 @@ use Access\Exception;
 /**
  * Grouped collections of entities
  *
+ * @psalm-template TEntity of \Access\Entity
  * @author Tim <me@justim.net>
  */
 class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
 {
     /**
-     * @var array<mixed, Collection> $groups
+     * @var array<array-key, Collection<TEntity>> $groups
      */
     private array $groups;
 
     /**
      * Create a grouped collection with a indexed list of collections
      *
-     * @param array<mixed, Collection> $groups
+     * @param array<array-key, Collection<TEntity>> $groups
      */
     public function __construct(array $groups)
     {
@@ -54,7 +55,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Get a collection by its group ID
      *
      * @param int $id
-     * @return ?Collection
+     * @return ?Collection<TEntity>
      */
     public function offsetGet($id)
     {
@@ -90,7 +91,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * Iterator implementation
      *
-     * @return GroupedCollectionIterator
+     * @return GroupedCollectionIterator<TEntity>
      */
     public function getIterator()
     {

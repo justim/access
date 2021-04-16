@@ -143,7 +143,7 @@ class Select extends Query
     /**
      * Get the values with a prefixed index
      *
-     * @return array The values
+     * @return array<string, mixed> The values
      */
     public function getValues(): array
     {
@@ -153,8 +153,10 @@ class Select extends Query
 
         foreach ($this->virtualFields as $value) {
             if ($value instanceof self) {
+                /** @var mixed $nestedValue */
                 foreach ($value->getValues() as $nestedIndex => $nestedValue) {
-                    $values[self::PREFIX_SUBQUERY_VIRTUAL . $i . $nestedIndex] = $nestedValue;
+                    $doubleNestedIndex = self::PREFIX_SUBQUERY_VIRTUAL . $i . $nestedIndex;
+                    $values[$doubleNestedIndex] = $nestedValue;
                 }
 
                 $i++;

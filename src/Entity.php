@@ -19,7 +19,6 @@ use Access\Repository;
 /**
  * Entity functionality
  *
- * @psalm-template TRepository of Repository
  * @author Tim <me@justim.net>
  */
 abstract class Entity implements IdentifiableInterface
@@ -73,7 +72,7 @@ abstract class Entity implements IdentifiableInterface
     /**
      * Get the repository class for entity
      *
-     * @psalm-return class-string<TRepository>
+     * @psalm-return class-string<Repository>
      *
      * @return string
      */
@@ -255,6 +254,7 @@ abstract class Entity implements IdentifiableInterface
             if (isset($options['virtual']) && $options['virtual'] === true) {
                 continue;
             } elseif (array_key_exists($field, $this->values)) {
+                /** @var mixed $value */
                 $value = $this->values[$field];
             } elseif (array_key_exists('default', $options)) {
                 if (is_callable($options['default'])) {

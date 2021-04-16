@@ -63,7 +63,7 @@ class Repository
      * Find a single entity by its ID
      *
      * @param int $id ID of the entity
-     * @return ?Entity
+     * @psalm-return ?TEntity
      */
     public function findOne(int $id): ?Entity
     {
@@ -77,11 +77,12 @@ class Repository
      *
      * @param array<string, mixed> $fields List of fields with values
      * @return Entity|null
+     * @psalm-return ?TEntity
      */
     public function findOneBy(array $fields): ?Entity
     {
         $gen = $this->findBy($fields, 1);
-        $records = iterator_to_array($gen);
+        $records = iterator_to_array($gen, false);
 
         if (empty($records)) {
             return null;
@@ -93,7 +94,7 @@ class Repository
     /**
      * Find a list of entities by searching for column values
      *
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
      *
      * @param array<string, mixed> $fields List of fields with values
      * @param ?int $limit A a limit to the query
@@ -104,9 +105,11 @@ class Repository
         /* @var array<string, mixed> $where */
         $where = [];
 
+        /** @var mixed $value */
         foreach ($fields as $field => $value) {
             $condition = "{$field} = ?";
 
+            /** @psalm-suppress RedundantCastGivenDocblockType */
             if (strpos((string) $field, '?') !== false) {
                 $condition = $field;
             } elseif (is_array($value) || $value instanceof Collection) {
@@ -143,11 +146,13 @@ class Repository
      * @param array<string, mixed> $fields List of fields with values
      * @param ?int $limit A a limit to the query
      * @return Collection Collection with `Entity`s
+     * @psalm-return Collection<TEntity> Collection with `Entity`s
      */
     public function findByAsCollection($fields, int $limit = null): Collection
     {
         $iterator = $this->findBy($fields, $limit);
 
+        /** @var Collection<TEntity> $collection */
         $collection = new Collection($this->db);
         $collection->fromIterable($iterator);
 
@@ -157,7 +162,7 @@ class Repository
     /**
      * Find multiple entities by its ID
      *
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
      *
      * @param int[] $ids
      * @param int $limit
@@ -192,7 +197,7 @@ class Repository
     /**
      * Find all entities (default sort `id ASC`)
      *
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
      *
      * @param ?int $limit A a limit to the query
      * @param string $orderBy The order to use to find all entities
@@ -217,11 +222,13 @@ class Repository
      * @param ?int $limit A a limit to the query
      * @param string $orderBy The order to use to find all entities
      * @return Collection Collection with `Entity`s
+     * @psalm-return Collection<TEntity> Collection with `Entity`s
      */
     public function findAllCollection(?int $limit = null, string $orderBy = 'id ASC'): Collection
     {
         $iterator = $this->findAll($limit, $orderBy);
 
+        /** @var Collection<TEntity> $collection */
         $collection = new Collection($this->db);
         $collection->fromIterable($iterator);
 
@@ -231,7 +238,7 @@ class Repository
     /**
      * Execute a select query
      *
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
      *
      * @param Query\Select $query Select query to be executed
      * @return \Generator - yields Entity
@@ -246,6 +253,7 @@ class Repository
      *
      * @param Query\Select $query Select query to be executed
      * @return ?Entity
+     * @psalm-return ?TEntity
      */
     public function selectOne(Query\Select $query): ?Entity
     {
@@ -255,11 +263,14 @@ class Repository
     /**
      * Execute a select query in a batched fashion
      *
+     * @psalm-return \Generator<int, Batch<TEntity>, mixed, void> - yields Batches
+     *
      * @param Query\Select $query Select query to be executed
      * @param int|null $batchSize Size of the batches
      */
     public function selectBatched(Query\Select $query, int $batchSize = null): \Generator
     {
+        /** @var Batch<TEntity> $batch */
         $batch = new Batch($this->db);
 
         $result = $this->select($query);
@@ -270,6 +281,7 @@ class Repository
             if ($batch->isFull($batchSize)) {
                 yield $batch;
 
+                /** @var Batch<TEntity> $batch */
                 $batch = new Batch($this->db);
             }
         }
@@ -277,18 +289,18 @@ class Repository
         if (!$batch->isEmpty()) {
             yield $batch;
         }
-
-        return $result->getReturn();
     }
 
     /**
      * Execute a select query with a Collection as result
      *
      * @param Query\Select $query Select query to be executed
-     * @return Collection
+     * @return Collection Collection with `Entity`s
+     * @psalm-return Collection<TEntity> Collection with `Entity`s
      */
     public function selectCollection(Query\Select $query): Collection
     {
+        /** @var Collection<TEntity> $collection */
         $collection = new Collection($this->db);
 
         $result = $this->select($query);
@@ -303,7 +315,7 @@ class Repository
      *
      * Useful to only fetch counts
      *
-     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
+     * @psalm-return \Generator<int|null, mixed, mixed, void> - yields Entity
      *
      * @param Query\Select $query Select query to be executed
      * @param string $virtualFieldName Field name to return

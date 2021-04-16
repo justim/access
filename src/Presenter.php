@@ -48,6 +48,8 @@ class Presenter
 
     /**
      * Dependencies used to inject into entity presenters
+     *
+     * @var array<string, mixed>
      */
     private array $dependencies = [];
 
@@ -67,9 +69,9 @@ class Presenter
     /**
      * Add a dependency to be available for the entity presenters
      *
-     * @param mixed $dependency
+     * @param object $dependency
      */
-    public function addDependency($dependency): void
+    public function addDependency(object $dependency): void
     {
         $this->dependencies[get_class($dependency)] = $dependency;
     }
@@ -170,6 +172,8 @@ class Presenter
     /**
      * Provide a collection to fill the entity cache used by presenter
      *
+     * @psalm-template TEntity of Entity
+     * @psalm-param class-string<TEntity> $entityKlass
      * @param string $entityKlass Entity class name
      * @param Collection $collection
      */
@@ -181,6 +185,8 @@ class Presenter
     /**
      * Mark a location in a presentation to be resolved later
      *
+     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-param class-string<TEntityPresenter> $presenterKlass
      * @param string $presenterKlass Class to present the entity with
      * @param int $id ID of the entity
      */

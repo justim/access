@@ -33,7 +33,7 @@ interface OrderByInterface extends ClauseInterface
      * Create the compare function for this sort clause
      *
      * @return callable
-     * @psalm-return callable(Entity, Entity): int
+     * @psalm-return callable(\Access\Entity, \Access\Entity): int
      */
     public function createSortComparer(): callable;
 }

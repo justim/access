@@ -21,6 +21,7 @@ use Access\Collection;
  * Specialized implementation of a collection
  *
  * @psalm-template TEntity of Entity
+ * @template-extends Collection<TEntity>
  * @author Tim <me@justim.net>
  */
 class Batch extends Collection

@@ -19,6 +19,9 @@ use Access\Collection;
 use Access\Query\Select;
 use Access\Repository;
 
+/**
+ * @template-extends Repository<User>
+ */
 class UserRepository extends Repository
 {
     public function findNothing(): Collection

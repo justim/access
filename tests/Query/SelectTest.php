@@ -330,6 +330,7 @@ class SelectTest extends TestCase
         $this->expectExceptionMessage('Condition should be a string');
 
         $query = new Select(Project::class, 'p');
+        /** @psalm-suppress InvalidScalarArgument */
         $query->where(1, 'bla');
     }
 }

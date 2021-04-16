@@ -49,6 +49,7 @@ class DebugQuery
 
         $values = $this->query->getValues();
 
+        /** @var mixed $value */
         foreach ($values as $placeholder => $value) {
             $sql = preg_replace("/:$placeholder\b/", $this->toSqlValue($value), $sql);
         }

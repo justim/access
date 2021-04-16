@@ -81,7 +81,9 @@ abstract class OrderBy implements OrderByInterface
                     return 0;
                 }
 
+                /** @var mixed $valueOne */
                 $valueOne = $valuesOne[$this->fieldName];
+                /** @var mixed $valueTwo */
                 $valueTwo = $valuesTwo[$this->fieldName];
             }
 

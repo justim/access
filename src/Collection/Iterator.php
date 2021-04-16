@@ -18,12 +18,14 @@ use Access\Entity;
 /**
  * Collection of entities
  *
+ * @psalm-template TEntity of Entity
  * @author Tim <me@justim.net>
  */
 class Iterator implements \Iterator
 {
     /**
      * @var Entity[] $entities
+     * @psalm-var list<TEntity> $entities
      */
     private array $entities;
 
@@ -31,6 +33,7 @@ class Iterator implements \Iterator
      * Create a collection iterator
      *
      * @param Entity[] $entities
+     * @psalm-param list<TEntity> $entities
      */
     public function __construct(array $entities)
     {
@@ -48,6 +51,7 @@ class Iterator implements \Iterator
      * Iterator implementation
      *
      * @return Entity
+     * @psalm-return TEntity
      */
     public function current()
     {

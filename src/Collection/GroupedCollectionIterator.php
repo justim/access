@@ -18,19 +18,20 @@ use Access\Collection;
 /**
  * Grouped collection of collections
  *
+ * @psalm-template TEntity of \Access\Entity
  * @author Tim <me@justim.net>
  */
 class GroupedCollectionIterator implements \Iterator
 {
     /**
-     * @var array<mixed, Collection> $groups
+     * @var array<array-key, Collection<TEntity>> $groups
      */
     private array $groups;
 
     /**
      * Create a collection iterator
      *
-     * @param array<mixed, Collection> $groups
+     * @param array<array-key, Collection<TEntity>> $groups
      */
     public function __construct(array $groups)
     {
@@ -42,7 +43,7 @@ class GroupedCollectionIterator implements \Iterator
      *
      * Iterator implementation
      *
-     * @return Collection
+     * @return Collection<TEntity>
      */
     public function current()
     {
@@ -55,6 +56,7 @@ class GroupedCollectionIterator implements \Iterator
      * Iterator implementation
      *
      * @return mixed
+     * @psalm-return array-key
      */
     public function key()
     {

@@ -151,6 +151,7 @@ abstract class Query
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
      * @param string|array<int|string, mixed> $on Join condition(s)
+     * @psalm-suppress RedundantConditionGivenDocblockType The $on input is checked
      * @return $this
      */
     private function join(string $type, string $tableName, string $alias, $on)
@@ -307,15 +308,18 @@ abstract class Query
     /**
      * Get the values with a prefixed index
      *
-     * @return array The values
+     * @return array<string, mixed> The values
      */
     public function getValues(): array
     {
+        /** @var array<string, mixed> $indexedValues */
         $indexedValues = [];
 
         $i = 0;
+        /** @var mixed $value */
         foreach ($this->values as $value) {
-            $indexedValues[self::PREFIX_PARAM . $i] = $this->toDatabaseFormat($value);
+            $index = self::PREFIX_PARAM . $i;
+            $indexedValues[$index] = $this->toDatabaseFormat($value);
             $i++;
         }
 
@@ -530,6 +534,7 @@ abstract class Query
         $subQueryIndex = 0;
 
         foreach ($definition as $definitionPart) {
+            /** @var string[] $conditionParts */
             $conditionParts = [];
 
             foreach ($definitionPart['conditions'] as $condition) {

@@ -67,7 +67,8 @@ class VirtualFieldEntity extends Entity
      * Method is never executed due to overload of `getResolvedFields` method
      * @codeCoverageIgnore
      *
-     * @return array
+     * @return array<string, mixed>
+     * @psalm-return array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
      */
     public static function fields(): array
     {
