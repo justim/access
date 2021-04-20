@@ -15,6 +15,7 @@ namespace Access;
 
 use Access\Entity;
 use Access\IdentifiableInterface;
+use Access\Query\Cursor\Cursor;
 use Access\Query\Select;
 
 /**
@@ -64,6 +65,11 @@ abstract class Query
      * @var int|null
      */
     protected ?int $limit = null;
+
+    /**
+     * @var int|null
+     */
+    protected ?int $offset = null;
 
     /**
      * @psalm-var array<array-key, array{type: string, tableName: string, alias: string, on: array}>
@@ -116,6 +122,24 @@ abstract class Query
         }
 
         $this->alias = $alias;
+    }
+
+    /**
+     * Get the resolved table name
+     *
+     * Meaning, the table name, or its alias
+     *
+     * Note: is SQL escaped for safe usage
+     *
+     * @return string Resolved table name
+     */
+    public function getResolvedTableName(): string
+    {
+        if ($this->alias !== null) {
+            return $this->escapeIdentifier($this->alias);
+        }
+
+        return $this->tableName;
     }
 
     /**
@@ -281,11 +305,26 @@ abstract class Query
      * Add a LIMIT clause to query
      *
      * @param int $limit
+     * @param int|null $offset
      * @return $this
      */
-    public function limit(int $limit)
+    public function limit(int $limit, ?int $offset = null)
     {
         $this->limit = $limit;
+        $this->offset = $offset;
+
+        return $this;
+    }
+
+    /**
+     * Apply a pagination cursor to query
+     *
+     * @param Cursor $cursor Pagination cursor
+     * @return $this
+     */
+    public function applyCursor(Cursor $cursor)
+    {
+        $cursor->apply($this);
 
         return $this;
     }
@@ -661,7 +700,13 @@ abstract class Query
             return '';
         }
 
-        return " LIMIT {$this->limit}";
+        $limitSql = " LIMIT {$this->limit}";
+
+        if ($this->offset !== null) {
+            $limitSql .= " OFFSET {$this->offset}";
+        }
+
+        return $limitSql;
     }
 
     /**

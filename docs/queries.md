@@ -214,6 +214,47 @@ $query->limit(10);
 // SELECT `u`.* FROM `users` AS `u` LIMIT 10
 ```
 
+### Pagination cursors
+
+A common reason to limit your query is for pagination, Access provideds a
+mechanism to simplify this. There are two ways to get started with cursors,
+first there is the simple page number cursor.
+
+```php
+use Access\Query\Select;
+use Access\Query\Cursor\PageCursor;
+
+$cursor = new PageCursor(3, 10); // defaults are 1 and 50
+
+$query = new Select(User::class);
+$query->orderBy('id ASC');
+$query->applyCursor($cursor);
+
+// SELECT `users`.* FROM `users` ORDER BY id ASC LIMIT 10 OFFSET 20
+```
+
+Using a simple limit/offset does not work in all cases, for example when your
+list changes a lot and records would appear on a different page then when you
+requested the page. A solution for this is to ask for the next number of
+records, but skip the ones you already have.
+
+```php
+use Access\Query\Select;
+use Access\Query\Cursor\CurrentIdsCursor;
+
+$cursor = new CurrentIdsCursor([1, 2, 3], 10); // defaults are [] and 50
+
+$query = new Select(User::class);
+$query->orderBy('RAND()');
+$query->applyCursor($cursor);
+
+// SELECT `users`.* FROM `users`
+//   WHERE (users.id NOT IN  (1, 2, 3)) ORDER BY RAND() LIMIT 10
+```
+
+The order is set to random, but you will still get a next "page" with completely
+new records.
+
 ## Insert queries
 
 You can create an insert query by creating `Query\Insert` and adding some values
