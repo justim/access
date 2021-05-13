@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Clause\ClauseInterface;
+use Access\Clause\ConditionInterface;
+use Access\Clause\OrderByInterface;
 use Access\Collection\GroupedCollection;
 use Access\Collection\Iterator;
 use Access\Database;
@@ -368,6 +371,30 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
         }
 
         return false;
+    }
+
+    /**
+     * Create a new collection based on a clause
+     *
+     * @psalm-param callable(mixed, mixed=):scalar $finder
+     * @param callable $finder Include entity when $finder returns `true`
+     * @return Collection<TEntity> Newly created, and filtered, collection
+     */
+    public function applyClause(ClauseInterface $clause): Collection
+    {
+        /** @var self<TEntity> $collection */
+        $collection = new self($this->db);
+        $collection->entities = $this->entities;
+
+        if ($clause instanceof OrderByInterface) {
+            $clause->sortCollection($collection);
+        }
+
+        if ($clause instanceof ConditionInterface) {
+            $collection = $collection->filter(\Closure::fromCallable([$clause, 'matchesEntity']));
+        }
+
+        return $collection;
     }
 
     /**

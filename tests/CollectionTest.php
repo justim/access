@@ -16,6 +16,7 @@ namespace Tests;
 use Access\Batch;
 use Access\Collection;
 use Access\Exception;
+use Access\Clause;
 use Access\Query\Select;
 
 use Tests\AbstractBaseTestCase;
@@ -414,5 +415,76 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertTrue($projects->hasEntityWith('name', 'Access'));
         $this->assertFalse($projects->hasEntityWith('name', 'Some project'));
         $this->assertFalse($projects->hasEntityWith('some_field', 'Access'));
+    }
+
+    public function testCollectionEmptyFirst(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+        $projects = $projectRepo->findNothing();
+
+        $this->assertEquals(0, count($projects));
+
+        $firstProject = $projects->first();
+
+        $this->assertNull($firstProject);
+    }
+
+    public function testSimpleOrderClause(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+        $projects = $projectRepo->findAllCollection();
+
+        $ids = $projects->getIds();
+        $this->assertEquals([1, 2], $ids);
+
+        $sortedProjects = $projects->applyClause(new Clause\OrderBy\Descending('id'));
+
+        $sortedIds = $sortedProjects->getIds();
+        $this->assertEquals([2, 1], $sortedIds);
+    }
+
+    public function testSimpleConditionClause(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+        $projects = $projectRepo->findAllCollection();
+
+        $ids = $projects->getIds();
+        $this->assertEquals([1, 2], $ids);
+
+        $filteredProjects = $projects->applyClause(new Clause\Condition\Equals('owner_id', 1));
+
+        $filteredIds = $filteredProjects->getIds();
+        $this->assertEquals([1], $filteredIds);
+    }
+
+    public function testMultiClause(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+        $projects = $projectRepo->findAllCollection();
+
+        $ids = $projects->getIds();
+        $this->assertEquals([1, 2], $ids);
+
+        $filteredProjects = $projects->applyClause(
+            new Clause\Multiple(
+                new Clause\OrderBy\Descending('id'),
+                new Clause\Condition\GreaterThan('id', 0),
+            ),
+        );
+
+        $filteredIds = $filteredProjects->getIds();
+        $this->assertEquals([2, 1], $filteredIds);
     }
 }

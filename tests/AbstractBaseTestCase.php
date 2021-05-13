@@ -86,6 +86,12 @@ abstract class AbstractBaseTestCase extends TestCase
         $db->query($dropProjectsQuery);
     }
 
+    /**
+     * Create a dummy database with:
+     *
+     * - 2 users
+     * - 2 projects
+     */
     public static function createDatabaseWithDummyData(): Database
     {
         $db = self::createDatabase();

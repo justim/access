@@ -449,7 +449,7 @@ class Presenter
             }
 
             if ($clause instanceof OrderByInterface) {
-                $clause->sortCollection($entities);
+                $entities = $entities->applyClause($clause);
             }
         }
 
