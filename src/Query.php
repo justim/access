@@ -739,7 +739,7 @@ abstract class Query
      */
     protected function escapeIdentifier(string $identifier): string
     {
-        return '`' . str_replace('`', '``', $identifier) . '`';
+        return str_replace('.', '`.`', sprintf('`%s`', str_replace('`', '``', $identifier)));
     }
 
     /**
