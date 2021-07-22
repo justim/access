@@ -106,7 +106,7 @@ final class FutureMarker implements MarkerInterface
     /**
      * ID of the references field of entity
      *
-     * @retun int
+     * @return int
      */
     public function getRefId(): int
     {
@@ -116,7 +116,7 @@ final class FutureMarker implements MarkerInterface
     /**
      * Marker expects multiple entities when filled
      *
-     * @retun int
+     * @return int
      */
     public function getMultiple(): bool
     {
@@ -126,7 +126,7 @@ final class FutureMarker implements MarkerInterface
     /**
      * Function to call when future is resolved
      *
-     * @retun \Closure
+     * @return \Closure
      */
     public function getCallback(): \Closure
     {

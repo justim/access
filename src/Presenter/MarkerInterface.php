@@ -42,14 +42,14 @@ interface MarkerInterface
     /**
      * ID of the references field of entity
      *
-     * @retun int
+     * @return int
      */
     public function getRefId(): int;
 
     /**
      * Marker expects multiple entities when filled
      *
-     * @retun bool
+     * @return bool
      */
     public function getMultiple(): bool;
 
