@@ -116,7 +116,7 @@ final class FutureMarker implements MarkerInterface
     /**
      * Marker expects multiple entities when filled
      *
-     * @return int
+     * @return bool
      */
     public function getMultiple(): bool
     {
