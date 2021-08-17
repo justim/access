@@ -34,9 +34,9 @@ class Lock
     private Database $db;
 
     /**
-     * @var string[] $locks
+     * @var Query\LockTables $lockTablesQuery
      */
-    private array $locks = [];
+    private Query\LockTables $lockTablesQuery;
 
     /**
      * @var bool $locked
@@ -49,6 +49,7 @@ class Lock
     public function __construct(Database $db)
     {
         $this->db = $db;
+        $this->lockTablesQuery = new Query\LockTables();
     }
 
     /**
@@ -68,12 +69,11 @@ class Lock
      * @psalm-param class-string<TEntity> $klass
      *
      * @param string $klass Entity class name
+     * @param string $alias Lock the table by its alias
      */
-    public function read(string $klass): void
+    public function read(string $klass, string $alias = null): void
     {
-        $this->db->assertValidEntityClass($klass);
-
-        $this->locks[] = "{$klass::tableName()} READ";
+        $this->lockTablesQuery->read($klass, $alias);
     }
 
     /**
@@ -83,12 +83,13 @@ class Lock
      * @psalm-param class-string<TEntity> $klass
      *
      * @param string $klass Entity class name
+     * @param string $alias Lock the table by its alias
      */
-    public function write(string $klass): void
+    public function write(string $klass, string $alias = null): void
     {
         $this->db->assertValidEntityClass($klass);
 
-        $this->locks[] = "{$klass::tableName()} WRITE";
+        $this->lockTablesQuery->write($klass, $alias);
     }
 
     /**
@@ -96,15 +97,11 @@ class Lock
      */
     public function lock(): void
     {
-        if (empty($this->locks)) {
+        if ($this->lockTablesQuery->getSql() === null) {
             return;
         }
 
-        $locks = implode(', ', $this->locks);
-
-        $lockQuery = new Query\Raw(sprintf('LOCK TABLES %s', $locks));
-
-        $this->db->query($lockQuery);
+        $this->db->query($this->lockTablesQuery);
         $this->locked = true;
     }
 
@@ -117,9 +114,9 @@ class Lock
             return;
         }
 
-        $unlockQuery = new Query\Raw('UNLOCK TABLES');
+        $unlockTablesQuery = new Query\UnlockTables();
 
-        $this->db->query($unlockQuery);
+        $this->db->query($unlockTablesQuery);
         $this->locked = false;
     }
 }

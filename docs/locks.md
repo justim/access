@@ -19,9 +19,16 @@ $db = new Database(..);
 
 // returns a `Access\Lock` instance
 $lock = $db->createLock();
-$lock->read(User::class);
+
+// lock the underlaying table of `User` with the alias `u`
+$lock->read(User::class, 'u');
+
+// alternatively you can use a `WRITE` lock
 $lock->write(Project::class);
 ```
+
+You can pass an alias to the `lock` and `write` methods, you'll need this if
+query your data with aliases.
 
 ## Locking tables
 
