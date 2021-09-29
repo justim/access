@@ -47,6 +47,16 @@ abstract class Cursor
     }
 
     /**
+     * Get the page size of the cursor
+     *
+     * @return int Page size
+     */
+    public function getPageSize(): int
+    {
+        return $this->pageSize;
+    }
+
+    /**
      * Set the page size of the cursor
      *
      * @param int $pageSize Page size, defaults to 50

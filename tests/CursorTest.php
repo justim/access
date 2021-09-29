@@ -29,6 +29,8 @@ class CursorTest extends AbstractBaseTestCase
         $cursor = new PageCursor();
         $query->applyCursor($cursor);
 
+        $this->assertEquals(PageCursor::DEFAULT_PAGE_SIZE, $cursor->getPageSize());
+
         $this->assertEquals(
             'SELECT `projects`.* FROM `projects` ORDER BY id ASC LIMIT 50 OFFSET 0',
             $query->getSql(),
@@ -36,9 +38,13 @@ class CursorTest extends AbstractBaseTestCase
 
         $this->assertEquals([], $query->getValues());
 
+        $pageSize = 20;
+
         $cursor->setPage(3);
-        $cursor->setPageSize(20);
+        $cursor->setPageSize($pageSize);
         $query->applyCursor($cursor);
+
+        $this->assertEquals($pageSize, $cursor->getPageSize());
 
         $this->assertEquals(
             'SELECT `projects`.* FROM `projects` ORDER BY id ASC LIMIT 20 OFFSET 40',
