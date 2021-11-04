@@ -666,7 +666,7 @@ abstract class Query
             return '';
         }
 
-        return ' GROUP BY ' . implode(' ', $this->groupBy);
+        return ' GROUP BY ' . implode(', ', $this->groupBy);
     }
 
     /**
