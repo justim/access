@@ -13,14 +13,12 @@ declare(strict_types=1);
 
 namespace Access\EntityProvider;
 
-use Access\Entity;
-
 /**
  * Entity class to fetch a single virtual field
  *
  * @author Tim <me@justim.net>
  */
-class VirtualFieldEntity extends Entity
+class VirtualFieldEntity extends VirtualEntity
 {
     /**
      * Name of the virtual field
@@ -30,13 +28,6 @@ class VirtualFieldEntity extends Entity
     private string $virtualFieldName;
 
     /**
-     * Optional type of the virtual field
-     *
-     * @var string|null
-     */
-    private ?string $virtualType;
-
-    /**
      * Create a virtual field entity
      *
      * @param string $virtualFieldName Name of the virtual field
@@ -44,50 +35,13 @@ class VirtualFieldEntity extends Entity
      */
     public function __construct(string $virtualFieldName, ?string $virtualType)
     {
-        $this->virtualFieldName = $virtualFieldName;
-        $this->virtualType = $virtualType;
-    }
-
-    /**
-     * Return a dummy table name
-     *
-     * Method is never executed due to nature of this class, its all fake
-     * @codeCoverageIgnore
-     *
-     * @return string
-     */
-    public static function tableName(): string
-    {
-        return '__dummy__';
-    }
-
-    /**
-     * Return a empty table definition
-     *
-     * Method is never executed due to overload of `getResolvedFields` method
-     * @codeCoverageIgnore
-     *
-     * @return array<string, mixed>
-     * @psalm-return array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
-     */
-    public static function fields(): array
-    {
-        return [];
-    }
-
-    /**
-     * Resolved table definition with virtual field info
-     *
-     * @return array<string, mixed>
-     * @psalm-return array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
-     */
-    protected function getResolvedFields(): array
-    {
-        return [
-            $this->virtualFieldName => [
-                'type' => $this->virtualType,
+        parent::__construct([
+            $virtualFieldName => [
+                'type' => $virtualType,
             ],
-        ];
+        ]);
+
+        $this->virtualFieldName = $virtualFieldName;
     }
 
     /**

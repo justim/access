@@ -13,14 +13,12 @@ declare(strict_types=1);
 
 namespace Access\EntityProvider;
 
-use Access\EntityProvider;
-
 /**
  * Provide empty entity shells for virtual field use
  *
  * @author Tim <me@justim.net>
  */
-class VirtualFieldEntityProvider extends EntityProvider
+class VirtualFieldEntityProvider extends VirtualEntityProvider
 {
     /**
      * Name of the virtual field

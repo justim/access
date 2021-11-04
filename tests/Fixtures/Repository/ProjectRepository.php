@@ -16,6 +16,11 @@ namespace Tests\Fixtures\Repository;
 use Tests\Fixtures\Entity\Project;
 
 use Access\Collection;
+use Access\Entity;
+use Access\EntityProvider;
+use Access\EntityProvider\VirtualArrayEntityProvider;
+use Access\EntityProvider\VirtualEntity;
+use Access\EntityProvider\VirtualEntityProvider;
 use Access\Query\Select;
 use Access\Query\Update;
 use Access\Repository;
@@ -97,11 +102,101 @@ class ProjectRepository extends Repository
     {
         $query = new Select(Project::class, 'p', [
             'user_name' => 'u.name',
+            'user_id' => 'u.id',
         ]);
 
         $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
 
         return $this->selectCollection($query);
+    }
+
+    public function findVirtualUserNames(): \Generator
+    {
+        $query = new Select(Project::class, 'p', [
+            'user_name' => 'u.name',
+        ]);
+
+        $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
+
+        return $this->selectWithEntityProvider(
+            $query,
+            new class extends VirtualEntityProvider {
+                public function create(): VirtualEntity
+                {
+                    return new class ([
+                        'user_name' => [],
+                        'user_id' => [
+                            'type' => 'int',
+                        ],
+                    ]) extends VirtualEntity {
+                        public function getUserName(): string
+                        {
+                            return $this->get('user_name');
+                        }
+                        public function getUserId(): int
+                        {
+                            return $this->get('user_id');
+                        }
+                    };
+                }
+            },
+        );
+    }
+
+    public function findVirtualArrayUserNames(): Collection
+    {
+        $query = new Select(Project::class, 'p', [
+            'user_name' => 'u.name',
+            'user_id' => 'u.id',
+            'user_created_at' => 'u.created_at',
+        ]);
+
+        $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
+        $query->limit(1);
+
+        return $this->selectWithEntityProviderCollection(
+            $query,
+            new VirtualArrayEntityProvider([
+                'user_name' => [],
+                'user_id' => [
+                    'type' => 'int',
+                ],
+                'user_created_at' => [
+                    'type' => 'datetime',
+                ],
+            ]),
+        );
+    }
+
+    public function findVirtualArrayUserNamesSingleField(): Collection
+    {
+        $query = new Select(Project::class, 'p');
+
+        $query->select('u.name AS user_name');
+
+        $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
+        $query->limit(1);
+
+        return $this->selectWithEntityProviderCollection(
+            $query,
+            new VirtualArrayEntityProvider([
+                'user_name' => [],
+            ]),
+        );
+    }
+
+    public function brokenFindVirtualEntity(): Collection
+    {
+        $query = new Select(Project::class, 'p', [
+            'user_name' => 'u.name',
+        ]);
+
+        $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
+
+        return $this->selectWithEntityProviderCollection(
+            $query,
+            new class extends VirtualEntityProvider {},
+        );
     }
 
     public function findBatchedAll(): \Generator

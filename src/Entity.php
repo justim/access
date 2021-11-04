@@ -128,6 +128,17 @@ abstract class Entity implements IdentifiableInterface
     private array $updatedFields = [];
 
     /**
+     * Is the value available?
+     *
+     * @param string $field Field to check
+     * @return bool
+     */
+    final protected function hasValue(string $field): bool
+    {
+        return array_key_exists($field, $this->values);
+    }
+
+    /**
      * Get the value of a field
      *
      * @param string $field
@@ -135,7 +146,7 @@ abstract class Entity implements IdentifiableInterface
      */
     final protected function get(string $field)
     {
-        if (!array_key_exists($field, $this->values)) {
+        if (!$this->hasValue($field)) {
             throw new Exception(sprintf('Field "%s" not available', $field));
         }
 

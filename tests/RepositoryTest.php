@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Access\Exception;
 use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Repository\ProjectRepository;
@@ -111,6 +112,122 @@ class RepositoryTest extends AbstractBaseTestCase
         $total = $projectRepo->findTotalCountReplaced();
 
         $this->assertEquals(2, $total);
+    }
+
+    public function testSelectVirtualEntity(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $names = $projectRepo->findVirtualUserNames();
+        $names = iterator_to_array($names, false);
+
+        $names = array_map(fn($name) => $name->getUserName(), $names);
+
+        $this->assertEquals(['Dave', 'Bob'], $names);
+    }
+
+    public function testSelectBrokenVirtualEntity(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage(
+            'Virtual entity provider is missing a `create` implementation',
+        );
+
+        $projectRepo->brokenFindVirtualEntity();
+    }
+
+    public function testSelectVirtualArrayEntity(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $names = $projectRepo->findVirtualArrayUserNames();
+
+        $this->assertEquals('Dave', $names[1]['user_name']);
+        $this->assertEquals(1, $names[1]['user_id']);
+        $this->assertIsInt($names[1]['user_id']);
+        $this->assertInstanceOf(\DateTimeImmutable::class, $names[1]['user_created_at']);
+    }
+
+    public function testSelectVirtualEntityIsset(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $names = $projectRepo->findVirtualArrayUserNames();
+
+        $this->assertTrue(isset($names[1]['user_name']));
+        $this->assertFalse(isset($names[1]['some_other_field']));
+    }
+
+    public function testSelectVirtualEntitySingleField(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $names = $projectRepo->findVirtualArrayUserNamesSingleField();
+        $name = $names->first();
+
+        $this->assertEquals('Dave', $name['user_name']);
+    }
+
+    public function testSelectVirtualEntityMissingField(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $names = $projectRepo->findVirtualArrayUserNames();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Field "some_other_field" not available');
+
+        $names[1]['some_other_field'];
+    }
+
+    public function testSelectVirtualArrayEntityIllegalSet(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $names = $projectRepo->findVirtualArrayUserNames();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Not possible to update virtual array entities');
+
+        $names[1]['user_name'] = 'Bob';
+    }
+
+    public function testSelectVirtualArrayEntityIllegalUnset(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $names = $projectRepo->findVirtualArrayUserNames();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Not possible to update virtual array entities');
+
+        unset($names[1]['user_name']);
     }
 
     public function testSelectdBatched(): void

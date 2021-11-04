@@ -365,6 +365,44 @@ class Repository
     }
 
     /**
+     * Select with an entity provider
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param EntityProvider $entityProvider Entity provider to create base entities
+     * @return \Generator Generator with entities
+     */
+    public function selectWithEntityProvider(
+        Query\Select $query,
+        EntityProvider $entityProvider
+    ): \Generator {
+        $entities = $this->db->selectWithEntityProvider($entityProvider, $query);
+
+        /** @var Entity $entity */
+        foreach ($entities as $id => $entity) {
+            yield $id => $entity;
+        }
+    }
+
+    /**
+     * Select with an entity provider
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param EntityProvider $entityProvider Entity provider to create base entities
+     * @return Collection Collection with entities
+     */
+    public function selectWithEntityProviderCollection(
+        Query\Select $query,
+        EntityProvider $entityProvider
+    ): Collection {
+        $entities = $this->selectWithEntityProvider($query, $entityProvider);
+
+        $collection = $this->db->createCollection();
+        $collection->fromIterable($entities);
+
+        return $collection;
+    }
+
+    /**
      * Create an empty collection
      *
      * @return Collection

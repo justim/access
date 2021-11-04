@@ -371,5 +371,10 @@ class CollectionTest extends AbstractBaseTestCase
         $firstProject = $projects->first();
 
         $this->assertEquals(1, $firstProject->getId());
+
+        $emptyCollection = $db->createCollection();
+        $emptyFirst = $emptyCollection->first();
+
+        $this->assertNull($emptyFirst);
     }
 }

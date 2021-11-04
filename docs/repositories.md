@@ -156,6 +156,31 @@ entities to all kinds of lists.
     }
     ```
 
+-   `selectWithEntityProvider`: Provide a custom entity provider to use when
+    selecting entities. With the introduction of the
+    `VirtualArrayEntityProvider` it is now possible to select multiple arbitrary
+    fields.
+
+    ```php
+    public function findUserNames(): \Generator
+    {
+        $query = new Query\Select(User::class, 'u', [
+            'name' => 'u.name',
+            'some_number' => 'u.some_number',
+        ]);
+
+        return $this->selectWithEntityProvider(
+            $query,
+            new VirtualArrayEntityProvider([
+                'name' => [],
+                'some_number' => [
+                    'type' => 'int',
+                ],
+            ]),
+        );
+    }
+    ```
+
 ### No result helpers
 
 -   `query`: Execute a query without a result, useful for
