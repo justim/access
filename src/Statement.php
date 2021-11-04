@@ -109,16 +109,20 @@ final class Statement
         }
 
         if ($this->query instanceof Select) {
+            $numberOfResults = 0;
+
             try {
                 $profile->startHydrate();
 
                 while ($row = $statement->fetch(\PDO::FETCH_ASSOC)) {
+                    $numberOfResults++;
                     yield $row;
                 }
             } catch (\PDOException $e) {
                 throw new Exception('Unable to fetch', 0, $e);
             } finally {
                 $profile->endHydrate();
+                $profile->setNumberOfResults($numberOfResults);
             }
         }
 

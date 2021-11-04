@@ -58,6 +58,11 @@ class QueryProfile
     private float $hydrateDurationEnd = 0.0;
 
     /**
+     * @var int|null
+     */
+    private ?int $numberOfResults = null;
+
+    /**
      * @param Query $query
      */
     public function __construct(Query $query)
@@ -151,6 +156,30 @@ class QueryProfile
     public function getHydrateDuration(): float
     {
         return $this->hydrateDurationEnd - $this->hydrateDurationStart;
+    }
+
+    /**
+     * Set number of results
+     *
+     * @param int|null $numberOfResults
+     */
+    public function setNumberOfResults(?int $numberOfResults): void
+    {
+        $this->numberOfResults = $numberOfResults;
+    }
+
+    /**
+     * Get number of results
+     *
+     * This might not be accurate if the looping over the results of the query
+     * is cut short for any reason, it's the number of records that have been
+     * yielded by the statement
+     *
+     * @return int|null
+     */
+    public function getNumberOfResults(): ?int
+    {
+        return $this->numberOfResults;
     }
 
     /**

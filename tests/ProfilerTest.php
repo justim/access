@@ -18,6 +18,7 @@ use Access\Profiler\BlackholeProfiler;
 use Access\Query\Raw;
 
 use Tests\AbstractBaseTestCase;
+use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 
 class ProfilerTest extends AbstractBaseTestCase
@@ -34,6 +35,29 @@ class ProfilerTest extends AbstractBaseTestCase
 
         // two create tables and four inserts
         $this->assertEquals(6, count($export['queries']));
+    }
+
+    public function testNumberOfResults(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $projectRepo->findOne(1);
+
+        $profiler = $db->getProfiler();
+        $export = $profiler->export();
+
+        $lastProfile = array_pop($export['queries']);
+        $this->assertEquals(1, $lastProfile['numberOfResults']);
+
+        iterator_to_array($projectRepo->findAll(), false);
+
+        $export = $profiler->export();
+
+        $lastProfile = array_pop($export['queries']);
+        $this->assertEquals(2, $lastProfile['numberOfResults']);
     }
 
     public function testBlackholeProfiler(): void

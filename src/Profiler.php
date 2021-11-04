@@ -104,6 +104,7 @@ class Profiler
                     'runnableSql' => $debugQuery->toRunnableQuery(),
                     'duration' => $queryProfile->getTotalDuration(),
                     'durationWithHydrate' => $queryProfile->getTotalDurationWithHydrate(),
+                    'numberOfResults' => $queryProfile->getNumberOfResults(),
                 ];
             }, $this->queryProfiles),
         ];
