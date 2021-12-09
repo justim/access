@@ -581,16 +581,15 @@ abstract class Query
                     $conditionParts[] = $condition['condition'];
                     continue;
                 } elseif ($condition['value'] instanceof Select) {
+                    $subQuery = preg_replace(
+                        '/:(([a-z][0-9]+)+)/',
+                        ':' . self::PREFIX_SUBQUERY_CONDITION . $subQueryIndex . '$1',
+                        (string) $condition['value']->getSql(),
+                    );
+
                     $conditionParts[] = preg_replace(
-                        '/(!)?= ?\?/',
-                        sprintf(
-                            '$1= (%s)',
-                            preg_replace(
-                                '/:(([a-z][0-9]+)+)/',
-                                ':' . self::PREFIX_SUBQUERY_CONDITION . $subQueryIndex . '$1',
-                                (string) $condition['value']->getSql(),
-                            ),
-                        ),
+                        ['/(!)?= ?\?/', '/(NOT)? IN ?\(\?\)/i'],
+                        [sprintf('$1= (%s)', $subQuery), sprintf('$1 IN (%s)', $subQuery)],
                         $condition['condition'],
                     );
 

@@ -283,6 +283,30 @@ class SelectTest extends TestCase
         );
     }
 
+    public function testSubqueryMultipleRows(): void
+    {
+        $subQueryInProgress = new Select(Project::class, 'p1');
+        $subQueryInProgress->select('p1.user_id');
+        $subQueryInProgress->where('p1.status = ?', 'IN_PROGRESS');
+
+        $query = new Select(User::class, 'u');
+
+        $query->where('u.id IN (?)', $subQueryInProgress);
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` ' .
+                'WHERE (`u`.`deleted_at` IS NULL) AND (u.id IN (SELECT p1.user_id FROM `projects` AS `p1` WHERE (p1.status = :z0w0)))',
+            $query->getSql(),
+        );
+
+        $this->assertEquals(
+            [
+                'z0w0' => 'IN_PROGRESS',
+            ],
+            $query->getValues(),
+        );
+    }
+
     public function testMultipleSimilarWheres(): void
     {
         $query = new Select(Project::class, 'p');
