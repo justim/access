@@ -61,7 +61,7 @@ class DebugQuery
      * @param mixed $value
      * @return string
      */
-    private function toSqlValue($value): string
+    private function toSqlValue(mixed $value): string
     {
         if ($value === null) {
             return 'NULL';

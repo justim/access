@@ -347,14 +347,4 @@ class SelectTest extends TestCase
         $query = new Select(Project::class, 'p');
         $query->where([], 'bla');
     }
-
-    public function testInvalidWherConditionTwo(): void
-    {
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Condition should be a string');
-
-        $query = new Select(Project::class, 'p');
-        /** @psalm-suppress InvalidScalarArgument */
-        $query->where(1, 'bla');
-    }
 }

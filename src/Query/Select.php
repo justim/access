@@ -50,7 +50,7 @@ class Select extends Query
      * @param string|null $select
      * @return $this
      */
-    public function select($select)
+    public function select($select): static
     {
         $this->select = $select;
 
@@ -66,7 +66,7 @@ class Select extends Query
      * @param string $fieldValue Value of the field in SQL
      * @return $this
      */
-    public function addVirtualField(string $fieldName, string $fieldValue)
+    public function addVirtualField(string $fieldName, string $fieldValue): static
     {
         $this->virtualFields[$fieldName] = $fieldValue;
 
@@ -156,6 +156,8 @@ class Select extends Query
                 /** @var mixed $nestedValue */
                 foreach ($value->getValues() as $nestedIndex => $nestedValue) {
                     $doubleNestedIndex = self::PREFIX_SUBQUERY_VIRTUAL . $i . $nestedIndex;
+
+                    /** @psalm-suppress MixedAssignment */
                     $values[$doubleNestedIndex] = $nestedValue;
                 }
 

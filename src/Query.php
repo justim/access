@@ -150,7 +150,7 @@ abstract class Query
      * @param string|array<int|string, mixed> $on Join condition(s)
      * @return $this
      */
-    public function leftJoin(string $tableName, string $alias, $on)
+    public function leftJoin(string $tableName, string $alias, array|string $on): static
     {
         return $this->join(self::JOIN_TYPE_LEFT, $tableName, $alias, $on);
     }
@@ -163,7 +163,7 @@ abstract class Query
      * @param string|array<int|string, mixed> $on Join condition(s)
      * @return $this
      */
-    public function innerJoin(string $tableName, string $alias, $on)
+    public function innerJoin(string $tableName, string $alias, array|string $on): static
     {
         return $this->join(self::JOIN_TYPE_INNER, $tableName, $alias, $on);
     }
@@ -178,7 +178,7 @@ abstract class Query
      * @psalm-suppress RedundantConditionGivenDocblockType The $on input is checked
      * @return $this
      */
-    private function join(string $type, string $tableName, string $alias, $on)
+    private function join(string $type, string $tableName, string $alias, array|string $on): static
     {
         if (is_subclass_of($tableName, Entity::class)) {
             if ($tableName::isSoftDeletable()) {
@@ -218,7 +218,7 @@ abstract class Query
      * @param mixed $value Value of the single where clause
      * @return $this
      */
-    public function where($condition, $value = null)
+    public function where(array|string $condition, mixed $value = null): static
     {
         $newConditions = $this->processNewCondition(
             $condition,
@@ -238,7 +238,7 @@ abstract class Query
      * @param array<int|string, mixed> $conditions List of clauses (combined with OR)
      * @return $this
      */
-    public function whereOr(array $conditions)
+    public function whereOr(array $conditions): static
     {
         $newConditions = $this->processNewCondition(
             $conditions,
@@ -260,7 +260,7 @@ abstract class Query
      * @param string $groupBy
      * @return $this
      */
-    public function groupBy(string $groupBy)
+    public function groupBy(string $groupBy): static
     {
         $this->groupBy[] = $groupBy;
 
@@ -274,7 +274,7 @@ abstract class Query
      * @param mixed $value Value of the single where clause
      * @return $this
      */
-    public function having($condition, $value = null)
+    public function having(array|string $condition, mixed $value = null): static
     {
         $newConditions = $this->processNewCondition(
             $condition,
@@ -294,7 +294,7 @@ abstract class Query
      * @param string $orderBy Order by clause
      * @return $this
      */
-    public function orderBy(string $orderBy)
+    public function orderBy(string $orderBy): static
     {
         $this->orderBy = $orderBy;
 
@@ -308,7 +308,7 @@ abstract class Query
      * @param int|null $offset
      * @return $this
      */
-    public function limit(int $limit, ?int $offset = null)
+    public function limit(int $limit, ?int $offset = null): static
     {
         $this->limit = $limit;
         $this->offset = $offset;
@@ -322,7 +322,7 @@ abstract class Query
      * @param Cursor $cursor Pagination cursor
      * @return $this
      */
-    public function applyCursor(Cursor $cursor)
+    public function applyCursor(Cursor $cursor): static
     {
         $cursor->apply($this);
 
@@ -337,7 +337,7 @@ abstract class Query
      * @param array<string, mixed> $values Values for the query
      * @return $this
      */
-    public function values(array $values)
+    public function values(array $values): static
     {
         $this->values = $values;
 
@@ -358,6 +358,8 @@ abstract class Query
         /** @var mixed $value */
         foreach ($this->values as $value) {
             $index = self::PREFIX_PARAM . $i;
+
+            /** @psalm-suppress MixedAssignment */
             $indexedValues[$index] = $this->toDatabaseFormat($value);
             $i++;
         }
@@ -379,8 +381,8 @@ abstract class Query
     /**
      * Get the values used in a list of conditions
      *
-     * @param array $indexedValues (by ref) New condition values will added to this array
-     * @param array $definition Definition of conditions
+     * @param array<string, mixed> $indexedValues (by ref) New condition values will added to this array
+     * @param ConditionInterface[] $definition Definition of conditions
      * @param string $prefix Prefix used for the indexed values
      */
     private function getConditionValues(&$indexedValues, array $definition, string $prefix): void
@@ -430,7 +432,7 @@ abstract class Query
      * @param mixed $value Any value
      * @return mixed Database usable format
      */
-    private function toDatabaseFormat($value)
+    private function toDatabaseFormat(mixed $value): mixed
     {
         if ($value instanceof IdentifiableInterface) {
             return $this->toDatabaseFormat($value->getId());
@@ -559,7 +561,7 @@ abstract class Query
      * EX: ''
      *
      * @param string $what Type of condition (WHERE/HAVING/ON)
-     * @param array $definition Definition of the condition
+     * @param ConditionInterface[] $definition Definition of the condition
      * @param string $prefix Prefix for the placeholders
      * @return string
      */
@@ -771,8 +773,8 @@ abstract class Query
      * @return array
      */
     private function processNewCondition(
-        $condition,
-        $value,
+        array|string $condition,
+        mixed $value,
         bool $valueWasProvided,
         string $combineWith
     ): array {
@@ -814,6 +816,7 @@ abstract class Query
 
         $result = [];
 
+        /** @var mixed $conditionValue */
         foreach ($condition as $conditionCondition => $conditionValue) {
             // where part only has a sql part, no value
             if (is_int($conditionCondition)) {

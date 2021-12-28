@@ -49,6 +49,7 @@ class EntityProvider
      */
     public function create(): Entity
     {
+        /** @psalm-suppress UnsafeInstantiation */
         return new $this->klass();
     }
 }

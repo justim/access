@@ -25,5 +25,5 @@ interface IdentifiableInterface
      *
      * @return mixed
      */
-    public function getId();
+    public function getId(): mixed;
 }

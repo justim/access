@@ -795,7 +795,7 @@ class PresenterTest extends AbstractBaseTestCase
         [$db, $userOne] = $this->createAndSetupEntities();
 
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Unsupported dependency demand: missing type');
+        $this->expectExceptionMessage('Unsupported dependency demand: missing valid type');
 
         $db->presentEntity(BrokenMissingTypePresenter::class, $userOne);
     }

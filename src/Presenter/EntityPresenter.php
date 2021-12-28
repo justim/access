@@ -41,7 +41,7 @@ abstract class EntityPresenter
      * Create array representation from entity
      *
      * @param Entity $entity Entity
-     * @return array|null Array representation
+     * @return array<string, mixed>|null Array representation
      */
     abstract public function fromEntity(Entity $entity): ?array;
 
@@ -205,7 +205,7 @@ abstract class EntityPresenter
             $id,
             fn(Entity $entity) => $this->present(
                 $targetPresenterKlass,
-                $entity->getValues()[$targetFieldName] ?? null,
+                $this->getValidRefId($entity, $targetFieldName),
             ),
             $relationClause,
         );
@@ -302,8 +302,10 @@ abstract class EntityPresenter
             $id,
             fn(Collection $collection) => $this->presentMultiple(
                 $targetPresenterKlass,
-                $collection->map(
-                    fn(Entity $entity) => $entity->getValues()[$targetFieldName] ?? null,
+                array_filter(
+                    $collection->map(
+                        fn(Entity $entity) => $this->getValidRefId($entity, $targetFieldName),
+                    ),
                 ),
             ),
             $relationClause,
@@ -461,5 +463,23 @@ abstract class EntityPresenter
         }
 
         return $dateTime->format(\DateTime::ATOM);
+    }
+
+    /**
+     * Return a valid ref ID for a target field name of an entity
+     */
+    private function getValidRefId(Entity $entity, string $targetFieldName): ?int
+    {
+        $values = $entity->getValues();
+
+        if (!isset($values[$targetFieldName])) {
+            return null;
+        }
+
+        if (!is_int($values[$targetFieldName])) {
+            return null;
+        }
+
+        return $values[$targetFieldName];
     }
 }

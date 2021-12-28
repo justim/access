@@ -45,7 +45,7 @@ class VirtualFieldEntityProvider extends VirtualEntityProvider
         $this->virtualFieldName = $virtualFieldName;
         $this->virtualType = $virtualType;
 
-        parent::__construct(VirtualFieldEntity::class);
+        parent::__construct();
     }
 
     /**

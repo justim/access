@@ -144,7 +144,7 @@ abstract class Entity implements IdentifiableInterface
      * @param string $field
      * @return mixed
      */
-    final protected function get(string $field)
+    final protected function get(string $field): mixed
     {
         if (!$this->hasValue($field)) {
             throw new Exception(sprintf('Field "%s" not available', $field));
@@ -159,7 +159,7 @@ abstract class Entity implements IdentifiableInterface
      * @param string $field
      * @param IdentifiableInterface|mixed $value
      */
-    final protected function set(string $field, $value): void
+    final protected function set(string $field, mixed $value): void
     {
         if ($this->id !== null) {
             // value is the same, don't bother updating
@@ -328,7 +328,7 @@ abstract class Entity implements IdentifiableInterface
                 }
             }
 
-            $values[(string) $field] = $this->toDatabaseFormat((string) $field, $value);
+            $values[$field] = $this->toDatabaseFormat($field, $value);
         }
 
         if (!empty($values) && static::timestamps()) {
@@ -396,7 +396,7 @@ abstract class Entity implements IdentifiableInterface
                 continue;
             }
 
-            $this->values[(string) $field] = $this->fromDatabaseFormat((string) $field, $value);
+            $this->values[$field] = $this->fromDatabaseFormat($field, $value);
         }
 
         if (isset($record['id'])) {
@@ -413,7 +413,7 @@ abstract class Entity implements IdentifiableInterface
      * @param mixed $value
      * @return mixed
      */
-    private function toDatabaseFormat(string $field, $value)
+    private function toDatabaseFormat(string $field, mixed $value): mixed
     {
         $fields = $this->getResolvedFields();
 
@@ -437,7 +437,7 @@ abstract class Entity implements IdentifiableInterface
      * @param mixed $value
      * @return mixed
      */
-    private function toDatabaseFormatValue(string $type, $value)
+    private function toDatabaseFormatValue(string $type, mixed $value): mixed
     {
         if ($value === null) {
             return $value;
@@ -474,7 +474,7 @@ abstract class Entity implements IdentifiableInterface
      * @param mixed $value
      * @return mixed
      */
-    private function fromDatabaseFormat(string $field, $value)
+    private function fromDatabaseFormat(string $field, mixed $value): mixed
     {
         $fields = $this->getResolvedFields();
 
@@ -498,7 +498,7 @@ abstract class Entity implements IdentifiableInterface
      * @param mixed $value
      * @return mixed
      */
-    private function fromDatabaseFormatValue(string $type, $value)
+    private function fromDatabaseFormatValue(string $type, mixed $value): mixed
     {
         if ($value === null) {
             return $value;
@@ -602,8 +602,9 @@ abstract class Entity implements IdentifiableInterface
      *
      * @return static
      */
-    public function copy(): Entity
+    public function copy(): static
     {
+        /** @psalm-suppress UnsafeInstantiation */
         $copy = new static();
 
         $record = $this->getValues();

@@ -45,7 +45,7 @@ class GroupedCollectionIterator implements \Iterator
      *
      * @return Collection<TEntity>
      */
-    public function current()
+    public function current(): Collection
     {
         return current($this->groups);
     }
@@ -58,7 +58,7 @@ class GroupedCollectionIterator implements \Iterator
      * @return mixed
      * @psalm-return array-key
      */
-    public function key()
+    public function key(): mixed
     {
         return key($this->groups);
     }
@@ -70,7 +70,7 @@ class GroupedCollectionIterator implements \Iterator
      *
      * @return void
      */
-    public function next()
+    public function next(): void
     {
         next($this->groups);
     }
@@ -82,7 +82,7 @@ class GroupedCollectionIterator implements \Iterator
      *
      * @return void
      */
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->groups);
     }
@@ -94,7 +94,7 @@ class GroupedCollectionIterator implements \Iterator
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return key($this->groups) !== null;
     }

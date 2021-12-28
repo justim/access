@@ -100,7 +100,7 @@ class Repository
      * @param ?int $limit A a limit to the query
      * @return \Generator - yields Entity
      */
-    public function findBy($fields, int $limit = null): \Generator
+    public function findBy(array $fields, int $limit = null): \Generator
     {
         /* @var array<string, mixed> $where */
         $where = [];
@@ -148,7 +148,7 @@ class Repository
      * @return Collection Collection with `Entity`s
      * @psalm-return Collection<TEntity> Collection with `Entity`s
      */
-    public function findByAsCollection($fields, int $limit = null): Collection
+    public function findByAsCollection(array $fields, int $limit = null): Collection
     {
         $iterator = $this->findBy($fields, $limit);
 
@@ -367,6 +367,8 @@ class Repository
     /**
      * Select with an entity provider
      *
+     * @psalm-return \Generator<int|null, Entity, mixed, void> - yields Entity
+     *
      * @param Query\Select $query Select query to be executed
      * @param EntityProvider $entityProvider Entity provider to create base entities
      * @return \Generator Generator with entities
@@ -377,7 +379,6 @@ class Repository
     ): \Generator {
         $entities = $this->db->selectWithEntityProvider($entityProvider, $query);
 
-        /** @var Entity $entity */
         foreach ($entities as $id => $entity) {
             yield $id => $entity;
         }

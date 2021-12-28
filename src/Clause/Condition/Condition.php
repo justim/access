@@ -45,7 +45,7 @@ abstract class Condition implements ConditionInterface
      *
      * @var mixed
      */
-    private $value;
+    private mixed $value;
 
     /**
      * Create condition for given field name and value
@@ -54,7 +54,7 @@ abstract class Condition implements ConditionInterface
      * @param string $kind
      * @param mixed $value
      */
-    protected function __construct(string $fieldName, string $kind, $value)
+    protected function __construct(string $fieldName, string $kind, mixed $value)
     {
         $this->fieldName = $fieldName;
         $this->kind = $kind;

@@ -156,7 +156,8 @@ class Database
 
         $this->assertValidRepositoryClass($repositoryClassName);
 
-        /** @var Repository<TEntity> $repository */
+        /** @var Repository<TEntity> $repository
+         * @psalm-suppress UnsafeInstantiation */
         $repository = new $repositoryClassName($this, $klass);
 
         return $repository;

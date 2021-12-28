@@ -131,6 +131,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
         $ids = array_unique($ids);
         $refs = $this->db->findByIds($klass, $ids);
 
+        /** @psalm-suppress InvalidArgument */
         $result->fromIterable($refs);
 
         return $result;
@@ -170,6 +171,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
             $fieldName => $this,
         ]);
 
+        /** @psalm-suppress InvalidArgument */
         $result->fromIterable($refs);
 
         return $result;
@@ -259,7 +261,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @param callable $comparer Function to sort/compare with
      * @return $this
      */
-    public function sort(callable $comparer): self
+    public function sort(callable $comparer): static
     {
         usort($this->entities, $comparer);
 
@@ -288,7 +290,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @param mixed $initial Initial (or final on empty collection) value
      * @return mixed The reduced result
      */
-    public function reduce(callable $reducer, $initial = null)
+    public function reduce(callable $reducer, mixed $initial = null): mixed
     {
         return array_reduce($this->entities, $reducer, $initial);
     }
@@ -331,7 +333,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @param int $id
      * @return bool
      */
-    public function offsetExists($id)
+    public function offsetExists(mixed $id): bool
     {
         return $this->offsetGet($id) !== null;
     }
@@ -342,7 +344,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @param int $id
      * @return ?Entity
      */
-    public function offsetGet($id)
+    public function offsetGet(mixed $id): ?Entity
     {
         foreach ($this->entities as $entity) {
             if ($entity->getId() === $id) {
@@ -358,7 +360,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @throws Exception
      */
-    public function offsetSet($id, $value)
+    public function offsetSet(mixed $id, mixed $value): void
     {
         throw new Exception('Not possible to add new entities through array access');
     }
@@ -368,7 +370,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @throws Exception
      */
-    public function offsetUnset($id)
+    public function offsetUnset(mixed $id): void
     {
         throw new Exception('Not possible to remove entities through array access');
     }
@@ -381,7 +383,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @return Iterator
      * @psalm-return Iterator<TEntity>
      */
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         return new Iterator($this->entities);
     }
@@ -393,7 +395,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return count($this->entities);
     }

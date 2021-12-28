@@ -46,7 +46,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @param int $id
      * @return bool
      */
-    public function offsetExists($id)
+    public function offsetExists(mixed $id): bool
     {
         return isset($this->groups[$id]);
     }
@@ -57,7 +57,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @param int $id
      * @return ?Collection<TEntity>
      */
-    public function offsetGet($id)
+    public function offsetGet(mixed $id): ?Collection
     {
         if (!$this->offsetExists($id)) {
             return null;
@@ -71,7 +71,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @throws Exception
      */
-    public function offsetSet($id, $value)
+    public function offsetSet(mixed $id, mixed $value): void
     {
         throw new Exception('Not possible to add new collections through array access');
     }
@@ -81,7 +81,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @throws Exception
      */
-    public function offsetUnset($id)
+    public function offsetUnset(mixed $id): void
     {
         throw new Exception('Not possible to remove collections through array access');
     }
@@ -93,7 +93,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return GroupedCollectionIterator<TEntity>
      */
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         return new GroupedCollectionIterator($this->groups);
     }
@@ -105,7 +105,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return count($this->groups);
     }

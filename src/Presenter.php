@@ -105,7 +105,7 @@ class Presenter
 
         $entityPresentation = reset($collectionPresentation);
 
-        return $entityPresentation ?? null;
+        return $entityPresentation ?: null;
     }
 
     /**
@@ -118,7 +118,8 @@ class Presenter
      *
      * @param string $presenterKlass Class to present the entity with
      * @param Collection $collection
-     * @return array
+     * @return array<array-key, array>
+     * @psalm-return array<array-key, array<string, mixed>>
      */
     public function presentCollection(string $presenterKlass, Collection $collection): array
     {
@@ -138,6 +139,8 @@ class Presenter
      *
      * @param array $presentation Array presentation of some data
      * @return array Array presentation with resolved markers
+     * @psalm-param array<array-key, array<string, mixed>> $presentation Array presentation of some data
+     * @psalm-return array<array-key, array<string, mixed>> Array presentation with resolved markers
      */
     public function processPresentation(array $presentation): array
     {
@@ -166,6 +169,7 @@ class Presenter
 
         $this->cleanUp($presentation);
 
+        /** @var array<array-key, array<string, mxied>> $presentation */
         return $presentation;
     }
 
@@ -198,17 +202,21 @@ class Presenter
     /**
      * Collect all markers left by present calls
      *
-     * @return array{presenters: array, futures: array, entities: array}
+     * @return array<string, array>
+     * @psalm-return array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>}
      */
     private function collectMarkers(array $presentation): array
     {
+        /** @psalm-var array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>} $markers */
         $markers = [
             'presenters' => [],
             'futures' => [],
             'entities' => [],
         ];
 
-        array_walk_recursive($presentation, function ($item) use (&$markers) {
+        array_walk_recursive($presentation, function (mixed $item) use (&$markers) {
+            /** @psalm-var array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>} $markers */
+
             if (!$item instanceof MarkerInterface) {
                 return;
             }
@@ -250,7 +258,7 @@ class Presenter
         // presentation, resolving markers could give back a bunch of new
         // markers that are not yet ready to be processed, use the next loop to
         // resolve these
-        array_walk_recursive($presentation, function ($item) use (
+        array_walk_recursive($presentation, function (mixed $item) use (
             &$currentPresentationMarkers,
             &$currentFutureMarkers
         ) {
@@ -289,7 +297,7 @@ class Presenter
                 $collection = $this->entityPool->getCollection($entityKlass, $fieldName, $ids);
                 $presenter = $this->createEntityPresenter($presenterKlass);
 
-                array_walk_recursive($presentation, function (&$item) use (
+                array_walk_recursive($presentation, function (mixed &$item) use (
                     $presenterKlass,
                     $presenter,
                     $collection,
@@ -323,7 +331,7 @@ class Presenter
             foreach ($info as $fieldName => $ids) {
                 $collection = $this->entityPool->getCollection($entityKlass, $fieldName, $ids);
 
-                array_walk_recursive($presentation, function (&$item) use (
+                array_walk_recursive($presentation, function (mixed &$item) use (
                     $entityKlass,
                     $collection,
                     $currentFutureMarkers
@@ -370,7 +378,7 @@ class Presenter
      * @param Collection $collection Collection that contains the entit(y|ies) linked to marker
      * @return mixed
      */
-    private function resolveFutureMarker(FutureMarker $marker, Collection $collection)
+    private function resolveFutureMarker(FutureMarker $marker, Collection $collection): mixed
     {
         $callback = $marker->getCallback();
 
@@ -394,7 +402,7 @@ class Presenter
         Collection $collection,
         callable $callbackSingle,
         callable $callbackMultiple
-    ) {
+    ): mixed {
         if (!$marker->getMultiple()) {
             $entity = $collection->find(function (Entity $entity) use ($marker) {
                 return $this->matchMarker($marker, $entity);
@@ -467,9 +475,11 @@ class Presenter
      * ```
      *
      * @param array $presentation
+     * @psalm-param array<array-key, array<string, mixed>>|array<string, mixed> $presentation
      */
     private function cleanUp(array &$presentation): void
     {
+        /** @var mixed $item */
         foreach ($presentation as &$item) {
             if (is_array($item)) {
                 if (isset($item[self::CLEAN_UP_ARRAY_MARKER])) {
@@ -499,7 +509,7 @@ class Presenter
         try {
             $klassReflection = new \ReflectionClass($presenterKlass);
             $constructorMethod = $klassReflection->getConstructor();
-        } catch (\ReflectionException $e) {
+        } catch (\ReflectionException) {
             // don't care about existence
         }
 
@@ -521,7 +531,7 @@ class Presenter
                 $arguments = $this->matchDependencies($receiveDependencies);
 
                 $receiveDependencies->invokeArgs($entityPresenter, $arguments);
-            } catch (\ReflectionException $e) {
+            } catch (\ReflectionException) {
                 // don't care about existence
             }
         }
@@ -552,20 +562,22 @@ class Presenter
 
             $type = $parameter->getType();
 
-            if ($type === null) {
-                throw new Exception('Unsupported dependency demand: missing type');
+            if ($type === null || !$type instanceof \ReflectionNamedType) {
+                throw new Exception('Unsupported dependency demand: missing valid type');
             }
 
-            /** @var string $typeName */
             $typeName = $type->getName();
 
             if (isset($this->dependencies[$typeName])) {
+                /** @psalm-suppress MixedAssignment */
                 $arguments[] = $this->dependencies[$typeName];
                 continue;
             }
 
+            /** @var mixed $dependency */
             foreach ($this->dependencies as $dependency) {
                 if ($dependency instanceof $typeName) {
+                    /** @psalm-suppress MixedAssignment */
                     $arguments[] = $dependency;
 
                     // goto next dependency

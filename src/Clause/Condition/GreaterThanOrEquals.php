@@ -26,7 +26,7 @@ class GreaterThanOrEquals extends Condition
      * @param string $fieldName Name of the field to compare
      * @param mixed $value Value to compare
      */
-    public function __construct(string $fieldName, $value)
+    public function __construct(string $fieldName, mixed $value)
     {
         parent::__construct($fieldName, self::KIND_GREATER_THAN_OR_EQUALS, $value);
     }

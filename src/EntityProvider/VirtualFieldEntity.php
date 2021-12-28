@@ -49,7 +49,7 @@ class VirtualFieldEntity extends VirtualEntity
      *
      * @return mixed
      */
-    public function getVirtualField()
+    public function getVirtualField(): mixed
     {
         return $this->get($this->virtualFieldName);
     }

@@ -30,7 +30,7 @@ class VirtualArrayEntity extends VirtualEntity implements \ArrayAccess
      * @param string $field
      * @return bool
      */
-    public function offsetExists($field)
+    public function offsetExists(mixed $field): bool
     {
         return $this->hasValue($field);
     }
@@ -41,7 +41,7 @@ class VirtualArrayEntity extends VirtualEntity implements \ArrayAccess
      * @param string $field
      * @return mixed
      */
-    public function offsetGet($field)
+    public function offsetGet(mixed $field): mixed
     {
         return $this->get($field);
     }
@@ -51,7 +51,7 @@ class VirtualArrayEntity extends VirtualEntity implements \ArrayAccess
      *
      * @throws Exception
      */
-    public function offsetSet($id, $value)
+    public function offsetSet(mixed $id, mixed $value): void
     {
         throw new Exception('Not possible to update virtual array entities');
     }
@@ -61,7 +61,7 @@ class VirtualArrayEntity extends VirtualEntity implements \ArrayAccess
      *
      * @throws Exception
      */
-    public function offsetUnset($id)
+    public function offsetUnset(mixed $id): void
     {
         throw new Exception('Not possible to update virtual array entities');
     }

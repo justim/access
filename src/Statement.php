@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Profiler;
+use Access\Query;
 use Access\Query\Insert;
 use Access\Query\Select;
 use Access\StatementPool;
@@ -64,6 +65,7 @@ final class Statement
      * Create a statement
      *
      * @param Database $db
+     * @param Profiler $profiler
      * @param Query $query
      */
     public function __construct(Database $db, Profiler $profiler, Query $query)

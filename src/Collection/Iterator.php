@@ -53,7 +53,7 @@ class Iterator implements \Iterator
      * @return Entity
      * @psalm-return TEntity
      */
-    public function current()
+    public function current(): Entity
     {
         return $this->entities[$this->iteratorIndex];
     }
@@ -65,7 +65,7 @@ class Iterator implements \Iterator
      *
      * @return int
      */
-    public function key()
+    public function key(): int
     {
         $entity = $this->entities[$this->iteratorIndex];
 
@@ -79,7 +79,7 @@ class Iterator implements \Iterator
      *
      * @return void
      */
-    public function next()
+    public function next(): void
     {
         $this->iteratorIndex++;
     }
@@ -91,7 +91,7 @@ class Iterator implements \Iterator
      *
      * @return void
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->iteratorIndex = 0;
     }
@@ -103,7 +103,7 @@ class Iterator implements \Iterator
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return isset($this->entities[$this->iteratorIndex]);
     }

@@ -76,7 +76,7 @@ final class EntityPool
         $currentCollection = $this->getOrCreateCurrentCollection($entityKlass, $fieldName);
 
         $currentIds = $currentCollection->map(
-            fn(Entity $entity) => $this->getValue($entity, $fieldName),
+            fn(Entity $entity): mixed => $this->getValue($entity, $fieldName),
         );
 
         $newIds = array_unique(array_diff($ids, $currentIds));
@@ -105,9 +105,9 @@ final class EntityPool
      *
      * @param Entity $entity Entity to query
      * @param string $fieldName Name of referenced field
-     * @return mixed
+     * @return int|null
      */
-    private function getValue(Entity $entity, string $fieldName)
+    private function getValue(Entity $entity, string $fieldName): ?int
     {
         $values = $entity->getValues();
 
@@ -116,6 +116,10 @@ final class EntityPool
         }
 
         if (!isset($values[$fieldName])) {
+            return null;
+        }
+
+        if (!is_int($values[$fieldName])) {
             return null;
         }
 

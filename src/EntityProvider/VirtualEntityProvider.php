@@ -31,7 +31,7 @@ abstract class VirtualEntityProvider extends EntityProvider
     /**
      * Create a virtual field entity
      *
-     * @return VirtualFieldEntity
+     * @return VirtualEntity
      */
     public function create(): VirtualEntity
     {
