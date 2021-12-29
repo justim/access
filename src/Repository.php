@@ -14,6 +14,9 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Batch;
+use Access\Clause\Condition\Equals;
+use Access\Clause\Condition\In;
+use Access\Clause\Condition\Raw;
 use Access\Collection;
 use Access\Database;
 use Access\Entity;
@@ -102,36 +105,19 @@ class Repository
      */
     public function findBy(array $fields, int $limit = null): \Generator
     {
-        /* @var array<string, mixed> $where */
-        $where = [];
+        $query = new Query\Select($this->klass);
 
         /** @var mixed $value */
         foreach ($fields as $field => $value) {
-            $condition = "{$field} = ?";
-
             /** @psalm-suppress RedundantCastGivenDocblockType */
             if (strpos((string) $field, '?') !== false) {
-                $condition = $field;
+                $query->where(new Raw($field, $value));
             } elseif (is_array($value) || $value instanceof Collection) {
-                if (
-                    (is_array($value) && !empty($value)) ||
-                    ($value instanceof Collection && !$value->isEmpty())
-                ) {
-                    $condition = "{$field} IN (?)";
-                } else {
-                    // empty collections make no sense...
-                    // droppping the whole condition is risky because you may
-                    // over-select a whole bunch of records, better is to
-                    // under-select.
-                    $condition = '1 = 2';
-                }
+                $query->where(new In($field, $value));
+            } else {
+                $query->where(new Equals($field, $value));
             }
-
-            $where[$condition] = $value;
         }
-
-        $query = new Query\Select($this->klass);
-        $query->where($where);
 
         if ($limit !== null) {
             $query->limit($limit);
@@ -401,6 +387,18 @@ class Repository
         $collection->fromIterable($entities);
 
         return $collection;
+    }
+
+    /**
+     * Save a model to the database
+     *
+     * Delegates to insert when no id is available, update otherwise
+     *
+     * @param Entity $model
+     */
+    public function save(Entity $entity): void
+    {
+        $this->db->save($entity);
     }
 
     /**

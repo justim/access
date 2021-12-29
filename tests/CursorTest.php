@@ -72,7 +72,7 @@ class CursorTest extends AbstractBaseTestCase
         $query->applyCursor($cursor);
 
         $this->assertEquals(
-            'SELECT `projects`.* FROM `projects` WHERE (projects.id NOT IN (:w0, :w1)) ORDER BY RAND() LIMIT 50',
+            'SELECT `projects`.* FROM `projects` WHERE projects.id NOT IN (:w0, :w1) ORDER BY RAND() LIMIT 50',
             $query->getSql(),
         );
 

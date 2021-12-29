@@ -370,11 +370,44 @@ class CollectionTest extends AbstractBaseTestCase
 
         $firstProject = $projects->first();
 
+        $this->assertNotNull($firstProject);
         $this->assertEquals(1, $firstProject->getId());
 
         $emptyCollection = $db->createCollection();
         $emptyFirst = $emptyCollection->first();
 
         $this->assertNull($emptyFirst);
+    }
+
+    public function testCollectionContains(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+        $projects = $projectRepo->findAllCollection();
+        $project = $projectRepo->findOne(1);
+
+        $this->assertTrue($projects->contains($project));
+
+        $project = new Project();
+        $db->save($project);
+
+        $this->assertFalse($projects->contains($project));
+    }
+
+    public function testCollectionHasEntityWith(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+        $projects = $projectRepo->findAllCollection();
+
+        $this->assertTrue($projects->hasEntityWith('id', 1));
+        $this->assertFalse($projects->hasEntityWith('id', 3));
+        $this->assertTrue($projects->hasEntityWith('name', 'Access'));
+        $this->assertFalse($projects->hasEntityWith('name', 'Some project'));
+        $this->assertFalse($projects->hasEntityWith('some_field', 'Access'));
     }
 }

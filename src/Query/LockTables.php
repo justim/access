@@ -89,12 +89,12 @@ class LockTables extends Query
         if ($alias !== null) {
             $this->locks[] = sprintf(
                 '%s AS %s %s',
-                $this->escapeIdentifier($klass::tableName()),
-                $this->escapeIdentifier($alias),
+                self::escapeIdentifier($klass::tableName()),
+                self::escapeIdentifier($alias),
                 $type,
             );
         } else {
-            $this->locks[] = sprintf('%s %s', $this->escapeIdentifier($klass::tableName()), $type);
+            $this->locks[] = sprintf('%s %s', self::escapeIdentifier($klass::tableName()), $type);
         }
     }
 

@@ -312,6 +312,48 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
+     * Is a given entity contained in collection
+     *
+     * Comparison is made by ID
+     *
+     * @param Entity $entity Entity to find
+     * @psalm-param TEntity $entity Entity to find
+     */
+    public function contains(Entity $needle): bool
+    {
+        return $this->hasEntityWith('id', $needle->getId());
+    }
+
+    /**
+     * Has the collection an entity with a value for a given field
+     *
+     * @param string $fieldName Field name to search
+     * @param mixed $needle Value to find
+     */
+    public function hasEntityWith(string $fieldName, $needle): bool
+    {
+        foreach ($this->entities as $entity) {
+            if ($fieldName === 'id') {
+                $value = $entity->getId();
+            } else {
+                $values = $entity->getValues();
+                if (!array_key_exists($fieldName, $values)) {
+                    continue;
+                }
+
+                /** @var mixed $value */
+                $value = $values[$fieldName];
+            }
+
+            if ($value === $needle) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Present collection as a simple array
      *
      * @psalm-template TEntityPresenter of Presenter\EntityPresenter

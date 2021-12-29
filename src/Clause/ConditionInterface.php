@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access\Clause;
 
 use Access\Entity;
+use Access\Query\QueryGeneratorState;
 
 /**
  * Clause is a condition
@@ -29,4 +30,20 @@ interface ConditionInterface extends ClauseInterface
      * @return bool Does the condition match the entity
      */
     public function matchesEntity(?Entity $entity): bool;
+
+    /**
+     * Create the SQL for condition
+     *
+     * @param QueryGeneratorState $state A bit of state for query generation
+     * @internal
+     */
+    public function getConditionSql(QueryGeneratorState $state): string;
+
+    /**
+     * Inject SQL values into indexed values
+     *
+     * @param QueryGeneratorState $state A bit of state for query generation
+     * @internal
+     */
+    public function injectConditionValues(QueryGeneratorState $state): void;
 }

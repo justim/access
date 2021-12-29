@@ -15,6 +15,7 @@ namespace Access\Clause;
 
 use Access\Clause\ConditionInterface;
 use Access\Entity;
+use Access\Query\QueryGeneratorState;
 
 /**
  * Multiple clauses to mixed and/or match (condition matches with "or")
@@ -44,5 +45,13 @@ class MultipleOr extends Multiple
         }
 
         return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getConditionSql(QueryGeneratorState $state): string
+    {
+        return $this->getMultipleSql(self::COMBINE_WITH_OR, $state);
     }
 }

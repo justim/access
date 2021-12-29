@@ -292,6 +292,96 @@ class PresenterTest extends AbstractBaseTestCase
         $this->assertEquals($expected, $result);
     }
 
+    public function testSimpleOrderByOwnerIdClause(): void
+    {
+        [$db, $userOne, $projectOne, $projectTwo] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+                [
+                    'id' => $projectTwo->getId(),
+                    'name' => $projectTwo->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\OrderBy\Ascending('owner_id'));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+                [
+                    'id' => $projectTwo->getId(),
+                    'name' => $projectTwo->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\OrderBy\Descending('owner_id'));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testSimpleOrderByMissingFieldClause(): void
+    {
+        [$db, $userOne, $projectOne, $projectTwo] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+                [
+                    'id' => $projectTwo->getId(),
+                    'name' => $projectTwo->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\OrderBy\Ascending('some_field'));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+                [
+                    'id' => $projectTwo->getId(),
+                    'name' => $projectTwo->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\OrderBy\Descending('some_field'));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
     public function testSimpleEqualsIdClause(): void
     {
         [$db, $userOne, $projectOne] = $this->createAndSetupEntities();
@@ -308,6 +398,96 @@ class PresenterTest extends AbstractBaseTestCase
 
         $presenter = new Presenter($db);
         $presenter->addDependency(new Clause\Condition\Equals('id', $projectOne->getId()));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testSimpleInIdClause(): void
+    {
+        [$db, $userOne, $projectOne] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\Condition\In('id', [$projectOne->getId()]));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testSimpleInNotIdClause(): void
+    {
+        [$db, $userOne, $projectOne] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\Condition\NotIn('id', [2, 3]));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testCollectionInIdClause(): void
+    {
+        [$db, $userOne, $projectOne, $projectTwo] = $this->createAndSetupEntities();
+
+        $projects = $db->getRepository(Project::class)->findAllCollection();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+                [
+                    'id' => $projectTwo->getId(),
+                    'name' => $projectTwo->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\Condition\In('id', $projects));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testArrayIteratorInIdClause(): void
+    {
+        [$db, $userOne, $projectOne] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\Condition\In('id', new \ArrayIterator([1])));
         $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
 
         $this->assertEquals($expected, $result);
@@ -607,6 +787,22 @@ class PresenterTest extends AbstractBaseTestCase
                 new Clause\Condition\Equals('id', 2),
             ),
         );
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testEmptyMulitpleOrClause(): void
+    {
+        [$db, $userOne] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\MultipleOr());
         $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
 
         $this->assertEquals($expected, $result);

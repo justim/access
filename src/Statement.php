@@ -126,6 +126,8 @@ final class Statement
                 $profile->endHydrate();
                 $profile->setNumberOfResults($numberOfResults);
             }
+        } else {
+            $profile->setNumberOfResults($statement->rowCount());
         }
 
         return $this->getReturnValue();

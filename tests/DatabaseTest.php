@@ -111,7 +111,7 @@ class DatabaseTest extends AbstractBaseTestCase
         $this->assertNotNull($user);
     }
 
-    public function testFindBy(): void
+    public function testFindByNoFields(): void
     {
         $db = self::createDatabaseWithDummyData();
 

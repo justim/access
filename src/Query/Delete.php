@@ -39,10 +39,11 @@ class Delete extends Query
         $sqlDeleteFrom = 'DELETE FROM ';
 
         if ($this->alias !== null) {
-            $sqlDeleteFrom = "DELETE {$this->escapeIdentifier($this->alias)} FROM ";
+            $escapedAlias = self::escapeIdentifier($this->alias);
+            $sqlDeleteFrom = "DELETE {$escapedAlias} FROM ";
         }
 
-        $sqlDelete = $sqlDeleteFrom . $this->escapeIdentifier($this->tableName);
+        $sqlDelete = $sqlDeleteFrom . self::escapeIdentifier($this->tableName);
         $sqlAlias = $this->getAliasSql();
         $sqlJoins = $this->getJoinSql();
         $sqlWhere = $this->getWhereSql();

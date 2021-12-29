@@ -13,10 +13,15 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Clause\Condition\IsNull;
+use Access\Clause\Condition\Raw;
+use Access\Clause\ConditionInterface;
+use Access\Clause\Multiple;
+use Access\Clause\MultipleOr;
 use Access\Entity;
 use Access\IdentifiableInterface;
+use Access\Query\QueryGeneratorState;
 use Access\Query\Cursor\Cursor;
-use Access\Query\Select;
 
 /**
  * Base class for building queries
@@ -26,20 +31,24 @@ use Access\Query\Select;
 abstract class Query
 {
     // types of joins
+    /** @var string */
     protected const JOIN_TYPE_LEFT = 'left-join';
+    /** @var string */
     protected const JOIN_TYPE_INNER = 'inner-join';
 
     // prefixes for parameter placeholders
+    /** @var string */
     protected const PREFIX_PARAM = 'p';
+    /** @var string */
     protected const PREFIX_JOIN = 'j';
+    /** @var string */
     protected const PREFIX_WHERE = 'w';
+    /** @var string */
     protected const PREFIX_HAVING = 'h';
+    /** @var string */
     protected const PREFIX_SUBQUERY_VIRTUAL = 's';
+    /** @var string */
     protected const PREFIX_SUBQUERY_CONDITION = 'z';
-
-    // possible combiners
-    private const COMBINE_WITH_AND = 'AND';
-    private const COMBINE_WITH_OR = 'OR';
 
     /**
      * @var string
@@ -52,12 +61,12 @@ abstract class Query
     protected ?string $alias = null;
 
     /**
-     * @var array
+     * @var ConditionInterface[]
      */
     protected array $where = [];
 
     /**
-     * @var array
+     * @var ConditionInterface[]
      */
     protected array $having = [];
 
@@ -72,7 +81,7 @@ abstract class Query
     protected ?int $offset = null;
 
     /**
-     * @psalm-var array<array-key, array{type: string, tableName: string, alias: string, on: array}>
+     * @psalm-var array<array-key, array{type: string, tableName: string, alias: string, on: ConditionInterface[]}>
      * @var array
      */
     protected array $joins = [];
@@ -107,10 +116,8 @@ abstract class Query
 
             if ($tableName::isSoftDeletable()) {
                 $tableIdentifier = $alias ?: $this->tableName;
-                $deletedAtCondition = sprintf(
-                    '%s.%s IS NULL',
-                    $this->escapeIdentifier($tableIdentifier),
-                    $this->escapeIdentifier(Entity::DELETED_AT_FIELD),
+                $deletedAtCondition = new IsNull(
+                    sprintf('%s.%s', $tableIdentifier, Entity::DELETED_AT_FIELD),
                 );
 
                 $this->where($deletedAtCondition);
@@ -136,7 +143,7 @@ abstract class Query
     public function getResolvedTableName(): string
     {
         if ($this->alias !== null) {
-            return $this->escapeIdentifier($this->alias);
+            return self::escapeIdentifier($this->alias);
         }
 
         return $this->tableName;
@@ -147,11 +154,14 @@ abstract class Query
      *
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
-     * @param string|array<int|string, mixed> $on Join condition(s)
+     * @param array<int|string, mixed>|string|ConditionInterface $on Join condition(s)
      * @return $this
      */
-    public function leftJoin(string $tableName, string $alias, array|string $on): static
-    {
+    public function leftJoin(
+        string $tableName,
+        string $alias,
+        array|string|ConditionInterface $on,
+    ): static {
         return $this->join(self::JOIN_TYPE_LEFT, $tableName, $alias, $on);
     }
 
@@ -160,11 +170,14 @@ abstract class Query
      *
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
-     * @param string|array<int|string, mixed> $on Join condition(s)
+     * @param array<int|string, mixed>|string|ConditionInterface $on Join condition(s)
      * @return $this
      */
-    public function innerJoin(string $tableName, string $alias, array|string $on): static
-    {
+    public function innerJoin(
+        string $tableName,
+        string $alias,
+        array|string|ConditionInterface $on,
+    ): static {
         return $this->join(self::JOIN_TYPE_INNER, $tableName, $alias, $on);
     }
 
@@ -174,38 +187,36 @@ abstract class Query
      * @param string $type Type of join (see self::JOIN_TYPE_LEFT)
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
-     * @param string|array<int|string, mixed> $on Join condition(s)
+     * @param array<int|string, mixed>|string|ConditionInterface $on Join condition(s)
      * @psalm-suppress RedundantConditionGivenDocblockType The $on input is checked
      * @return $this
      */
-    private function join(string $type, string $tableName, string $alias, array|string $on): static
-    {
+    private function join(
+        string $type,
+        string $tableName,
+        string $alias,
+        array|string|ConditionInterface $on,
+    ): static {
+        $onClause = [];
+
         if (is_subclass_of($tableName, Entity::class)) {
             if ($tableName::isSoftDeletable()) {
                 $tableIdentifier = $alias ?: $tableName::tableName();
-                $deletedAtCondition = sprintf(
-                    '%s.%s IS NULL',
-                    $this->escapeIdentifier($tableIdentifier),
-                    $this->escapeIdentifier(Entity::DELETED_AT_FIELD),
+                $onClause[] = new IsNull(
+                    sprintf('%s.%s', $tableIdentifier, Entity::DELETED_AT_FIELD),
                 );
-
-                if (is_string($on)) {
-                    $on = [$deletedAtCondition, $on];
-                } elseif (is_array($on)) {
-                    array_unshift($on, $deletedAtCondition);
-                }
             }
 
             $tableName = $tableName::tableName();
         }
 
-        $conditions = $this->processNewCondition($on, null, false, self::COMBINE_WITH_AND);
+        $onClause[] = new Multiple(...$this->processNewCondition($on, null, false));
 
         $this->joins[] = [
             'type' => $type,
             'tableName' => $tableName,
             'alias' => $alias,
-            'on' => $conditions,
+            'on' => $onClause,
         ];
 
         return $this;
@@ -214,20 +225,15 @@ abstract class Query
     /**
      * Add WHERE clause to query
      *
-     * @param array<int|string, mixed>|string $condition List of clauses (combined with AND) or a single one
+     * @param array<int|string, mixed>|string|ConditionInterface $condition List of clauses (combined with AND) or a single one
      * @param mixed $value Value of the single where clause
      * @return $this
      */
-    public function where(array|string $condition, mixed $value = null): static
+    public function where(array|string|ConditionInterface $condition, mixed $value = null): static
     {
-        $newConditions = $this->processNewCondition(
-            $condition,
-            $value,
-            func_num_args() === 2,
-            self::COMBINE_WITH_AND,
-        );
+        $newCondition = $this->processNewCondition($condition, $value, func_num_args() === 2);
 
-        $this->where = array_merge($this->where, $newConditions);
+        $this->where[] = new Multiple(...$newCondition);
 
         return $this;
     }
@@ -240,14 +246,9 @@ abstract class Query
      */
     public function whereOr(array $conditions): static
     {
-        $newConditions = $this->processNewCondition(
-            $conditions,
-            null,
-            false,
-            self::COMBINE_WITH_OR,
-        );
+        $newCondition = $this->processNewCondition($conditions, null, false);
 
-        $this->where = array_merge($this->where, $newConditions);
+        $this->where[] = new MultipleOr(...$newCondition);
 
         return $this;
     }
@@ -270,20 +271,15 @@ abstract class Query
     /**
      * Add a HAVING clause to query
      *
-     * @param array<int|string, mixed>|string $condition List of clauses (joined it AND) or a single one
+     * @param array<int|string, mixed>|string|ConditionInterface $condition List of clauses (joined it AND) or a single one
      * @param mixed $value Value of the single where clause
      * @return $this
      */
-    public function having(array|string $condition, mixed $value = null): static
+    public function having(array|string|ConditionInterface $condition, mixed $value = null): static
     {
-        $newConditions = $this->processNewCondition(
-            $condition,
-            $value,
-            func_num_args() === 2,
-            self::COMBINE_WITH_AND,
-        );
+        $newCondition = $this->processNewCondition($condition, $value, func_num_args() === 2);
 
-        $this->having = array_merge($this->having, $newConditions);
+        $this->having[] = new Multiple(...$newCondition);
 
         return $this;
     }
@@ -387,43 +383,13 @@ abstract class Query
      */
     private function getConditionValues(&$indexedValues, array $definition, string $prefix): void
     {
-        $i = 0;
-        $subQueryIndex = 0;
-        foreach ($definition as $definitionPart) {
-            foreach ($definitionPart['conditions'] as $condition) {
-                if (!array_key_exists('value', $condition)) {
-                    // where part only has a sql part, no value
-                    continue;
-                } elseif ($condition['value'] instanceof Select) {
-                    foreach ($condition['value']->getValues() as $nestedIndex => $nestedValue) {
-                        $indexedValues[
-                            self::PREFIX_SUBQUERY_CONDITION . $subQueryIndex . $nestedIndex
-                        ] = $nestedValue;
-                    }
+        $state = new QueryGeneratorState($prefix, self::PREFIX_SUBQUERY_CONDITION);
 
-                    $subQueryIndex++;
-                    continue;
-                } elseif ($condition['value'] === null) {
-                    // sql is converted to `IS NULL`
-                    continue;
-                } elseif (
-                    is_array($condition['value']) ||
-                    $condition['value'] instanceof Collection
-                ) {
-                    $values = $this->toDatabaseFormat($condition['value']);
-
-                    foreach ($values as $itemValue) {
-                        $indexedValues[$prefix . $i] = $itemValue;
-                        $i++;
-                    }
-
-                    continue;
-                }
-
-                $indexedValues[$prefix . $i] = $this->toDatabaseFormat($condition['value']);
-                $i++;
-            }
+        foreach ($definition as $condition) {
+            $condition->injectConditionValues($state);
         }
+
+        $indexedValues = array_merge($indexedValues, $state->getIndexedValues());
     }
 
     /**
@@ -431,11 +397,12 @@ abstract class Query
      *
      * @param mixed $value Any value
      * @return mixed Database usable format
+     * @internal
      */
-    private function toDatabaseFormat(mixed $value): mixed
+    public static function toDatabaseFormat(mixed $value): mixed
     {
         if ($value instanceof IdentifiableInterface) {
-            return $this->toDatabaseFormat($value->getId());
+            return self::toDatabaseFormat($value->getId());
         }
 
         if ($value instanceof Collection) {
@@ -451,7 +418,12 @@ abstract class Query
         }
 
         if (is_array($value)) {
-            return array_map(fn($itemValue) => $this->toDatabaseFormat($itemValue), $value);
+            return array_map(
+                /** @param mixed $itemValue
+                 * @return mixed */
+                fn($itemValue) => self::toDatabaseFormat($itemValue),
+                $value,
+            );
         }
 
         return $value;
@@ -477,7 +449,8 @@ abstract class Query
         $sqlAlias = '';
 
         if ($this->alias !== null) {
-            $sqlAlias = " AS {$this->escapeIdentifier($this->alias)}";
+            $escaptedAlias = self::escapeIdentifier($this->alias);
+            $sqlAlias = " AS {$escaptedAlias}";
         }
 
         return $sqlAlias;
@@ -498,7 +471,7 @@ abstract class Query
         $joins = array_map(function ($join) use (&$i) {
             /** @var int $i */
             $escapedJoinTableName = $this->escapeIdentifier($join['tableName']);
-            $escapedAlias = $this->escapeIdentifier($join['alias']);
+            $escapedAlias = self::escapeIdentifier($join['alias']);
             $sql = '';
 
             switch ($join['type']) {
@@ -571,83 +544,14 @@ abstract class Query
             return '';
         }
 
-        $resultParts = [];
-        $subQueryIndex = 0;
+        $conditions = [];
+        $state = new QueryGeneratorState($prefix, self::PREFIX_SUBQUERY_CONDITION);
 
         foreach ($definition as $definitionPart) {
-            /** @var string[] $conditionParts */
-            $conditionParts = [];
-
-            foreach ($definitionPart['conditions'] as $condition) {
-                if (!array_key_exists('value', $condition)) {
-                    $conditionParts[] = $condition['condition'];
-                    continue;
-                } elseif ($condition['value'] instanceof Select) {
-                    $subQuery = preg_replace(
-                        '/:(([a-z][0-9]+)+)/',
-                        ':' . self::PREFIX_SUBQUERY_CONDITION . $subQueryIndex . '$1',
-                        (string) $condition['value']->getSql(),
-                    );
-
-                    $conditionParts[] = preg_replace(
-                        ['/(!)?= ?\?/', '/(NOT)? IN ?\(\?\)/i'],
-                        [sprintf('$1= (%s)', $subQuery), sprintf('$1 IN (%s)', $subQuery)],
-                        $condition['condition'],
-                    );
-
-                    $subQueryIndex++;
-                    continue;
-                } elseif ($condition['value'] === null) {
-                    $conditionParts[] = preg_replace_callback_array(
-                        [
-                            '/!= ?\?/' => fn() => 'IS NOT NULL',
-                            '/= ?\?/' => fn() => 'IS NULL',
-                        ],
-                        $condition['condition'],
-                    );
-
-                    continue;
-                } elseif (
-                    is_array($condition['value']) ||
-                    $condition['value'] instanceof Collection
-                ) {
-                    $values =
-                        $condition['value'] instanceof Collection
-                            ? $condition['value']->getIds()
-                            : $condition['value'];
-
-                    $conditionParts[] = str_replace(
-                        '?',
-                        implode(', ', array_fill(0, count($values), '?')),
-                        $condition['condition'],
-                    );
-
-                    continue;
-                }
-
-                $conditionParts[] = $condition['condition'];
-            }
-
-            $enclosedConditionParts = $conditionParts;
-
-            // prevent double parentheses, they look ugly and are harder to read
-            if (count($conditionParts) > 1) {
-                $enclosedConditionParts = array_map(
-                    fn($conditionPart) => "($conditionPart)",
-                    $conditionParts,
-                );
-            }
-
-            $combineWithSql = $this->getCombineWithSql($definitionPart['combineWith']);
-            $condition = implode($combineWithSql, $enclosedConditionParts);
-
-            $resultParts[] = $condition;
+            $conditions[] = $definitionPart->getConditionSql($state);
         }
 
-        $enclosedResultParts = array_map(fn($conditionPart) => "($conditionPart)", $resultParts);
-
-        $combineWithSql = $this->getCombineWithSql(self::COMBINE_WITH_AND);
-        $condition = implode($combineWithSql, $enclosedResultParts);
+        $condition = implode(' AND ', $conditions);
         $sqlCondition = " {$what} {$condition}";
 
         return $this->replaceQuestionMarks($sqlCondition, $prefix);
@@ -711,34 +615,15 @@ abstract class Query
     }
 
     /**
-     * Get SQL for combine with
-     *
-     * Ex: self::COMBINE_WITH_AND => ' AND '
-     *
-     * @param string $combineWith Combine conditions with (AND or OR)
-     * @return string
-     */
-    private function getCombineWithSql(string $combineWith): string
-    {
-        switch ($combineWith) {
-            case self::COMBINE_WITH_OR:
-                return ' OR ';
-
-            case self::COMBINE_WITH_AND:
-            default:
-                return ' AND ';
-        }
-    }
-
-    /**
      * Escape identifier
      *
      * MySQL only
      *
      * @param string $identifier Identifier to escape
      * @return string
+     * @internal
      */
-    protected function escapeIdentifier(string $identifier): string
+    public static function escapeIdentifier(string $identifier): string
     {
         return str_replace('.', '`.`', sprintf('`%s`', str_replace('`', '``', $identifier)));
     }
@@ -766,48 +651,31 @@ abstract class Query
     /**
      * Process condition input
      *
-     * @param array|string $condition List of clauses or a single one
+     * @param array|string|ConditionInterface $condition List of clauses or a single one
      * @param mixed $value Value of the single condition
      * @param bool $valueWasProvided Was the value provided
-     * @param string $combineWith Combine conditions with (AND or OR)
-     * @return array
+     * @return ConditionInterface[]
      */
     private function processNewCondition(
-        array|string $condition,
+        array|string|ConditionInterface $condition,
         mixed $value,
         bool $valueWasProvided,
-        string $combineWith,
     ): array {
         if (!is_array($condition)) {
             /** @psalm-suppress DocblockTypeContradiction */
-            if (!is_string($condition)) {
-                throw new Exception('Condition should be a string');
+            if (!is_string($condition) && !$condition instanceof ConditionInterface) {
+                throw new Exception('Condition should be a string or `ConditionInterface`');
+            }
+
+            if ($condition instanceof ConditionInterface) {
+                return [$condition];
             }
 
             if ($valueWasProvided) {
-                return [
-                    [
-                        'combineWith' => $combineWith,
-                        'conditions' => [
-                            [
-                                'condition' => $condition,
-                                'value' => $value,
-                            ],
-                        ],
-                    ],
-                ];
+                return [new Raw($condition, $value)];
             }
 
-            return [
-                [
-                    'combineWith' => $combineWith,
-                    'conditions' => [
-                        [
-                            'condition' => $condition,
-                        ],
-                    ],
-                ],
-            ];
+            return [new Raw($condition)];
         }
 
         if ($value !== null) {
@@ -820,28 +688,20 @@ abstract class Query
         foreach ($condition as $conditionCondition => $conditionValue) {
             // where part only has a sql part, no value
             if (is_int($conditionCondition)) {
-                $result[] = [
-                    'condition' => $conditionValue,
-                ];
+                if ($conditionValue instanceof ConditionInterface) {
+                    $result[] = $conditionValue;
+                } elseif (is_string($conditionValue)) {
+                    $result[] = new Raw($conditionValue);
+                } else {
+                    throw new Exception('Condition should be a string or `ConditionInterface`');
+                }
 
                 continue;
             }
 
-            $result[] = [
-                'condition' => $conditionCondition,
-                'value' => $conditionValue,
-            ];
+            $result[] = new Raw($conditionCondition, $conditionValue);
         }
 
-        if (empty($result)) {
-            return [];
-        }
-
-        return [
-            [
-                'combineWith' => $combineWith,
-                'conditions' => $result,
-            ],
-        ];
+        return $result;
     }
 }

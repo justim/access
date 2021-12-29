@@ -78,7 +78,7 @@ class Select extends Query
      */
     public function getSql(): ?string
     {
-        $escapedTableName = $this->escapeIdentifier($this->tableName);
+        $escapedTableName = self::escapeIdentifier($this->tableName);
 
         $sqlSelect = $this->getSelectSql();
         $sqlFrom = " FROM {$escapedTableName}";
@@ -108,20 +108,20 @@ class Select extends Query
      */
     private function getSelectSql(): string
     {
-        $escapedTableName = $this->escapeIdentifier($this->tableName);
+        $escapedTableName = self::escapeIdentifier($this->tableName);
 
         $sql = "SELECT {$escapedTableName}.*";
 
         if ($this->select !== null) {
             $sql = "SELECT {$this->select}";
         } elseif ($this->alias !== null) {
-            $escapedAlias = $this->escapeIdentifier($this->alias);
+            $escapedAlias = self::escapeIdentifier($this->alias);
             $sql = "SELECT {$escapedAlias}.*";
         }
 
         $i = 0;
         foreach ($this->virtualFields as $alias => $value) {
-            $escapedAlias = $this->escapeIdentifier($alias);
+            $escapedAlias = self::escapeIdentifier($alias);
 
             if ($value instanceof self) {
                 $subSql = preg_replace(

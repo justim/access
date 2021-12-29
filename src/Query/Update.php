@@ -40,7 +40,7 @@ class Update extends Query
 
         foreach (array_keys($this->values) as $i => $q) {
             $placeholder = self::PREFIX_PARAM . (string) $i;
-            $parts[] = $this->escapeIdentifier($q) . ' = :' . $placeholder;
+            $parts[] = self::escapeIdentifier($q) . ' = :' . $placeholder;
         }
 
         $fields = implode(', ', $parts);
@@ -50,7 +50,7 @@ class Update extends Query
             return null;
         }
 
-        $sqlUpdate = 'UPDATE ' . $this->escapeIdentifier($this->tableName);
+        $sqlUpdate = 'UPDATE ' . self::escapeIdentifier($this->tableName);
         $sqlAlias = $this->getAliasSql();
         $sqlJoins = $this->getJoinSql();
         $sqlFields = ' SET ' . $fields;

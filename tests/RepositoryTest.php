@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Access\Collection;
 use Access\Exception;
 use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
@@ -66,6 +67,18 @@ class RepositoryTest extends AbstractBaseTestCase
         $this->assertEquals('Access2', $project->getName());
     }
 
+    public function testFindByIds(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $projects = $projectRepo->findByIds([1]);
+
+        $this->assertEquals(1, count(iterator_to_array($projects)));
+    }
+
     public function testFindByEmptyIds(): void
     {
         $db = self::createDatabaseWithDummyData();
@@ -76,6 +89,18 @@ class RepositoryTest extends AbstractBaseTestCase
         $projects = $projectRepo->findByIds([]);
 
         $this->assertEquals(0, count(iterator_to_array($projects)));
+    }
+
+    public function testFindByIdsAsCollection(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $projects = $projectRepo->findByIdsAsCollection([1]);
+
+        $this->assertEquals(1, count(iterator_to_array($projects)));
     }
 
     public function testSelectVirtualField(): void
@@ -255,5 +280,119 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $this->assertEquals(2, $countBatches);
         $this->assertEquals(2, $countEntities);
+    }
+
+    public function testFindBySimple(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $projects = $projectRepo->findBy([
+            'id' => 1,
+        ]);
+
+        $this->assertIsIterable($projects);
+        $this->assertTrue($projects instanceof \Generator);
+        $this->assertEquals(1, count(iterator_to_array($projects)));
+    }
+
+    public function testFindByArray(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $projects = $projectRepo->findBy([
+            'id' => [1],
+        ]);
+
+        $this->assertIsIterable($projects);
+        $this->assertTrue($projects instanceof \Generator);
+        $this->assertEquals(1, count(iterator_to_array($projects)));
+    }
+
+    public function testFindByRaw(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $projects = $projectRepo->findBy([
+            'id = ?' => 1,
+        ]);
+
+        $this->assertIsIterable($projects);
+        $this->assertTrue($projects instanceof \Generator);
+        $this->assertEquals(1, count(iterator_to_array($projects)));
+    }
+
+    public function testFindByEmptyArray(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $projects = $projectRepo->findBy([
+            'id' => [],
+        ]);
+
+        $this->assertIsIterable($projects);
+        $this->assertTrue($projects instanceof \Generator);
+        $this->assertEquals(0, count(iterator_to_array($projects)));
+    }
+
+    public function testFindByCollection(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $allProjects = $projectRepo->findAllCollection();
+
+        $projects = $projectRepo->findBy([
+            'id' => $allProjects,
+        ]);
+
+        $this->assertIsIterable($projects);
+        $this->assertTrue($projects instanceof \Generator);
+        $this->assertEquals(2, count(iterator_to_array($projects)));
+    }
+
+    public function testFindByEmptyCollection(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $emptyProjects = new Collection($db);
+
+        $projects = $projectRepo->findBy([
+            'id' => $emptyProjects,
+        ]);
+
+        $this->assertIsIterable($projects);
+        $this->assertTrue($projects instanceof \Generator);
+        $this->assertEquals(0, count(iterator_to_array($projects)));
+    }
+
+    public function testRepositorySave(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $project = new Project();
+        $project->setName('Some project');
+        $projectRepo->save($project);
+
+        $this->assertEquals(3, $project->getId());
     }
 }

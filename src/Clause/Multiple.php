@@ -17,6 +17,7 @@ use Access\Clause\ClauseInterface;
 use Access\Clause\ConditionInterface;
 use Access\Collection;
 use Access\Entity;
+use Access\Query\QueryGeneratorState;
 
 /**
  * Multiple clauses to mixed and/or match
@@ -27,6 +28,18 @@ use Access\Entity;
  */
 class Multiple implements ConditionInterface, OrderByInterface
 {
+    /**
+     * Combinator for AND
+     * @var string
+     */
+    protected const COMBINE_WITH_AND = ' AND ';
+
+    /**
+     * Combinator for OR
+     * @var string
+     */
+    protected const COMBINE_WITH_OR = ' OR ';
+
     /**
      * @var ClauseInterface[]
      */
@@ -110,5 +123,59 @@ class Multiple implements ConditionInterface, OrderByInterface
 
             return 0;
         };
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getConditionSql(QueryGeneratorState $state): string
+    {
+        return $this->getMultipleSql(self::COMBINE_WITH_AND, $state);
+    }
+
+    /**
+     * Get SQL for multiple conditions
+     *
+     * @param string $combineWith Combine the conditions with (ex. AND/OR)
+     * @param QueryGeneratorState $state A bit of state for query generation
+     */
+    protected function getMultipleSql(string $combineWith, QueryGeneratorState $state): string
+    {
+        $conditionParts = [];
+
+        foreach ($this->clauses as $clause) {
+            if ($clause instanceof ConditionInterface) {
+                $conditionParts[] = $clause->getConditionSql($state);
+            }
+        }
+
+        if (empty($conditionParts)) {
+            // empty conditions make no sense...
+            // droppping the whole condition is risky because you may
+            // over-select a whole bunch of records, better is to under-select.
+            return '1 = 2';
+        }
+
+        $combinedConditions = implode($combineWith, $conditionParts);
+
+        if (count($conditionParts) > 1) {
+            // make sure to enclode the conditions with parentheses to make
+            // sure specificity stays in tact
+            return sprintf('(%s)', $combinedConditions);
+        }
+
+        return $combinedConditions;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function injectConditionValues(QueryGeneratorState $state): void
+    {
+        foreach ($this->clauses as $clause) {
+            if ($clause instanceof ConditionInterface) {
+                $clause->injectConditionValues($state);
+            }
+        }
     }
 }
