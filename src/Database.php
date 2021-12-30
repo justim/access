@@ -247,7 +247,7 @@ class Database
     public function findAll(
         string $klass,
         ?int $limit = null,
-        string $orderBy = 'id ASC'
+        string $orderBy = 'id ASC',
     ): \Generator {
         yield from $this->getRepository($klass)->findAll($limit, $orderBy);
     }
@@ -264,7 +264,7 @@ class Database
      */
     public function selectWithEntityProvider(
         EntityProvider $entityProvider,
-        Query\Select $query
+        Query\Select $query,
     ): \Generator {
         $stmt = new Statement($this, $this->profiler, $query);
 

@@ -260,7 +260,7 @@ class Presenter
         // resolve these
         array_walk_recursive($presentation, function (mixed $item) use (
             &$currentPresentationMarkers,
-            &$currentFutureMarkers
+            &$currentFutureMarkers,
         ) {
             if ($item instanceof PresentationMarker) {
                 $currentPresentationMarkers[] = $item;
@@ -288,7 +288,7 @@ class Presenter
     private function resolvePresentationMarkers(
         array &$presentation,
         array $markers,
-        array $currentPresentationMarkers
+        array $currentPresentationMarkers,
     ): void {
         /** @psalm-var class-string<EntityPresenter> $presenterKlass */
         foreach ($markers as $presenterKlass => $info) {
@@ -301,7 +301,7 @@ class Presenter
                     $presenterKlass,
                     $presenter,
                     $collection,
-                    $currentPresentationMarkers
+                    $currentPresentationMarkers,
                 ) {
                     if (
                         $item instanceof PresentationMarker &&
@@ -325,7 +325,7 @@ class Presenter
     private function resolveFutureMarkers(
         array &$presentation,
         array $markers,
-        array $currentFutureMarkers
+        array $currentFutureMarkers,
     ): void {
         foreach ($markers as $entityKlass => $info) {
             foreach ($info as $fieldName => $ids) {
@@ -334,7 +334,7 @@ class Presenter
                 array_walk_recursive($presentation, function (mixed &$item) use (
                     $entityKlass,
                     $collection,
-                    $currentFutureMarkers
+                    $currentFutureMarkers,
                 ) {
                     if (
                         $item instanceof FutureMarker &&
@@ -359,7 +359,7 @@ class Presenter
     private function resolvePresentationMarker(
         PresentationMarker $marker,
         Collection $collection,
-        EntityPresenter $presenter
+        EntityPresenter $presenter,
     ): ?array {
         return $this->resolveMarker(
             $marker,
@@ -401,7 +401,7 @@ class Presenter
         MarkerInterface $marker,
         Collection $collection,
         callable $callbackSingle,
-        callable $callbackMultiple
+        callable $callbackMultiple,
     ): mixed {
         if (!$marker->getMultiple()) {
             $entity = $collection->find(function (Entity $entity) use ($marker) {

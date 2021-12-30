@@ -776,7 +776,7 @@ abstract class Query
         array|string $condition,
         mixed $value,
         bool $valueWasProvided,
-        string $combineWith
+        string $combineWith,
     ): array {
         if (!is_array($condition)) {
             /** @psalm-suppress DocblockTypeContradiction */

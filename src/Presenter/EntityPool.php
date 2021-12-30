@@ -55,7 +55,7 @@ final class EntityPool
     public function provideCollection(
         string $entityKlass,
         string $fieldName,
-        Collection $collection
+        Collection $collection,
     ): void {
         $currentCollection = $this->getOrCreateCurrentCollection($entityKlass, $fieldName);
         $currentCollection->merge($collection);
@@ -136,7 +136,7 @@ final class EntityPool
      */
     private function getOrCreateCurrentCollection(
         string $entityKlass,
-        string $fieldName
+        string $fieldName,
     ): Collection {
         if (!isset($this->entites[$entityKlass][$fieldName])) {
             /** @var Collection<TEntity> $collection */

@@ -70,7 +70,7 @@ abstract class EntityPresenter
     protected function present(
         string $presenterKlass,
         ?int $id,
-        ?ClauseInterface $clause = null
+        ?ClauseInterface $clause = null,
     ): ?PresentationMarker {
         return $this->presentInversedRef($presenterKlass, 'id', $id, $clause);
     }
@@ -142,7 +142,7 @@ abstract class EntityPresenter
         string $presenterKlass,
         string $fieldName,
         ?int $id,
-        ?ClauseInterface $clause = null
+        ?ClauseInterface $clause = null,
     ): ?PresentationMarker {
         Database::assertValidPresenterClass($presenterKlass);
 
@@ -190,7 +190,7 @@ abstract class EntityPresenter
         ?int $id,
         string $targetFieldName,
         string $targetPresenterKlass,
-        ?ClauseInterface $relationClause = null
+        ?ClauseInterface $relationClause = null,
     ): ?FutureMarker {
         Database::assertValidEntityClass($relationEntityKlass);
         Database::assertValidPresenterClass($targetPresenterKlass);
@@ -239,7 +239,7 @@ abstract class EntityPresenter
         string $presenterKlass,
         string $fieldName,
         ?int $id,
-        ?ClauseInterface $clause = null
+        ?ClauseInterface $clause = null,
     ) {
         Database::assertValidPresenterClass($presenterKlass);
 
@@ -287,7 +287,7 @@ abstract class EntityPresenter
         ?int $id,
         string $targetFieldName,
         string $targetPresenterKlass,
-        ?ClauseInterface $relationClause = null
+        ?ClauseInterface $relationClause = null,
     ) {
         Database::assertValidEntityClass($relationEntityKlass);
         Database::assertValidPresenterClass($targetPresenterKlass);
@@ -340,7 +340,7 @@ abstract class EntityPresenter
         string $entityKlass,
         ?int $id,
         \Closure $callback,
-        ?ClauseInterface $clause = null
+        ?ClauseInterface $clause = null,
     ): ?FutureMarker {
         Database::assertValidEntityClass($entityKlass);
 
@@ -378,7 +378,7 @@ abstract class EntityPresenter
         string $fieldName,
         ?int $id,
         \Closure $callback,
-        ?ClauseInterface $clause = null
+        ?ClauseInterface $clause = null,
     ): ?FutureMarker {
         Database::assertValidEntityClass($entityKlass);
 
@@ -420,7 +420,7 @@ abstract class EntityPresenter
         string $fieldName,
         ?int $id,
         \Closure $callback,
-        ?ClauseInterface $clause = null
+        ?ClauseInterface $clause = null,
     ) {
         Database::assertValidEntityClass($entityKlass);
 

@@ -324,7 +324,7 @@ class Repository
     public function selectVirtualField(
         Query\Select $query,
         string $virtualFieldName,
-        string $virtualType = null
+        string $virtualType = null,
     ): \Generator {
         $entityProvider = new VirtualFieldEntityProvider($virtualFieldName, $virtualType);
 
@@ -349,7 +349,7 @@ class Repository
     public function selectOneVirtualField(
         Query\Select $query,
         string $virtualFieldName,
-        string $virtualType = null
+        string $virtualType = null,
     ) {
         $query->limit(1);
 
@@ -375,7 +375,7 @@ class Repository
      */
     public function selectWithEntityProvider(
         Query\Select $query,
-        EntityProvider $entityProvider
+        EntityProvider $entityProvider,
     ): \Generator {
         $entities = $this->db->selectWithEntityProvider($entityProvider, $query);
 
@@ -393,7 +393,7 @@ class Repository
      */
     public function selectWithEntityProviderCollection(
         Query\Select $query,
-        EntityProvider $entityProvider
+        EntityProvider $entityProvider,
     ): Collection {
         $entities = $this->selectWithEntityProvider($query, $entityProvider);
 

@@ -36,7 +36,10 @@ class UpdateTest extends TestCase
             'id = ?' => 1,
         ]);
 
-        $this->assertEquals('UPDATE `projects` SET `name` = :p0 WHERE (id = :w0)', $query->getSql());
+        $this->assertEquals(
+            'UPDATE `projects` SET `name` = :p0 WHERE (id = :w0)',
+            $query->getSql(),
+        );
         $this->assertEquals(['p0' => 'Some project', 'w0' => 1], $query->getValues());
     }
 
@@ -64,7 +67,10 @@ class UpdateTest extends TestCase
             'p.id = ?' => 1,
         ]);
 
-        $this->assertEquals('UPDATE `projects` AS `p` SET `name` = :p0 WHERE (p.id = :w0)', $query->getSql());
+        $this->assertEquals(
+            'UPDATE `projects` AS `p` SET `name` = :p0 WHERE (p.id = :w0)',
+            $query->getSql(),
+        );
         $this->assertEquals(['p0' => 'Some project', 'w0' => 1], $query->getValues());
     }
 

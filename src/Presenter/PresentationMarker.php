@@ -66,7 +66,7 @@ final class PresentationMarker implements MarkerInterface
         string $fieldName,
         int $refId,
         bool $multiple,
-        ClauseInterface $clause = null
+        ClauseInterface $clause = null,
     ) {
         $this->presenterKlass = $presenterKlass;
         $this->fieldName = $fieldName;

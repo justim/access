@@ -72,7 +72,7 @@ final class FutureMarker implements MarkerInterface
         int $refId,
         bool $multiple,
         \Closure $callback,
-        ClauseInterface $clause = null
+        ClauseInterface $clause = null,
     ) {
         $this->entityKlass = $entityKlass;
         $this->fieldName = $fieldName;
