@@ -156,7 +156,7 @@ abstract class Condition implements ConditionInterface
             self::KIND_LESS_THAN_OR_EQUALS => sprintf('%s <= ?', $escapedFieldName),
             self::KIND_IN => sprintf('%s IN (?)', $escapedFieldName),
             self::KIND_NOT_IN => sprintf('%s NOT IN (?)', $escapedFieldName),
-            self::KIND_RAW => $this->fieldName,
+            self::KIND_RAW => sprintf('(%s)', $this->fieldName),
             self::KIND_RELATION => sprintf(
                 '%s = %s',
                 $escapedFieldName,

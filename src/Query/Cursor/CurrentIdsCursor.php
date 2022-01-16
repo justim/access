@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query\Cursor;
 
+use Access\Clause\Condition\NotIn;
 use Access\Query;
 
 /**
@@ -72,7 +73,7 @@ class CurrentIdsCursor extends Cursor
         if (!empty($this->currentIds)) {
             $tableName = $query->getResolvedTableName();
 
-            $query->where(sprintf('%s.id NOT IN (?)', $tableName), $this->currentIds);
+            $query->where(new NotIn(sprintf('%s.id', $tableName), $this->currentIds));
         }
     }
 }

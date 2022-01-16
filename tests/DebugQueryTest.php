@@ -32,7 +32,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.id IS NULL',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.id IS NULL)',
             $runnableSql,
         );
 
@@ -43,7 +43,10 @@ class DebugQueryTest extends AbstractBaseTestCase
 
         $runnableSql = $debug->toRunnableQuery();
 
-        $this->assertEquals('SELECT `p`.* FROM `projects` AS `p` WHERE p.id IS NULL', $runnableSql);
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.id IS NULL)',
+            $runnableSql,
+        );
     }
 
     public function testSimpleNotNull(): void
@@ -56,7 +59,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.id IS NOT NULL',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.id IS NOT NULL)',
             $runnableSql,
         );
 
@@ -68,7 +71,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE p.id IS NOT NULL',
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.id IS NOT NULL)',
             $runnableSql,
         );
     }
@@ -83,7 +86,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.id = 1',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.id = 1)',
             $runnableSql,
         );
 
@@ -94,7 +97,7 @@ class DebugQueryTest extends AbstractBaseTestCase
 
         $runnableSql = $debug->toRunnableQuery();
 
-        $this->assertEquals('SELECT `p`.* FROM `projects` AS `p` WHERE p.id = 1', $runnableSql);
+        $this->assertEquals('SELECT `p`.* FROM `projects` AS `p` WHERE (p.id = 1)', $runnableSql);
     }
 
     public function testSimpleString(): void
@@ -107,7 +110,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.name = "Dave"',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.name = "Dave")',
             $runnableSql,
         );
 
@@ -119,7 +122,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE p.name = "Dave"',
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.name = "Dave")',
             $runnableSql,
         );
     }
@@ -134,7 +137,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.active = 1',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.active = 1)',
             $runnableSql,
         );
 
@@ -145,7 +148,10 @@ class DebugQueryTest extends AbstractBaseTestCase
 
         $runnableSql = $debug->toRunnableQuery();
 
-        $this->assertEquals('SELECT `p`.* FROM `projects` AS `p` WHERE p.active = 1', $runnableSql);
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.active = 1)',
+            $runnableSql,
+        );
     }
 
     public function testSimpleDatetime(): void
@@ -158,7 +164,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.created_at < "2000-01-01 00:00:00"',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.created_at < "2000-01-01 00:00:00")',
             $runnableSql,
         );
 
@@ -170,7 +176,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE p.created_at < "2000-01-01 00:00:00"',
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.created_at < "2000-01-01 00:00:00")',
             $runnableSql,
         );
     }
@@ -185,7 +191,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.id IN (1, 2)',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.id IN (1, 2))',
             $runnableSql,
         );
 
@@ -197,7 +203,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE p.id IN (1, 2)',
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.id IN (1, 2))',
             $runnableSql,
         );
     }
@@ -212,7 +218,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.name = "Da\"ve"',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.name = "Da\"ve")',
             $runnableSql,
         );
 
@@ -224,7 +230,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE p.name = "Da\"ve"',
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.name = "Da\"ve")',
             $runnableSql,
         );
     }
@@ -242,7 +248,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.name = 0x9D40B8C1417F42D099AF4782EC4B20B6',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.name = 0x9D40B8C1417F42D099AF4782EC4B20B6)',
             $runnableSql,
         );
     }
@@ -260,7 +266,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.id = 1 OR u.name = "Dave")',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND ((u.id = 1) OR (u.name = "Dave"))',
             $runnableSql,
         );
 
@@ -275,7 +281,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.id = 1 OR p.name = "Dave")',
+            'SELECT `p`.* FROM `projects` AS `p` WHERE ((p.id = 1) OR (p.name = "Dave"))',
             $runnableSql,
         );
     }
@@ -400,7 +406,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND (name = "Dave" AND `id` < 0)',
+            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND ((name = "Dave") AND `id` < 0)',
             $runnableSql,
         );
     }
@@ -421,7 +427,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND (name = "Dave" AND (`id` >= 5 OR `id` <= 2))',
+            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND ((name = "Dave") AND (`id` >= 5 OR `id` <= 2))',
             $runnableSql,
         );
     }
@@ -464,7 +470,7 @@ class DebugQueryTest extends AbstractBaseTestCase
         $runnableSql = $debug->toRunnableQuery();
 
         $this->assertEquals(
-            'UPDATE `users` SET `name` = "Dave" WHERE `users`.`deleted_at` IS NULL AND id = 1',
+            'UPDATE `users` SET `name` = "Dave" WHERE `users`.`deleted_at` IS NULL AND (id = 1)',
             $runnableSql,
         );
     }
@@ -480,6 +486,24 @@ class DebugQueryTest extends AbstractBaseTestCase
 
         $this->assertEquals(
             'SELECT `u`.* FROM `users` AS `u` INNER JOIN `projects` AS `p` ON `p`.`owner_id` = `u`.`id` WHERE `u`.`deleted_at` IS NULL',
+            $runnableSql,
+        );
+    }
+
+    public function testNestedRawStringlyOrCondition(): void
+    {
+        $query = new Query\Select(Project::class);
+        $query->where([
+            'name = ?' => 'abc',
+            'name IS NULL OR name = ?' => 'def',
+        ]);
+
+        $debug = new DebugQuery($query);
+
+        $runnableSql = $debug->toRunnableQuery();
+
+        $this->assertEquals(
+            'SELECT `projects`.* FROM `projects` WHERE ((name = "abc") AND (name IS NULL OR name = "def"))',
             $runnableSql,
         );
     }

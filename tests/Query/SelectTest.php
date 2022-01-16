@@ -62,7 +62,7 @@ class SelectTest extends TestCase
         ]);
 
         $this->assertEquals(
-            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND name = :w0',
+            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND (name = :w0)',
             $query->getSql(),
         );
         $this->assertEquals(['w0' => $name], $query->getValues());
@@ -71,7 +71,7 @@ class SelectTest extends TestCase
         $query->where('name IS NOT NULL');
 
         $this->assertEquals(
-            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND name IS NOT NULL',
+            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND (name IS NOT NULL)',
             $query->getSql(),
         );
         $this->assertEquals([], $query->getValues());
@@ -80,7 +80,7 @@ class SelectTest extends TestCase
         $query->where('name = ?', $name);
 
         $this->assertEquals(
-            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND name = :w0',
+            'SELECT `users`.* FROM `users` WHERE `users`.`deleted_at` IS NULL AND (name = :w0)',
             $query->getSql(),
         );
         $this->assertEquals(['w0' => $name], $query->getValues());
@@ -92,7 +92,7 @@ class SelectTest extends TestCase
         $query->innerJoin(User::class, 'u', 'p.owner_id = u.id');
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` INNER JOIN `users` AS `u` ON `u`.`deleted_at` IS NULL AND p.owner_id = u.id',
+            'SELECT `p`.* FROM `projects` AS `p` INNER JOIN `users` AS `u` ON `u`.`deleted_at` IS NULL AND (p.owner_id = u.id)',
             $query->getSql(),
         );
 
@@ -100,7 +100,7 @@ class SelectTest extends TestCase
         $query->leftJoin(User::class, 'u', 'p.owner_id = u.id');
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` LEFT JOIN `users` AS `u` ON `u`.`deleted_at` IS NULL AND p.owner_id = u.id',
+            'SELECT `p`.* FROM `projects` AS `p` LEFT JOIN `users` AS `u` ON `u`.`deleted_at` IS NULL AND (p.owner_id = u.id)',
             $query->getSql(),
         );
     }
@@ -148,10 +148,10 @@ class SelectTest extends TestCase
 
         $this->assertEquals(
             'SELECT `u`.*, COUNT(p.id) AS `total_projects` FROM `users` AS `u` ' .
-                'LEFT JOIN `projects` AS `p` ON p.owner_id = u.id ' .
+                'LEFT JOIN `projects` AS `p` ON (p.owner_id = u.id) ' .
                 'WHERE `u`.`deleted_at` IS NULL ' .
                 'GROUP BY u.id ' .
-                'HAVING total_projects > :h0 AND u.name IS NOT NULL',
+                'HAVING (total_projects > :h0) AND (u.name IS NOT NULL)',
             $query->getSql(),
         );
 
@@ -186,9 +186,9 @@ class SelectTest extends TestCase
 
         $this->assertEquals(
             'SELECT `u`.*, (SELECT COUNT(p.id) FROM `projects` AS `p` WHERE ' .
-                'p.user_id = u.id AND p.status = :s0w0) AS `total_projects` FROM `users` AS `u` ' .
-                'INNER JOIN `projects` AS `pp` ON (pp.user_id = u.id AND pp.id = :j0j0) ' .
-                'WHERE `u`.`deleted_at` IS NULL AND u.first_name = :w0',
+                '(p.user_id = u.id) AND (p.status = :s0w0)) AS `total_projects` FROM `users` AS `u` ' .
+                'INNER JOIN `projects` AS `pp` ON ((pp.user_id = u.id) AND (pp.id = :j0j0)) ' .
+                'WHERE `u`.`deleted_at` IS NULL AND (u.first_name = :w0)',
             $query->getSql(),
         );
 
@@ -213,7 +213,7 @@ class SelectTest extends TestCase
         $query->where('u.id = ?', $subQuery);
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND u.id = (SELECT p.user_id FROM `projects` AS `p` WHERE p.status = :z0w0 LIMIT 1)',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.id = (SELECT p.user_id FROM `projects` AS `p` WHERE (p.status = :z0w0) LIMIT 1))',
             $query->getSql(),
         );
 
@@ -246,8 +246,8 @@ class SelectTest extends TestCase
 
         $this->assertEquals(
             'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND ' .
-                '(u.id = (SELECT p1.user_id FROM `projects` AS `p1` WHERE p1.status = :z0w0 LIMIT 1) ' .
-                'OR u.external_id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE p2.status != :z1w0 AND p2.name = :z1w1 LIMIT 1))',
+                '((u.id = (SELECT p1.user_id FROM `projects` AS `p1` WHERE (p1.status = :z0w0) LIMIT 1)) ' .
+                'OR (u.external_id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE (p2.status != :z1w0) AND (p2.name = :z1w1) LIMIT 1)))',
             $query->getSql(),
         );
 
@@ -281,8 +281,8 @@ class SelectTest extends TestCase
 
         $this->assertEquals(
             'SELECT `u`.*, (SELECT COUNT(p1.id) FROM `projects` AS `p1` WHERE ' .
-                'p1.user_id = u.id AND p1.status = :s0w0) AS `total_projects` FROM `users` AS `u` ' .
-                'WHERE `u`.`deleted_at` IS NULL AND u.id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE p2.status = :z0w0 LIMIT 1)',
+                '(p1.user_id = u.id) AND (p1.status = :s0w0)) AS `total_projects` FROM `users` AS `u` ' .
+                'WHERE `u`.`deleted_at` IS NULL AND (u.id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE (p2.status = :z0w0) LIMIT 1))',
             $query->getSql(),
         );
 
@@ -307,7 +307,7 @@ class SelectTest extends TestCase
 
         $this->assertEquals(
             'SELECT `u`.* FROM `users` AS `u` ' .
-                'WHERE `u`.`deleted_at` IS NULL AND u.id IN (SELECT p1.user_id FROM `projects` AS `p1` WHERE p1.status = :z0w0)',
+                'WHERE `u`.`deleted_at` IS NULL AND (u.id IN (SELECT p1.user_id FROM `projects` AS `p1` WHERE (p1.status = :z0w0)))',
             $query->getSql(),
         );
 
@@ -326,7 +326,7 @@ class SelectTest extends TestCase
         $query->where('p.title LIKE ?', '%2%');
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE p.title LIKE :w0 AND p.title LIKE :w1',
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.title LIKE :w0) AND (p.title LIKE :w1)',
             $query->getSql(),
         );
         $this->assertEquals(
@@ -344,7 +344,7 @@ class SelectTest extends TestCase
         $query->where('p.updated_at = ?', null);
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE p.updated_at IS NULL',
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.updated_at IS NULL)',
             $query->getSql(),
         );
 
@@ -366,7 +366,7 @@ class SelectTest extends TestCase
         $query->where('p.id = p.id');
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE p.id = p.id',
+            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.id = p.id)',
             $query->getSql(),
         );
 
