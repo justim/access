@@ -71,7 +71,7 @@ class CurrentIdsCursor extends Cursor
         $query->limit($this->pageSize);
 
         if (!empty($this->currentIds)) {
-            $tableName = $query->getResolvedTableName();
+            $tableName = $query->getRawResolvedTableName();
 
             $query->where(new NotIn(sprintf('%s.id', $tableName), $this->currentIds));
         }

@@ -51,11 +51,15 @@ abstract class Query
     protected const PREFIX_SUBQUERY_CONDITION = 'z';
 
     /**
+     * Unescaped table name
+     *
      * @var string
      */
     protected string $tableName;
 
     /**
+     * Unescaped alias for table name
+     *
      * @var string|null
      */
     protected ?string $alias = null;
@@ -142,8 +146,22 @@ abstract class Query
      */
     public function getResolvedTableName(): string
     {
+        return self::escapeIdentifier($this->getRawResolvedTableName());
+    }
+
+    /**
+     * Get the resolved table name
+     *
+     * Meaning, the table name, or its alias
+     *
+     * Note: is _not_ SQL escaped for safe usage
+     *
+     * @return string Resolved table name
+     */
+    public function getRawResolvedTableName(): string
+    {
         if ($this->alias !== null) {
-            return self::escapeIdentifier($this->alias);
+            return $this->alias;
         }
 
         return $this->tableName;
