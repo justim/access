@@ -135,6 +135,10 @@ abstract class Entity implements IdentifiableInterface
      */
     final protected function hasValue(string $field): bool
     {
+        if ($field === 'id') {
+            return $this->hasId();
+        }
+
         return array_key_exists($field, $this->values);
     }
 
@@ -148,6 +152,10 @@ abstract class Entity implements IdentifiableInterface
     {
         if (!$this->hasValue($field)) {
             throw new Exception(sprintf('Field "%s" not available', $field));
+        }
+
+        if ($field === 'id') {
+            return $this->getId();
         }
 
         return $this->values[$field];
