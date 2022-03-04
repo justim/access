@@ -18,8 +18,9 @@
         "phpstan/phpstan-phpunit": "^1.0.0",
         "squizlabs/php_codesniffer": "^3.6.2",
         "phpbench/phpbench": "^1.2.3",
-        "vimeo/psalm": "^4.16.1",
-        "symfony/var-dumper": "^6.0.1"
+        "vimeo/psalm": "^4.22",
+        "symfony/var-dumper": "^6.0.1",
+        "psalm/plugin-phpunit": "^0.16.1"
     },
     "autoload-dev": {
         "psr-4": {
