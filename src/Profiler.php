@@ -88,6 +88,7 @@ class Profiler
      * Get a flat export of query profiles
      *
      * @return array
+     * @psalm-return array{duration: float, durationWithHydrate: float, queries: array<array-key, array{sql: ?string, values: mixed[], runnableSql: ?string, duration: float, durationWithHydrate: float, numberOfResults: ?int}>}
      */
     public function export(): array
     {

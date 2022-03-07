@@ -40,6 +40,8 @@ abstract class EntityPresenter
     /**
      * Create array representation from entity
      *
+     * @no-named-arguments
+     * @psalm-param TEntity $entity Entity
      * @param Entity $entity Entity
      * @return array<string, mixed>|null Array representation
      */
@@ -59,7 +61,8 @@ abstract class EntityPresenter
      * );
      * ```
      *
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      *
      * @param string $presenterKlass Class to present the entity with
@@ -89,7 +92,8 @@ abstract class EntityPresenter
      * );
      * ```
      *
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      *
      * @param string $presenterKlass Class to present the collection with
@@ -129,7 +133,8 @@ abstract class EntityPresenter
      * );
      * ```
      *
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      *
      * @param string $presenterKlass Class to present the entity with
@@ -173,7 +178,8 @@ abstract class EntityPresenter
      *
      * @psalm-template TEntityParam of Entity
      * @psalm-param class-string<TEntityParam> $relationEntityKlass
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $targetPresenterKlass
      *
      * @param string $relationEntityKlass Entity class name
@@ -226,7 +232,8 @@ abstract class EntityPresenter
      * );
      * ```
      *
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      *
      * @param string $presenterKlass Class to present the entity with
@@ -270,7 +277,8 @@ abstract class EntityPresenter
      *
      * @psalm-template TEntityParam of Entity
      * @psalm-param class-string<TEntityParam> $relationEntityKlass
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $targetPresenterKlass
      *
      * @param string $relationEntityKlass Entity class name

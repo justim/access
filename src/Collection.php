@@ -180,8 +180,10 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Find the first entity in a collection
      *
+     * @psalm-param callable(TEntity): bool $finder Return entity when $finder returns `true`
      * @param callable $finder Return entity when $finder returns `true`
-     * @return ?Entity
+     * @psalm-return TEntity|null
+     * @return Entity|null
      */
     public function find(callable $finder): ?Entity
     {
@@ -197,6 +199,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Get the first entity of this collection
      *
+     * @psalm-return TEntity|null
      * @return Entity|null
      */
     public function first(): ?Entity
@@ -228,7 +231,8 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Group collection by a specified index
      *
-     * @psalm-param callable(Entity): array-key $groupIndexMapper
+     * @psalm-param callable(TEntity): array-key $groupIndexMapper
+     * @psalm-return GroupedCollection<TEntity>
      * @param callable $groupIndexMapper Should return the index of the group
      * @return GroupedCollection
      */
@@ -257,7 +261,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * NOTE: uses `usort` with $comparer as compare function
      *
-     * @psalm-param callable(mixed, mixed): int $comparer
+     * @psalm-param callable(TEntity, TEntity): int $comparer
      * @param callable $comparer Function to sort/compare with
      * @return $this
      */
@@ -272,7 +276,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Map over collection
      *
      * @psalm-template T
-     * @psalm-param callable(Entity): T $mapper
+     * @psalm-param callable(TEntity): T $mapper
      * @psalm-return T[]
      * @param callable $mapper Function to call for every entity
      * @return mixed[] Your mapped values
@@ -285,20 +289,29 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Reduce collection to something different
      *
-     * @psalm-param callable(mixed, Entity): mixed $reducer
+     * @psalm-template T
+     * @psalm-param callable(T, TEntity): T $reducer
+     * @psalm-param T $initial
+     * @psalm-return T
      * @param callable $reducer Function to call for every entity
      * @param mixed $initial Initial (or final on empty collection) value
      * @return mixed The reduced result
      */
     public function reduce(callable $reducer, mixed $initial = null): mixed
     {
-        return array_reduce($this->entities, $reducer, $initial);
+        $result = $initial;
+
+        foreach ($this->entities as $entity) {
+            $result = $reducer($result, $entity);
+        }
+
+        return $result;
     }
 
     /**
      * Create a new filtered collection
      *
-     * @psalm-param callable(mixed, mixed=):scalar $finder
+     * @psalm-param callable(TEntity): scalar $finder Include entity when $finder returns `true`
      * @param callable $finder Include entity when $finder returns `true`
      * @return Collection<TEntity> Newly created, and filtered, collection
      */
@@ -316,11 +329,15 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * Comparison is made by ID
      *
-     * @param Entity $entity Entity to find
-     * @psalm-param TEntity $entity Entity to find
+     * @param Entity|null $entity Entity to find
+     * @psalm-param TEntity|null $entity Entity to find
      */
-    public function contains(Entity $needle): bool
+    public function contains(?Entity $needle): bool
     {
+        if ($needle === null) {
+            return false;
+        }
+
         return $this->hasEntityWith('id', $needle->getId());
     }
 
@@ -330,7 +347,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @param string $fieldName Field name to search
      * @param mixed $needle Value to find
      */
-    public function hasEntityWith(string $fieldName, $needle): bool
+    public function hasEntityWith(string $fieldName, mixed $needle): bool
     {
         foreach ($this->entities as $entity) {
             if ($fieldName === 'id') {
@@ -384,7 +401,8 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Get a entity by its ID from the collection
      *
      * @param int $id
-     * @return ?Entity
+     * @psalm-return TEntity|null
+     * @return Entity|null
      */
     public function offsetGet(mixed $id): ?Entity
     {

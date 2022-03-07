@@ -79,7 +79,8 @@ class Presenter
     /**
      * Present a entity in array form from entity
      *
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      *
      * @param string $presenterKlass Class to present the entity with
@@ -113,9 +114,12 @@ class Presenter
      *
      * Empty presentations are filtered
      *
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
+     * @psalm-template TEntity of Entity
      *
+     * @psalm-param Collection<TEntity> $collection
      * @param string $presenterKlass Class to present the entity with
      * @param Collection $collection
      * @return array<array-key, array>
@@ -137,10 +141,11 @@ class Presenter
     /**
      * Given a array presentation, find and resolve all markers
      *
+     * @psalm-template T of array<array-key, array<string, mixed>>|array<string, mixed>
      * @param array $presentation Array presentation of some data
      * @return array Array presentation with resolved markers
-     * @psalm-param array<array-key, array<string, mixed>> $presentation Array presentation of some data
-     * @psalm-return array<array-key, array<string, mixed>> Array presentation with resolved markers
+     * @psalm-param T $presentation Array presentation of some data
+     * @psalm-return T Array presentation with resolved markers
      */
     public function processPresentation(array $presentation): array
     {
@@ -169,7 +174,10 @@ class Presenter
 
         $this->cleanUp($presentation);
 
-        /** @var array<array-key, array<string, mxied>> $presentation */
+        /**
+         * @var array<array-key, array<string, mxied>>|array<string, mixed> $presentation
+         * @psalm-var T $presentation
+         */
         return $presentation;
     }
 
@@ -189,7 +197,8 @@ class Presenter
     /**
      * Mark a location in a presentation to be resolved later
      *
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      * @param string $presenterKlass Class to present the entity with
      * @param int $id ID of the entity

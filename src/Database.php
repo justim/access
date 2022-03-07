@@ -474,7 +474,8 @@ class Database
     /**
      * Present a single entity as a simple array
      *
-     * @psalm-template TEntityPresenter of EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      *
      * @param string $presenterKlass Class to present the entity with
@@ -493,7 +494,8 @@ class Database
     /**
      * Present collection as a simple array
      *
-     * @psalm-template TEntityPresenter of Presenter\EntityPresenter
+     * @psalm-template TEntityPresenterEntity of Entity
+     * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      *
      * @param string $presenterKlass Class to present the collection with
