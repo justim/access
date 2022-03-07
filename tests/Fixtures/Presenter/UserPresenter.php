@@ -19,6 +19,7 @@ use Tests\Fixtures\Entity\User;
 
 /**
  * User presenter
+ * @template-extends EntityPresenter<User>
  */
 class UserPresenter extends EntityPresenter
 {
@@ -29,6 +30,7 @@ class UserPresenter extends EntityPresenter
 
     /**
      * @param User $user
+     * @return array<string, mixed>|null Array representation
      */
     public function fromEntity(Entity $user): ?array
     {

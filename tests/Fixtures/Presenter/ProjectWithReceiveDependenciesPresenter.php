@@ -20,12 +20,13 @@ use Tests\Fixtures\StatusFormatter;
 
 /**
  * Project with `receiveDepencies` presenter
+ * @template-extends EntityPresenter<Project>
  */
 class ProjectWithReceiveDependenciesPresenter extends EntityPresenter
 {
     private ?StatusFormatter $statusFormatter = null;
 
-    public function receiveDependencies(StatusFormatter $statusFormatter)
+    public function receiveDependencies(StatusFormatter $statusFormatter): void
     {
         $this->statusFormatter = $statusFormatter;
     }
@@ -37,12 +38,13 @@ class ProjectWithReceiveDependenciesPresenter extends EntityPresenter
 
     /**
      * @param Project $project
+     * @return array<string, mixed>|null Array representation
      */
     public function fromEntity(Entity $project): ?array
     {
         return [
             'id' => $project->getId(),
-            'status' => $this->statusFormatter->format($project->getStatus()),
+            'status' => $this->statusFormatter?->format($project->getStatus()),
         ];
     }
 }

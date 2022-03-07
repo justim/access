@@ -21,8 +21,17 @@ use Access\Presenter\EntityPresenter;
  */
 class BrokenWithoutEntityKlassPresenter extends EntityPresenter
 {
+    /**
+     * SAFETY For testing
+     * @psalm-suppress MoreSpecificReturnType
+     */
     public static function getEntityKlass(): string
     {
+        /**
+         * SAFETY For testing
+         * @psalm-suppress UndefinedClass
+         * @psalm-suppress LessSpecificReturnStatement
+         */
         return '';
     }
 

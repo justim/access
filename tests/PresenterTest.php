@@ -46,6 +46,9 @@ class PresenterTest extends AbstractBaseTestCase
     private const OPTION_SINGLE_PROJECT = 1;
     private const OPTION_EXTRA_USER = 2;
 
+    /**
+     * @return array{\Access\Database, User, Project, Project, User}
+     */
     private function createAndSetupEntities(int $options = 0): array
     {
         $db = self::createDatabase();
@@ -73,6 +76,11 @@ class PresenterTest extends AbstractBaseTestCase
         } else {
             $projectTwo = null;
         }
+
+        // dummies to make sure we return according to signature for easy
+        // access, the logic from the $options makes sure of it
+        $userTwo ??= new User();
+        $projectTwo ??= new Project();
 
         return [$db, $userOne, $projectOne, $projectTwo, $userTwo];
     }
@@ -727,7 +735,7 @@ class PresenterTest extends AbstractBaseTestCase
 
     public function testMulitpleNonMatchingEqualsClause(): void
     {
-        [$db, $userOne, $projectOne, $projectTwo] = $this->createAndSetupEntities();
+        [$db, $userOne] = $this->createAndSetupEntities();
 
         $expected = [
             'id' => $userOne->getId(),
@@ -951,6 +959,10 @@ class PresenterTest extends AbstractBaseTestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Invalid presenter: ' . BrokenPresenter::class);
 
+        /**
+         * SAFEFY We want to check for broken arguments
+         * @psalm-suppress InvalidArgument
+         */
         $db->presentEntity(BrokenPresenter::class, $userOne);
     }
 

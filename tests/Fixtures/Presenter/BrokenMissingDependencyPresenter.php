@@ -38,7 +38,7 @@ class BrokenMissingDependencyPresenter extends EntityPresenter
     {
         return [
             'id' => $user->getId(),
-            'dependencyUserId' => $this->user->getId(),
+            'dependencyUserId' => $this->user?->getId(),
         ];
     }
 }

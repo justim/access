@@ -177,7 +177,7 @@ class DatabaseTest extends AbstractBaseTestCase
         $this->assertNull($user);
     }
 
-    public function testQuerySelect()
+    public function testQuerySelect(): void
     {
         $db = self::createDatabaseWithDummyData();
 
@@ -194,7 +194,7 @@ class DatabaseTest extends AbstractBaseTestCase
         $db->query($query);
     }
 
-    public function testQueryUpdate()
+    public function testQueryUpdate(): void
     {
         $db = self::createDatabaseWithDummyData();
 
@@ -208,17 +208,22 @@ class DatabaseTest extends AbstractBaseTestCase
         $this->assertEquals(1, 1);
     }
 
-    public function testKlassValidationInvalid()
+    public function testKlassValidationInvalid(): void
     {
         $db = self::createDatabaseWithDummyData();
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Invalid entity: BLABLA');
 
+        /**
+         * SAFEFY we validate the `findOne` method here
+         * @psalm-suppress UndefinedClass
+         * @psalm-suppress ArgumentTypeCoercion
+         */
         $db->findOne('BLABLA', 1);
     }
 
-    public function testKlassValidationEmpty()
+    public function testKlassValidationEmpty(): void
     {
         $db = self::createDatabaseWithDummyData();
 
@@ -228,7 +233,7 @@ class DatabaseTest extends AbstractBaseTestCase
         $db->findOne(Role::class, 1);
     }
 
-    public function testRepositoryValidation()
+    public function testRepositoryValidation(): void
     {
         $db = self::createDatabaseWithDummyData();
 

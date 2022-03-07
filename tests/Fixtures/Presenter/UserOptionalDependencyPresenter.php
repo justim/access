@@ -19,6 +19,7 @@ use Tests\Fixtures\Entity\User;
 
 /**
  * User optional dependency presenter
+ * @template-extends EntityPresenter<User>
  */
 class UserOptionalDependencyPresenter extends EntityPresenter
 {

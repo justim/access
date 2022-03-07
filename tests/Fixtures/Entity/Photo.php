@@ -20,8 +20,18 @@ use Access\Entity;
  */
 class Photo extends Entity
 {
+    /**
+     * SAFEFY this is on purpose for testing
+     * @psalm-suppress MoreSpecificReturnType
+     */
     public static function getRepository(): string
     {
+        /**
+         * SAFEFY this is on purpose for testing
+         * @psalm-suppress UndefinedClass
+         * @psalm-suppress LessSpecificReturnStatement
+         * @psalm-suppress MoreSpecificReturnType
+         */
         return 'BLABLA';
     }
 

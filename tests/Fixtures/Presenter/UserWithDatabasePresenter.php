@@ -20,6 +20,7 @@ use Tests\Fixtures\Entity\User;
 
 /**
  * User with database presenter
+ * @template-extends EntityPresenter<User>
  */
 class UserWithDatabasePresenter extends EntityPresenter
 {

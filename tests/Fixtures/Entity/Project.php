@@ -17,6 +17,11 @@ use Tests\Fixtures\Repository\ProjectRepository;
 
 use Access\Entity;
 
+/**
+ * SAFETY Return types are not known, they are stored in an array config
+ * @psalm-suppress MixedReturnStatement
+ * @psalm-suppress MixedInferredReturnType
+ */
 class Project extends Entity
 {
     public static function getRepository(): string
@@ -60,7 +65,7 @@ class Project extends Entity
         return $this->get('status');
     }
 
-    public function setOwnerId($ownerId): void
+    public function setOwnerId(User|int $ownerId): void
     {
         $this->set('owner_id', $ownerId);
     }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use Access\Collection;
+use Access\EntityProvider\VirtualArrayEntity;
 use Access\Exception;
 use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
@@ -76,7 +77,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $projects = $projectRepo->findByIds([1]);
 
-        $this->assertEquals(1, count(iterator_to_array($projects)));
+        $this->assertEquals(1, count(iterator_to_array($projects, false)));
     }
 
     public function testFindByEmptyIds(): void
@@ -88,7 +89,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $projects = $projectRepo->findByIds([]);
 
-        $this->assertEquals(0, count(iterator_to_array($projects)));
+        $this->assertEquals(0, count(iterator_to_array($projects, false)));
     }
 
     public function testFindByIdsAsCollection(): void
@@ -100,7 +101,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $projects = $projectRepo->findByIdsAsCollection([1]);
 
-        $this->assertEquals(1, count(iterator_to_array($projects)));
+        $this->assertEquals(1, count(iterator_to_array($projects, false)));
     }
 
     public function testSelectVirtualField(): void
@@ -149,7 +150,7 @@ class RepositoryTest extends AbstractBaseTestCase
         $names = $projectRepo->findVirtualUserNames();
         $names = iterator_to_array($names, false);
 
-        $names = array_map(fn($name) => $name->getUserName(), $names);
+        $names = array_map(fn($name): string => $name->getUserName(), $names);
 
         $this->assertEquals(['Dave', 'Bob'], $names);
     }
@@ -178,6 +179,8 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $names = $projectRepo->findVirtualArrayUserNames();
 
+        $this->assertNotNull($names[1]);
+
         $this->assertEquals('Dave', $names[1]['user_name']);
         $this->assertEquals(1, $names[1]['user_id']);
         $this->assertIsInt($names[1]['user_id']);
@@ -193,6 +196,8 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $names = $projectRepo->findVirtualArrayUserNames();
 
+        $this->assertNotNull($names[1]);
+
         $this->assertTrue(isset($names[1]['user_name']));
         $this->assertFalse(isset($names[1]['some_other_field']));
     }
@@ -205,6 +210,8 @@ class RepositoryTest extends AbstractBaseTestCase
         $projectRepo = $db->getRepository(Project::class);
 
         $names = $projectRepo->findVirtualArrayUserNamesSingleField();
+
+        /** @var VirtualArrayEntity $name */
         $name = $names->first();
 
         $this->assertEquals('Dave', $name['user_name']);
@@ -218,6 +225,8 @@ class RepositoryTest extends AbstractBaseTestCase
         $projectRepo = $db->getRepository(Project::class);
 
         $names = $projectRepo->findVirtualArrayUserNames();
+
+        $this->assertNotNull($names[1]);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Field "some_other_field" not available');
@@ -234,6 +243,8 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $names = $projectRepo->findVirtualArrayUserNames();
 
+        $this->assertNotNull($names[1]);
+
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to update virtual array entities');
 
@@ -248,6 +259,8 @@ class RepositoryTest extends AbstractBaseTestCase
         $projectRepo = $db->getRepository(Project::class);
 
         $names = $projectRepo->findVirtualArrayUserNames();
+
+        $this->assertNotNull($names[1]);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to update virtual array entities');
@@ -295,7 +308,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $this->assertIsIterable($projects);
         $this->assertTrue($projects instanceof \Generator);
-        $this->assertEquals(1, count(iterator_to_array($projects)));
+        $this->assertEquals(1, count(iterator_to_array($projects, false)));
     }
 
     public function testFindByArray(): void
@@ -311,7 +324,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $this->assertIsIterable($projects);
         $this->assertTrue($projects instanceof \Generator);
-        $this->assertEquals(1, count(iterator_to_array($projects)));
+        $this->assertEquals(1, count(iterator_to_array($projects, false)));
     }
 
     public function testFindByRaw(): void
@@ -327,7 +340,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $this->assertIsIterable($projects);
         $this->assertTrue($projects instanceof \Generator);
-        $this->assertEquals(1, count(iterator_to_array($projects)));
+        $this->assertEquals(1, count(iterator_to_array($projects, false)));
     }
 
     public function testFindByEmptyArray(): void
@@ -343,7 +356,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $this->assertIsIterable($projects);
         $this->assertTrue($projects instanceof \Generator);
-        $this->assertEquals(0, count(iterator_to_array($projects)));
+        $this->assertEquals(0, count(iterator_to_array($projects, false)));
     }
 
     public function testFindByCollection(): void
@@ -361,7 +374,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $this->assertIsIterable($projects);
         $this->assertTrue($projects instanceof \Generator);
-        $this->assertEquals(2, count(iterator_to_array($projects)));
+        $this->assertEquals(2, count(iterator_to_array($projects, false)));
     }
 
     public function testFindByEmptyCollection(): void
@@ -379,7 +392,7 @@ class RepositoryTest extends AbstractBaseTestCase
 
         $this->assertIsIterable($projects);
         $this->assertTrue($projects instanceof \Generator);
-        $this->assertEquals(0, count(iterator_to_array($projects)));
+        $this->assertEquals(0, count(iterator_to_array($projects, false)));
     }
 
     public function testRepositorySave(): void

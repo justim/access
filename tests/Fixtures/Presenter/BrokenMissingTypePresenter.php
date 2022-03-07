@@ -22,8 +22,16 @@ use Tests\Fixtures\Entity\User;
  */
 class BrokenMissingTypePresenter extends EntityPresenter
 {
+    /**
+     * SAFEFY Type is missing for testing
+     * @psalm-suppress MissingPropertyType
+     */
     private $user;
 
+    /**
+     * SAFEFY Type is missing for testing
+     * @psalm-suppress MissingParamType
+     */
     public function __construct($user)
     {
         $this->user = $user;
@@ -38,7 +46,7 @@ class BrokenMissingTypePresenter extends EntityPresenter
     {
         return [
             'id' => $entity->getId(),
-            'user' => $this->user->getId(),
+            'user' => $this->user instanceof User ? $this->user->getId() : null,
         ];
     }
 }

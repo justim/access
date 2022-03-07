@@ -20,6 +20,7 @@ use Tests\Fixtures\Entity\User;
 
 /**
  * User presenter with an optional injectable clause
+ * @template-extends EntityPresenter<User>
  */
 class UserWithClausePresenter extends EntityPresenter
 {
@@ -37,6 +38,7 @@ class UserWithClausePresenter extends EntityPresenter
 
     /**
      * @param User $user
+     * @return array<string, mixed>|null Array representation
      */
     public function fromEntity(Entity $user): ?array
     {

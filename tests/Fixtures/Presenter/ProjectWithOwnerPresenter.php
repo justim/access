@@ -19,6 +19,7 @@ use Tests\Fixtures\Entity\Project;
 
 /**
  * Project with owner presenter
+ * @template-extends EntityPresenter<Project>
  */
 class ProjectWithOwnerPresenter extends EntityPresenter
 {
@@ -29,6 +30,7 @@ class ProjectWithOwnerPresenter extends EntityPresenter
 
     /**
      * @param Project $project
+     * @return array<string, mixed>|null Array representation
      */
     public function fromEntity(Entity $project): ?array
     {

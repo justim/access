@@ -21,6 +21,7 @@ use Tests\Fixtures\StatusFormatter;
 
 /**
  * Project presenter
+ * @template-extends EntityPresenter<Project>
  */
 class ProjectPresenter extends EntityPresenter
 {
@@ -38,6 +39,7 @@ class ProjectPresenter extends EntityPresenter
 
     /**
      * @param Project $project
+     * @return array<string, mixed>|null Array representation
      */
     public function fromEntity(Entity $project): ?array
     {

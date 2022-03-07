@@ -15,7 +15,7 @@ namespace Tests\Fixtures;
 
 class StatusFormatter
 {
-    public function format(string $progress)
+    public function format(string $progress): string
     {
         return ucfirst(strtolower(str_replace('_', ' ', $progress)));
     }

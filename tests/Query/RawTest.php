@@ -19,9 +19,9 @@ class RawTest extends TestCase
 
     public function testQueryValues(): void
     {
-        $query = new Raw('SELECT * FROM users WHERE name = ?', ['Dave']);
+        $query = new Raw('SELECT * FROM users WHERE name = :name', ['name' => 'Dave']);
 
-        $this->assertEquals('SELECT * FROM users WHERE name = ?', $query->getSql());
-        $this->assertEquals(['Dave'], $query->getValues());
+        $this->assertEquals('SELECT * FROM users WHERE name = :name', $query->getSql());
+        $this->assertEquals(['name' => 'Dave'], $query->getValues());
     }
 }

@@ -149,6 +149,11 @@ class CollectionTest extends AbstractBaseTestCase
             $lastOwnerId = $ownerId;
         }
 
+        /**
+         * SAFEFY the loop has run
+         * @var int $lastOwnerId
+         */
+
         $this->assertNotNull($grouped[$lastOwnerId]);
         $this->assertNull($grouped[99999999]);
     }
@@ -346,7 +351,7 @@ class CollectionTest extends AbstractBaseTestCase
 
         $query = new Select(User::class);
         $query->where('id IN (?)', $users);
-        $newUsers = iterator_to_array($db->select(User::class, $query));
+        $newUsers = iterator_to_array($db->select(User::class, $query), false);
 
         $this->assertEquals(2, count($newUsers));
     }

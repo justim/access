@@ -16,8 +16,7 @@ namespace Tests\Fixtures\Repository;
 use Tests\Fixtures\Entity\Project;
 
 use Access\Collection;
-use Access\Entity;
-use Access\EntityProvider;
+use Access\EntityProvider\VirtualArrayEntity;
 use Access\EntityProvider\VirtualArrayEntityProvider;
 use Access\EntityProvider\VirtualEntity;
 use Access\EntityProvider\VirtualEntityProvider;
@@ -69,6 +68,11 @@ class ProjectRepository extends Repository
         $this->query($query);
     }
 
+    /**
+     * SAFETY Return types are not known, they are stored in an array config
+     * @psalm-suppress MixedReturnStatement
+     * @psalm-suppress MixedInferredReturnType
+     */
     public function findTotalCount(): int
     {
         $query = new Select(Project::class, 'p', [
@@ -78,6 +82,11 @@ class ProjectRepository extends Repository
         return $this->selectOneVirtualField($query, 'total', 'int');
     }
 
+    /**
+     * SAFETY Return types are not known, they are stored in an array config
+     * @psalm-suppress MixedReturnStatement
+     * @psalm-suppress MixedInferredReturnType
+     */
     public function findTotalCountAdded(): int
     {
         $query = new Select(Project::class, 'p');
@@ -87,6 +96,11 @@ class ProjectRepository extends Repository
         return $this->selectOneVirtualField($query, 'total', 'int');
     }
 
+    /**
+     * SAFETY Return types are not known, they are stored in an array config
+     * @psalm-suppress MixedReturnStatement
+     * @psalm-suppress MixedInferredReturnType
+     */
     public function findTotalCountReplaced(): int
     {
         $query = new Select(Project::class, 'p', [
@@ -129,10 +143,21 @@ class ProjectRepository extends Repository
                             'type' => 'int',
                         ],
                     ]) extends VirtualEntity {
+                        /**
+                         * SAFETY Return types are not known, they are stored in an array config
+                         * @psalm-suppress MixedReturnStatement
+                         * @psalm-suppress MixedInferredReturnType
+                         */
                         public function getUserName(): string
                         {
                             return $this->get('user_name');
                         }
+
+                        /**
+                         * SAFETY Return types are not known, they are stored in an array config
+                         * @psalm-suppress MixedReturnStatement
+                         * @psalm-suppress MixedInferredReturnType
+                         */
                         public function getUserId(): int
                         {
                             return $this->get('user_id');

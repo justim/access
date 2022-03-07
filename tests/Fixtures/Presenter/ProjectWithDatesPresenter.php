@@ -19,6 +19,7 @@ use Tests\Fixtures\Entity\Project;
 
 /**
  * Project with dates presenter
+ * @template-extends EntityPresenter<Project>
  */
 class ProjectWithDatesPresenter extends EntityPresenter
 {
@@ -29,6 +30,7 @@ class ProjectWithDatesPresenter extends EntityPresenter
 
     /**
      * @param Project $project
+     * @return array<string, mixed>|null Array representation
      */
     public function fromEntity(Entity $project): ?array
     {

@@ -8,10 +8,27 @@
 >
     <projectFiles>
         <directory name="src" />
+        <directory name="tests" errorLevel="info" />
         <ignoreFiles>
             <directory name="vendor" />
         </ignoreFiles>
     </projectFiles>
+
+    <issueHandlers>
+        <!-- allow asserts on known data types -->
+        <RedundantConditionGivenDocblockType>
+            <errorLevel type="suppress">
+                <directory name="tests" />
+            </errorLevel>
+        </RedundantConditionGivenDocblockType>
+
+        <!-- allow asserts on known data types -->
+        <RedundantCondition>
+            <errorLevel type="suppress">
+                <directory name="tests" />
+            </errorLevel>
+        </RedundantCondition>
+    </issueHandlers>
 
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin" />

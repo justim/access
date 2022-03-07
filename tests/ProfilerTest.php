@@ -20,6 +20,7 @@ use Access\Query\Raw;
 use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
+use Tests\Fixtures\Repository\ProjectRepository;
 
 class ProfilerTest extends AbstractBaseTestCase
 {

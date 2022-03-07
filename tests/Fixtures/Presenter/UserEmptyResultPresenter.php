@@ -19,6 +19,7 @@ use Tests\Fixtures\Entity\User;
 
 /**
  * User empty result presenter
+ * @template-extends EntityPresenter<User>
  */
 class UserEmptyResultPresenter extends EntityPresenter
 {

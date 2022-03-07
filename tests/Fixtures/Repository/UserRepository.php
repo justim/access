@@ -16,7 +16,6 @@ namespace Tests\Fixtures\Repository;
 use Tests\Fixtures\Entity\User;
 
 use Access\Collection;
-use Access\Query\Select;
 use Access\Repository;
 
 /**

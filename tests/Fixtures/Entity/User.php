@@ -19,6 +19,11 @@ use Access\Entity;
 use Access\Entity\SoftDeletableTrait;
 use Access\Entity\TimestampableTrait;
 
+/**
+ * SAFETY Return types are not known, they are stored in an array config
+ * @psalm-suppress MixedReturnStatement
+ * @psalm-suppress MixedInferredReturnType
+ */
 class User extends Entity
 {
     use TimestampableTrait;
