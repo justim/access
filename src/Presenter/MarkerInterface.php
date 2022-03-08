@@ -40,11 +40,11 @@ interface MarkerInterface
     public function getFieldName(): string;
 
     /**
-     * ID of the references field of entity
+     * IDs of the references field of entity
      *
-     * @return int
+     * @return int[]
      */
-    public function getRefId(): int;
+    public function getRefIds(): array;
 
     /**
      * Marker expects multiple entities when filled

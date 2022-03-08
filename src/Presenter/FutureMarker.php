@@ -39,8 +39,10 @@ final class FutureMarker implements MarkerInterface
 
     /**
      * ID of the references field of entity
+     *
+     * @var int[]
      */
-    private int $refId;
+    private array $refIds;
 
     /**
      * Marker expects multiple entities when filled
@@ -62,21 +64,21 @@ final class FutureMarker implements MarkerInterface
      *
      * @psalm-param class-string<TEntity> $entityKlass
      * @param string $entityKlass
-     * @param int $refId ID of the entity
+     * @param int|int[] $refIds ID of the entity
      * @param bool $multiple Fill with multiple entities when filled
      * @param \Closure $callback Function to call when future is resolved
      */
     public function __construct(
         string $entityKlass,
         string $fieldName,
-        int $refId,
+        int|array $refIds,
         bool $multiple,
         \Closure $callback,
         ClauseInterface $clause = null,
     ) {
         $this->entityKlass = $entityKlass;
         $this->fieldName = $fieldName;
-        $this->refId = $refId;
+        $this->refIds = is_array($refIds) ? $refIds : [$refIds];
         $this->multiple = $multiple;
         $this->callback = $callback;
         $this->clause = $clause;
@@ -106,11 +108,11 @@ final class FutureMarker implements MarkerInterface
     /**
      * ID of the references field of entity
      *
-     * @return int
+     * @return int[]
      */
-    public function getRefId(): int
+    public function getRefIds(): array
     {
-        return $this->refId;
+        return $this->refIds;
     }
 
     /**

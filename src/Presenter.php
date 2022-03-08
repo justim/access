@@ -32,11 +32,6 @@ use Access\Presenter\PresentationMarker;
 class Presenter
 {
     /**
-     * Marker to indicate a cleanup is required for array
-     */
-    public const CLEAN_UP_ARRAY_MARKER = '__clean_up_needed__';
-
-    /**
      * @var Database $db
      */
     private Database $db;
@@ -131,8 +126,8 @@ class Presenter
 
         $presenter = $this->createEntityPresenter($presenterKlass);
 
-        $presentation = array_filter(
-            $collection->map(fn(Entity $entity) => $presenter->fromEntity($entity)),
+        $presentation = array_values(
+            array_filter($collection->map(fn(Entity $entity) => $presenter->fromEntity($entity))),
         );
 
         return $this->processPresentation($presentation);
@@ -171,8 +166,6 @@ class Presenter
             // marker
             $this->resolveMarkers($presentation, $markers);
         }
-
-        $this->cleanUp($presentation);
 
         /**
          * @var array<array-key, array<string, mxied>>|array<string, mixed> $presentation
@@ -231,15 +224,36 @@ class Presenter
             }
 
             $entityKlass = $item->getEntityKlass();
-            $markers['entities'][$entityKlass][$item->getFieldName()][] = $item->getRefId();
+
+            if (!isset($markers['entities'][$entityKlass][$item->getFieldName()])) {
+                $markers['entities'][$entityKlass][$item->getFieldName()] = [];
+            }
+
+            array_push(
+                $markers['entities'][$entityKlass][$item->getFieldName()],
+                ...$item->getRefIds(),
+            );
 
             if ($item instanceof FutureMarker) {
-                $markers['futures'][$entityKlass][$item->getFieldName()][] = $item->getRefId();
+                if (!isset($markers['futures'][$entityKlass][$item->getFieldName()])) {
+                    $markers['futures'][$entityKlass][$item->getFieldName()] = [];
+                }
+
+                array_push(
+                    $markers['futures'][$entityKlass][$item->getFieldName()],
+                    ...$item->getRefIds(),
+                );
             } elseif ($item instanceof PresentationMarker) {
                 $presenterKlass = $item->getPresenterKlass();
-                $markers['presenters'][$presenterKlass][
-                    $item->getFieldName()
-                ][] = $item->getRefId();
+
+                if (!isset($markers['presenters'][$presenterKlass][$item->getFieldName()])) {
+                    $markers['presenters'][$presenterKlass][$item->getFieldName()] = [];
+                }
+
+                array_push(
+                    $markers['presenters'][$presenterKlass][$item->getFieldName()],
+                    ...$item->getRefIds(),
+                );
             }
         });
 
@@ -444,17 +458,15 @@ class Presenter
      */
     private function matchMarker(MarkerInterface $marker, Entity $entity): bool
     {
-        $values = $entity->getValues();
-
-        if ($marker->getFieldName() === 'id') {
-            return $entity->getId() === $marker->getRefId();
-        }
+        $values = array_merge($entity->getValues(), [
+            'id' => $entity->getId(),
+        ]);
 
         if (!isset($values[$marker->getFieldName()])) {
             return false;
         }
 
-        if ($values[$marker->getFieldName()] !== $marker->getRefId()) {
+        if (!in_array($values[$marker->getFieldName()], $marker->getRefIds(), true)) {
             return false;
         }
 
@@ -469,37 +481,6 @@ class Presenter
         }
 
         return true;
-    }
-
-    /**
-     * Clean up all markers that resolved to `null` in arrays
-     *
-     * We need to do this to prevent arrays with an non-sequential index after
-     * a array_filter, causing the array to be converted to an object when
-     * encoded as JSON
-     *
-     * ```
-     * [0 => 'zero', 1 => 'one']; // in JSON: ["zero", "one"]
-     * [0 => 'zero', 2 => 'two']; // in JSON: {"0": "zero", "2": "two"}
-     * ```
-     *
-     * @param array $presentation
-     * @psalm-param array<array-key, array<string, mixed>>|array<string, mixed> $presentation
-     */
-    private function cleanUp(array &$presentation): void
-    {
-        /** @var mixed $item */
-        foreach ($presentation as &$item) {
-            if (is_array($item)) {
-                if (isset($item[self::CLEAN_UP_ARRAY_MARKER])) {
-                    unset($item[self::CLEAN_UP_ARRAY_MARKER]);
-
-                    $item = array_values(array_filter($item, fn($item) => $item !== null));
-                }
-
-                $this->cleanUp($item);
-            }
-        }
     }
 
     /**

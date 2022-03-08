@@ -40,8 +40,10 @@ final class PresentationMarker implements MarkerInterface
 
     /**
      * ID of the references field of entity
+     *
+     * @var int[]
      */
-    private int $refId;
+    private array $refIds;
 
     /**
      * Marker expects multiple entities when filled
@@ -58,19 +60,19 @@ final class PresentationMarker implements MarkerInterface
      *
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      * @param string $presenterKlass Class to present the entity with
-     * @param int $refId ID of the entity
+     * @param int|int[] $refIds ID of the entity
      * @param bool $multiple Fill with multiple entities when filled
      */
     public function __construct(
         string $presenterKlass,
         string $fieldName,
-        int $refId,
+        int|array $refIds,
         bool $multiple,
         ClauseInterface $clause = null,
     ) {
         $this->presenterKlass = $presenterKlass;
         $this->fieldName = $fieldName;
-        $this->refId = $refId;
+        $this->refIds = is_array($refIds) ? $refIds : [$refIds];
         $this->multiple = $multiple;
         $this->clause = $clause;
     }
@@ -113,11 +115,11 @@ final class PresentationMarker implements MarkerInterface
     /**
      * ID of the references field of entity
      *
-     * @return int
+     * @return int[]
      */
-    public function getRefId(): int
+    public function getRefIds(): array
     {
-        return $this->refId;
+        return $this->refIds;
     }
 
     /**

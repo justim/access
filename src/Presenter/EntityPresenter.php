@@ -98,24 +98,21 @@ abstract class EntityPresenter
      *
      * @param string $presenterKlass Class to present the collection with
      * @param int[] $ids Primary IDs of entities associated with presenter
-     * @return array List of presentation markers
+     * @param ClauseInterface|null $relationClause Optional clause to manipulate resulting entities
+     * @return MarkerInterface|array|null List of presentation markers
      */
-    protected function presentMultiple(string $presenterKlass, array $ids): array
-    {
+    protected function presentMultiple(
+        string $presenterKlass,
+        array $ids,
+        ?ClauseInterface $clause = null,
+    ): MarkerInterface|array|null {
         Database::assertValidPresenterClass($presenterKlass);
 
-        $result = array_values(
-            array_filter(
-                array_map(fn($id) => $this->present($presenterKlass, $id), $ids),
-                fn($item) => $item !== null,
-            ),
-        );
+        if (empty($ids)) {
+            return [];
+        }
 
-        // mark for clean up to filter out `null` values from the presentation
-        // marker
-        $result[Presenter::CLEAN_UP_ARRAY_MARKER] = true;
-
-        return $result;
+        return new PresentationMarker($presenterKlass, 'id', $ids, true, $clause);
     }
 
     /**
@@ -287,6 +284,7 @@ abstract class EntityPresenter
      * @param string $toFieldName Name of referenced field for target
      * @param string $targetPresenterKlass Class to present the entity with
      * @param ClauseInterface|null $relationClause Optional clause to manipulate resulting entities (applied to relation entities)
+     * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities (applied to result entities)
      * @return FutureMarker|array|null Marker with presenter info (or empty array on empty ID)
      */
     protected function presentMultipleThroughInversedRefs(
@@ -296,6 +294,7 @@ abstract class EntityPresenter
         string $targetFieldName,
         string $targetPresenterKlass,
         ?ClauseInterface $relationClause = null,
+        ?ClauseInterface $clause = null,
     ) {
         Database::assertValidEntityClass($relationEntityKlass);
         Database::assertValidPresenterClass($targetPresenterKlass);
@@ -315,6 +314,7 @@ abstract class EntityPresenter
                         fn(Entity $entity) => $this->getValidRefId($entity, $targetFieldName),
                     ),
                 ),
+                $clause,
             ),
             $relationClause,
         );

@@ -881,9 +881,8 @@ class PresenterTest extends AbstractBaseTestCase
         $expected = [
             'id' => $userOne->getId(),
             'owners' => [
-                [
-                    'id' => $userOne->getId(),
-                ],
+                // Should this be duplicated? Or should it be unique? There are
+                // two projects with this user as its owner.. Hmm..
                 [
                     'id' => $userOne->getId(),
                 ],
