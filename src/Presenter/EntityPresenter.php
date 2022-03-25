@@ -235,14 +235,14 @@ abstract class EntityPresenter
      *
      * @param string $presenterKlass Class to present the entity with
      * @param string $fieldName Name of referenced field
-     * @param int|null $id ID of the entity
+     * @param int|int[]|null $id ID of the entity
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
      * @return PresentationMarker|array|null Marker with presenter info (or empty array on empty ID)
      */
     protected function presentMultipleInversedRefs(
         string $presenterKlass,
         string $fieldName,
-        ?int $id,
+        int|array|null $id,
         ?ClauseInterface $clause = null,
     ) {
         Database::assertValidPresenterClass($presenterKlass);
@@ -280,7 +280,7 @@ abstract class EntityPresenter
      *
      * @param string $relationEntityKlass Entity class name
      * @param string $fromFieldName Name of referenced field for source
-     * @param int|null $id ID of the entity
+     * @param int|int[]|null $id ID of the entity
      * @param string $toFieldName Name of referenced field for target
      * @param string $targetPresenterKlass Class to present the entity with
      * @param ClauseInterface|null $relationClause Optional clause to manipulate resulting entities (applied to relation entities)
@@ -290,7 +290,7 @@ abstract class EntityPresenter
     protected function presentMultipleThroughInversedRefs(
         string $relationEntityKlass,
         string $sourceFieldName,
-        ?int $id,
+        int|array|null $id,
         string $targetFieldName,
         string $targetPresenterKlass,
         ?ClauseInterface $relationClause = null,
@@ -418,7 +418,7 @@ abstract class EntityPresenter
      *
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
-     * @param int|null $id ID of the entity
+     * @param int|int[]|null $id ID of the entity
      * @param \Closure $callback On resolved callback
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
      * @return FutureMarker|array|null Marker with future presentation info (or empty array on empty ID)
@@ -426,7 +426,7 @@ abstract class EntityPresenter
     protected function presentFutureMultipleInversedRefs(
         string $entityKlass,
         string $fieldName,
-        ?int $id,
+        int|array|null $id,
         \Closure $callback,
         ?ClauseInterface $clause = null,
     ) {
