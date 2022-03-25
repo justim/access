@@ -404,11 +404,13 @@ class Repository
     /**
      * Create an empty collection
      *
-     * @return Collection
+     * @return Collection<TEntity>
      */
     protected function createEmptyCollection(): Collection
     {
-        return new Collection($this->db);
+        /** @var Collection<TEntity> $emptyCollection */
+        $emptyCollection = new Collection($this->db);
+        return $emptyCollection;
     }
 
     /**
