@@ -26,7 +26,7 @@ use Access\Query\QueryGeneratorState;
  *
  * @author Tim <me@justim.net>
  */
-class Multiple implements ConditionInterface, OrderByInterface
+class Multiple implements ConditionInterface, OrderByInterface, FilterInterface
 {
     /**
      * Combinator for AND
@@ -122,6 +122,49 @@ class Multiple implements ConditionInterface, OrderByInterface
             }
 
             return 0;
+        };
+    }
+
+    /**
+     * Filter given collection in place based on this filter clause
+     *
+     * @param Collection $collection Collection to filter
+     */
+    public function filterCollection(Collection $collection): Collection
+    {
+        return $collection->filter($this->createFilterFinder());
+    }
+
+    /**
+     * Create the finder function for this filter clause
+     *
+     * @return callable
+     * @psalm-return callable(\Access\Entity): scalar
+     */
+    public function createFilterFinder(): callable
+    {
+        /**
+         * @var callable[] $finders
+         * @psalm-var array<array-key, callable(Entity, Entity): int> $finders
+         */
+        $finders = [];
+
+        foreach ($this->clauses as $clause) {
+            if ($clause instanceof FilterInterface) {
+                $finders[] = $clause->createFilterFinder();
+            }
+        }
+
+        return function (Entity $entity) use ($finders): bool {
+            foreach ($finders as $finder) {
+                $found = $finder($entity);
+
+                if ($found === false) {
+                    return false;
+                }
+            }
+
+            return true;
         };
     }
 

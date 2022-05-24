@@ -16,6 +16,7 @@ namespace Tests;
 use Access\Presenter;
 use Access\Clause;
 use Access\Collection;
+use Access\Database;
 use Access\Exception;
 use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
@@ -951,6 +952,88 @@ class PresenterTest extends AbstractBaseTestCase
         $this->assertEquals(0, $numQueries);
     }
 
+    public function testSimpleFilterUnique(): void
+    {
+        $db = self::createDatabase();
+
+        $user = $this->createUser($db, 'Name');
+
+        $p1 = $this->createProject($db, $user, 'Same name');
+
+        $expected = [
+            'id' => $user->getId(),
+            'projects' => [
+                [
+                    'id' => $p1->getId(),
+                    'name' => $p1->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\Filter\Unique('name'));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $user);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testSimpleFilterUniqueMissingField(): void
+    {
+        $db = self::createDatabase();
+
+        $user = $this->createUser($db, 'Name');
+
+        $this->createProject($db, $user, 'Same name');
+
+        $expected = [
+            'id' => $user->getId(),
+            'projects' => [],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\Filter\Unique('missing_field'));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $user);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testMultipleFilterUnique(): void
+    {
+        $db = self::createDatabase();
+
+        $user = $this->createUser($db, 'Name');
+
+        $p1 = $this->createProject($db, $user, 'Same name');
+        $this->createProject($db, $user, 'Same name');
+        $p3 = $this->createProject($db, $user, 'Other name');
+
+        $expected = [
+            'id' => $user->getId(),
+            'projects' => [
+                [
+                    'id' => $p3->getId(),
+                    'name' => $p3->getName(),
+                ],
+                [
+                    'id' => $p1->getId(),
+                    'name' => $p1->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(
+            new Clause\Multiple(
+                new Clause\Filter\Unique('id'),
+                new Clause\Filter\Unique('name'),
+                new Clause\OrderBy\Descending('id'),
+            ),
+        );
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $user);
+
+        $this->assertEquals($expected, $result);
+    }
+
     public function testInvalidPresenterKlass(): void
     {
         [$db, $userOne] = $this->createAndSetupEntities();
@@ -1124,5 +1207,30 @@ class PresenterTest extends AbstractBaseTestCase
         );
 
         $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * Helper to create a user in a single line
+     */
+    private function createUser(Database $db, string $name): User
+    {
+        $user = new User();
+        $user->setName($name);
+        $db->save($user);
+
+        return $user;
+    }
+
+    /**
+     * Helper to create a project in a single line
+     */
+    private function createProject(Database $db, User $user, string $name): Project
+    {
+        $project = new Project();
+        $project->setOwnerId($user);
+        $project->setName($name);
+        $db->save($project);
+
+        return $project;
     }
 }

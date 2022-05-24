@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Clause\ConditionInterface;
+use Access\Clause\FilterInterface;
 use Access\Clause\OrderByInterface;
 use Access\Collection;
 use Access\Database;
@@ -443,6 +444,10 @@ class Presenter
         $clause = $marker->getClause();
 
         if ($clause !== null) {
+            if ($clause instanceof FilterInterface) {
+                $entities = $clause->filterCollection($entities);
+            }
+
             if ($clause instanceof OrderByInterface) {
                 $clause->sortCollection($entities);
             }
