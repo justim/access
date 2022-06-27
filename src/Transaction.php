@@ -15,9 +15,13 @@ namespace Access;
 
 use Access\Database;
 use Access\Exception;
+use Access\Query\RollbackToSavepoint;
+use Access\Query\Savepoint;
 
 /**
- * Transaction
+ * Abstraction to handle database transactions
+ *
+ * Will create savepoints on nested transactions
  *
  * @author Tim <me@justim.net>
  */
@@ -34,6 +38,13 @@ class Transaction
      * @var bool $inTransaction
      */
     private bool $inTransaction = false;
+
+    /**
+     * Current save point for nested transactions
+     *
+     * @var string|null $savepoint
+     */
+    private ?string $savepointIdentifier = null;
 
     /**
      * Create a transaction
@@ -60,7 +71,16 @@ class Transaction
      */
     public function begin(): void
     {
-        $this->db->getConnection()->beginTransaction();
+        $connection = $this->db->getConnection();
+
+        if ($connection->inTransaction()) {
+            $this->savepointIdentifier = $this->generateSavepointIdentifier();
+            $query = new Savepoint($this->savepointIdentifier);
+            $this->db->query($query);
+        } else {
+            $connection->beginTransaction();
+        }
+
         $this->inTransaction = true;
     }
 
@@ -70,6 +90,12 @@ class Transaction
     public function commit(): void
     {
         if (!$this->inTransaction) {
+            return;
+        }
+
+        if ($this->savepointIdentifier !== null) {
+            // the outer transaction will provide the commit
+            $this->inTransaction = false;
             return;
         }
 
@@ -86,7 +112,21 @@ class Transaction
             return;
         }
 
+        if ($this->savepointIdentifier !== null) {
+            $query = new RollbackToSavepoint($this->savepointIdentifier);
+            $this->db->query($query);
+
+            $this->inTransaction = false;
+            return;
+        }
+
         $this->db->getConnection()->rollBack();
         $this->inTransaction = false;
+    }
+
+    private function generateSavepointIdentifier(): string
+    {
+        // same amount of random as a UUIDv4
+        return sprintf('access_%s', bin2hex(random_bytes(16)));
     }
 }

@@ -76,4 +76,66 @@ class TransactionTest extends AbstractBaseTestCase
 
         $transaction = $db->beginTransaction();
     }
+
+    public function testNestedTransaction(): void
+    {
+        $db = self::createDatabase();
+
+        $users = $db->findAll(User::class);
+        $this->assertEquals(0, count(iterator_to_array($users)));
+
+        $transactionOne = $db->beginTransaction();
+
+        $dave = new User();
+        $dave->setEmail('dave@example.com');
+        $dave->setName('Dave');
+
+        $db->insert($dave);
+
+        $transactionTwo = $db->beginTransaction();
+
+        $dave = new User();
+        $dave->setEmail('dave@example.com');
+        $dave->setName('Dave');
+
+        $db->insert($dave);
+
+        $transactionTwo->commit();
+
+        $transactionOne->commit();
+
+        $users = $db->findAll(User::class);
+        $this->assertEquals(2, count(iterator_to_array($users)));
+    }
+
+    public function testNestedTransactionWithInnerRollback(): void
+    {
+        $db = self::createDatabase();
+
+        $users = $db->findAll(User::class);
+        $this->assertEquals(0, count(iterator_to_array($users)));
+
+        $transactionOne = $db->beginTransaction();
+
+        $dave = new User();
+        $dave->setEmail('dave@example.com');
+        $dave->setName('Dave');
+
+        $db->insert($dave);
+
+        $transactionTwo = $db->beginTransaction();
+
+        $dave = new User();
+        $dave->setEmail('dave@example.com');
+        $dave->setName('Dave');
+
+        $db->insert($dave);
+
+        $transactionTwo->rollBack();
+
+        $transactionOne->commit();
+
+        $users = $db->findAll(User::class);
+        $this->assertEquals(1, count(iterator_to_array($users)));
+    }
 }
