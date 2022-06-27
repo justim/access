@@ -39,6 +39,7 @@ use Tests\Fixtures\Presenter\UserEmptyResultPresenter;
 use Tests\Fixtures\Presenter\UserOptionalDependencyPresenter;
 use Tests\Fixtures\Presenter\UserWithClausePresenter;
 use Tests\Fixtures\Presenter\UserWithDatabasePresenter;
+use Tests\Fixtures\Presenter\UserWithProjectNamesPresenter;
 use Tests\Fixtures\Presenter\UserWithUserPresenter;
 use Tests\Fixtures\StatusFormatter;
 
@@ -1205,6 +1206,21 @@ class PresenterTest extends AbstractBaseTestCase
             ProjectWithReceiveDependenciesPresenter::class,
             $projectOne,
         );
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testPresentFuture(): void
+    {
+        [$db, $userOne, $projectOne, $projectTwo] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [$projectOne->getName(), $projectTwo->getName()],
+        ];
+
+        $presenter = new Presenter($db);
+        $result = $presenter->presentEntity(UserWithProjectNamesPresenter::class, $userOne);
 
         $this->assertEquals($expected, $result);
     }

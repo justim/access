@@ -356,6 +356,45 @@ abstract class EntityPresenter
     }
 
     /**
+     * Create a future presentation for multiple entities with IDs
+     *
+     * Callback will be called when the future is resolved
+     *
+     * ```php
+     * // Will fetch the `User`s entities with primary IDs `$userIds` and call
+     * // callback
+     * 'userName' => $this->presentFutureMultiple(
+     *      User::class,
+     *      $userIds,
+     *      fn (Collection $users) => $users[0]->getName(),
+     * );
+     * ```
+     *
+     * @psalm-template TEntityParam of Entity
+     * @psalm-param class-string<TEntityParam> $entityKlass
+     *
+     * @param string $entityKlass Entity class name
+     * @param int|int[]|null $ids IDs of the entities
+     * @param \Closure $callback On resolved callback
+     * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
+     * @return FutureMarker|array|null Marker with future presentation info
+     */
+    protected function presentFutureMultiple(
+        string $entityKlass,
+        int|array|null $ids,
+        \Closure $callback,
+        ?ClauseInterface $clause = null,
+    ) {
+        return $this->presentFutureMultipleInversedRefs(
+            $entityKlass,
+            'id',
+            $ids,
+            $callback,
+            $clause,
+        );
+    }
+
+    /**
      * Create a future presentation for entity with field name
      *
      * Callback will be called when the future is resolved
