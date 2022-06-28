@@ -27,6 +27,6 @@ class Descending extends OrderBy
      */
     public function __construct(string $fieldName)
     {
-        parent::__construct($fieldName, self::DESCENDING);
+        parent::__construct($fieldName, Direction::Descending);
     }
 }

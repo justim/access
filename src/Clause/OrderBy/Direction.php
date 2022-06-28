@@ -14,19 +14,19 @@ declare(strict_types=1);
 namespace Access\Clause\OrderBy;
 
 /**
- * Ascending sort clause
+ * Direction for the order by clause
  *
  * @author Tim <me@justim.net>
  */
-class Ascending extends OrderBy
+enum Direction: string
 {
     /**
-     * Create a ascending sort clause
-     *
-     * @param string $fieldName Field to sort on
+     * Order by ascending
      */
-    public function __construct(string $fieldName)
-    {
-        parent::__construct($fieldName, Direction::Ascending);
-    }
+    case Ascending = 'ASC';
+
+    /**
+     * Order by descending
+     */
+    case Descending = 'DESC';
 }

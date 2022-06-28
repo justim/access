@@ -25,7 +25,14 @@ use Access\Entity;
  */
 abstract class OrderBy implements OrderByInterface
 {
+    /**
+     * @deprecated
+     */
     protected const DESCENDING = 'DESC';
+
+    /**
+     * @deprecated
+     */
     protected const ASCENDING = 'ASC';
 
     /**
@@ -36,21 +43,26 @@ abstract class OrderBy implements OrderByInterface
     /**
      * Direction to sort on
      */
-    private string $direction;
+    private Direction $direction;
 
     /**
      * Create a sort clause for field and direction
      *
      * @param string|Field $fieldName Field to sort on
-     * @param string $direction Direction to sort on
+     * @param Direction|string $direction Direction to sort on
      */
-    protected function __construct(string|Field $fieldName, string $direction)
+    protected function __construct(string|Field $fieldName, Direction|string $direction)
     {
         if (is_string($fieldName)) {
             $fieldName = new Field($fieldName);
         }
 
         $this->field = $fieldName;
+
+        if (is_string($direction)) {
+            $direction = Direction::from($direction);
+        }
+
         $this->direction = $direction;
     }
 
@@ -94,14 +106,14 @@ abstract class OrderBy implements OrderByInterface
 
             // special cases for string, natural sorting is a lot nicer
             if (is_string($valueOne) && is_string($valueTwo)) {
-                if ($this->direction === self::DESCENDING) {
+                if ($this->direction === Direction::Descending) {
                     return strnatcasecmp($valueTwo, $valueOne);
                 } else {
                     return strnatcasecmp($valueOne, $valueTwo);
                 }
             }
 
-            if ($this->direction === self::DESCENDING) {
+            if ($this->direction === Direction::Descending) {
                 return $valueTwo <=> $valueOne;
             } else {
                 return $valueOne <=> $valueTwo;
