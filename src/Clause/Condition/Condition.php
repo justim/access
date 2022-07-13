@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access\Clause\Condition;
 
 use Access\Clause\ConditionInterface;
+use Access\Clause\Field;
 use Access\Collection;
 use Access\Entity;
 use Access\Exception;
@@ -51,7 +52,7 @@ abstract class Condition implements ConditionInterface
     /**
      * Name of the field to compare
      */
-    private string $fieldName;
+    private Field $field;
 
     /**
      * What kind of condition
@@ -61,7 +62,7 @@ abstract class Condition implements ConditionInterface
     private string $kind;
 
     /**
-     * Value to compare to
+     * Value to compare to, or a `Field` to reference another field
      *
      * @var mixed
      */
@@ -70,14 +71,18 @@ abstract class Condition implements ConditionInterface
     /**
      * Create condition for given field name and value
      *
-     * @param string $fieldName
+     * @param string|Field $fieldName
      * @param string $kind
      * @psalm-param Condition::KIND_* $kind
-     * @param mixed $value
+     * @param mixed $value Value to compare to, or a `Field` to reference another field
      */
-    protected function __construct(string $fieldName, string $kind, mixed $value)
+    protected function __construct(string|Field $fieldName, string $kind, mixed $value)
     {
-        $this->fieldName = $fieldName;
+        if (is_string($fieldName)) {
+            $fieldName = new Field($fieldName);
+        }
+
+        $this->field = $fieldName;
         $this->kind = $kind;
         $this->value = $value;
     }
@@ -91,17 +96,22 @@ abstract class Condition implements ConditionInterface
             return false;
         }
 
-        if ($this->fieldName === 'id') {
+        if ($this->value instanceof Field) {
+            // TODO: support other field values
+            return false;
+        }
+
+        if ($this->field->getName() === 'id') {
             $value = $entity->getId();
         } else {
             $values = $entity->getValues();
 
-            if (!array_key_exists($this->fieldName, $values)) {
+            if (!array_key_exists($this->field->getName(), $values)) {
                 return false;
             }
 
             /** @var mixed $value */
-            $value = $values[$this->fieldName];
+            $value = $values[$this->field->getName()];
         }
 
         return match ($this->kind) {
@@ -130,7 +140,7 @@ abstract class Condition implements ConditionInterface
     private function contains(mixed $needle, iterable $haystack): bool
     {
         if ($haystack instanceof Collection) {
-            return $haystack->hasEntityWith($this->fieldName, $needle);
+            return $haystack->hasEntityWith($this->field->getName(), $needle);
         }
 
         if (!is_array($haystack)) {
@@ -145,7 +155,7 @@ abstract class Condition implements ConditionInterface
      */
     public function getConditionSql(QueryGeneratorState $state): string
     {
-        $escapedFieldName = Query::escapeIdentifier($this->fieldName);
+        $escapedFieldName = Query::escapeIdentifier($this->field->getName());
 
         $condition = match ($this->kind) {
             self::KIND_EQUALS => sprintf('%s = ?', $escapedFieldName),
@@ -156,7 +166,7 @@ abstract class Condition implements ConditionInterface
             self::KIND_LESS_THAN_OR_EQUALS => sprintf('%s <= ?', $escapedFieldName),
             self::KIND_IN => sprintf('%s IN (?)', $escapedFieldName),
             self::KIND_NOT_IN => sprintf('%s NOT IN (?)', $escapedFieldName),
-            self::KIND_RAW => sprintf('(%s)', $this->fieldName),
+            self::KIND_RAW => sprintf('(%s)', $this->field->getName()),
             self::KIND_RELATION => sprintf(
                 '%s = %s',
                 $escapedFieldName,
@@ -209,6 +219,12 @@ abstract class Condition implements ConditionInterface
                 // under-select.
                 $condition = '1 = 2';
             }
+        } elseif ($this->value instanceof Field) {
+            $condition = str_replace(
+                '?',
+                Query::escapeIdentifier($this->value->getName()),
+                $condition,
+            );
         }
 
         return $condition;
@@ -219,7 +235,7 @@ abstract class Condition implements ConditionInterface
      */
     public function injectConditionValues(QueryGeneratorState $state): void
     {
-        if ($this->kind === self::KIND_RELATION) {
+        if ($this->kind === self::KIND_RELATION || $this->value instanceof Field) {
             // the value is used a field name
         } elseif ($this->value instanceof Select) {
             $state->addSubQueryValues($this->value);

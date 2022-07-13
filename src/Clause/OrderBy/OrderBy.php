@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Clause\OrderBy;
 
+use Access\Clause\Field;
 use Access\Clause\OrderByInterface;
 use Access\Collection;
 use Access\Entity;
@@ -30,7 +31,7 @@ abstract class OrderBy implements OrderByInterface
     /**
      * Field to sort on
      */
-    private string $fieldName;
+    private Field $field;
 
     /**
      * Direction to sort on
@@ -40,12 +41,16 @@ abstract class OrderBy implements OrderByInterface
     /**
      * Create a sort clause for field and direction
      *
-     * @param string $fieldName Field to sort on
+     * @param string|Field $fieldName Field to sort on
      * @param string $direction Direction to sort on
      */
-    protected function __construct(string $fieldName, string $direction)
+    protected function __construct(string|Field $fieldName, string $direction)
     {
-        $this->fieldName = $fieldName;
+        if (is_string($fieldName)) {
+            $fieldName = new Field($fieldName);
+        }
+
+        $this->field = $fieldName;
         $this->direction = $direction;
     }
 
@@ -67,7 +72,7 @@ abstract class OrderBy implements OrderByInterface
     public function createSortComparer(): callable
     {
         return function (Entity $one, Entity $two): int {
-            if ($this->fieldName === 'id') {
+            if ($this->field->getName() === 'id') {
                 $valueOne = $one->getId();
                 $valueTwo = $two->getId();
             } else {
@@ -75,16 +80,16 @@ abstract class OrderBy implements OrderByInterface
                 $valuesTwo = $two->getValues();
 
                 if (
-                    !array_key_exists($this->fieldName, $valuesOne) ||
-                    !array_key_exists($this->fieldName, $valuesTwo)
+                    !array_key_exists($this->field->getName(), $valuesOne) ||
+                    !array_key_exists($this->field->getName(), $valuesTwo)
                 ) {
                     return 0;
                 }
 
                 /** @var mixed $valueOne */
-                $valueOne = $valuesOne[$this->fieldName];
+                $valueOne = $valuesOne[$this->field->getName()];
                 /** @var mixed $valueTwo */
-                $valueTwo = $valuesTwo[$this->fieldName];
+                $valueTwo = $valuesTwo[$this->field->getName()];
             }
 
             // special cases for string, natural sorting is a lot nicer
