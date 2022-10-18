@@ -29,11 +29,11 @@ use Access\StatementPool;
 final class Statement
 {
     /**
-     * Database connection
+     * Database
      *
-     * @var \PDO
+     * @var Database
      */
-    private \PDO $connection;
+    private Database $db;
 
     /**
      * @var StatementPool $statementPool
@@ -70,7 +70,7 @@ final class Statement
      */
     public function __construct(Database $db, Profiler $profiler, Query $query)
     {
-        $this->connection = $db->getConnection();
+        $this->db = $db;
         $this->statementPool = $db->getStatementPool();
         $this->query = $query;
         $this->profiler = $profiler;
@@ -150,7 +150,7 @@ final class Statement
                 // @codeCoverageIgnoreEnd
             }
 
-            return (int) $this->connection->lastInsertId();
+            return (int) $this->db->getConnection()->lastInsertId();
         }
 
         if (!$this->query instanceof Select) {

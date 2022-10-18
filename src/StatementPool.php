@@ -32,11 +32,11 @@ final class StatementPool
     private array $stmtPool = [];
 
     /**
-     * Database connection
+     * Database
      *
-     * @var \PDO
+     * @var Database
      */
-    private \PDO $connection;
+    private Database $db;
 
     /**
      * Create a pool of prepared PDO statements
@@ -45,7 +45,7 @@ final class StatementPool
      */
     public function __construct(Database $db)
     {
-        $this->connection = $db->getConnection();
+        $this->db = $db;
     }
 
     /**
@@ -59,9 +59,17 @@ final class StatementPool
     public function prepare(string $sql): \PDOStatement
     {
         if (!isset($this->stmtPool[$sql])) {
-            $this->stmtPool[$sql] = $this->connection->prepare($sql);
+            $this->stmtPool[$sql] = $this->db->getConnection()->prepare($sql);
         }
 
         return $this->stmtPool[$sql];
+    }
+
+    /**
+     * Clear all prepared statements
+     */
+    public function clear(): void
+    {
+        $this->stmtPool = [];
     }
 }

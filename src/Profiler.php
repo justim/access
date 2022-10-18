@@ -43,6 +43,14 @@ class Profiler
     }
 
     /**
+     * Clear all profiles from profiler
+     */
+    public function clear(): void
+    {
+        $this->queryProfiles = [];
+    }
+
+    /**
      * Get the total duration in seconds
      *
      * @return float

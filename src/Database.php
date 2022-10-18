@@ -63,10 +63,10 @@ class Database
      */
     public function __construct(\PDO $connection, Profiler $profiler = null)
     {
-        $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        $this->connection = $connection;
         $this->statementPool = new StatementPool($this);
         $this->profiler = $profiler ?? new Profiler();
+
+        $this->setConnection($connection);
     }
 
     /**
@@ -79,8 +79,8 @@ class Database
     public static function create(string $connectionString, Profiler $profiler = null): self
     {
         try {
-            $pdoConnection = new \PDO($connectionString);
-            return new self($pdoConnection, $profiler);
+            $connection = new \PDO($connectionString);
+            return new self($connection, $profiler);
         } catch (\Exception $e) {
             throw new Exception("Invalid database: {$connectionString}", 0, $e);
         }
@@ -94,6 +94,20 @@ class Database
     public function getConnection(): \PDO
     {
         return $this->connection;
+    }
+
+    /**
+     * Set a new PDO connection
+     *
+     * @param \PDO A new PDO connection
+     */
+    final public function setConnection(\PDO $connection): void
+    {
+        // make sure we don't have any link to the old connection
+        $this->statementPool->clear();
+
+        $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->connection = $connection;
     }
 
     /**
