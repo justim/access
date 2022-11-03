@@ -16,9 +16,12 @@ namespace Tests;
 use Access\Exception;
 
 use Tests\AbstractBaseTestCase;
+use Tests\Fixtures\Entity\InvalidEnumNameEntity;
+use Tests\Fixtures\Entity\MissingEnumNameEntity;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\Repository\ProjectRepository;
+use Tests\Fixtures\UserStatus;
 
 class EntityTest extends AbstractBaseTestCase
 {
@@ -148,5 +151,63 @@ class EntityTest extends AbstractBaseTestCase
         $this->assertNotNull($projectCopy->getCreatedAt());
 
         $this->assertNotNull($project->getPublishedAt());
+    }
+
+    public function testEnumValue(): void
+    {
+        $db = self::createDatabase();
+
+        $dave = new User();
+        $dave->setEmail('dave@example.com');
+        $dave->setName('Dave');
+        $dave->setStatus(UserStatus::ACTIVE);
+        $db->insert($dave);
+
+        /** @var User $user */
+        $user = $db->findOne(User::class, $dave->getId());
+
+        $this->assertEquals(UserStatus::ACTIVE, $user->getStatus());
+
+        $dave->setStatus(UserStatus::BANNED);
+        $db->save($dave);
+
+        /** @var User $user */
+        $user = $db->findOne(User::class, $dave->getId());
+
+        $this->assertEquals(UserStatus::BANNED, $user->getStatus());
+    }
+
+    public function testMissingEnumName(): void
+    {
+        $db = self::createDatabase();
+
+        $entity = new MissingEnumNameEntity();
+        $entity->setStatus(UserStatus::ACTIVE);
+
+        $db->save($entity);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Missing enum name for field "status"');
+
+        // hydrating fails
+        $db->findOne(MissingEnumNameEntity::class, $entity->getId());
+    }
+
+    public function testInvalidEnumName(): void
+    {
+        $db = self::createDatabase();
+
+        $entity = new InvalidEnumNameEntity();
+        $entity->setStatus(UserStatus::ACTIVE);
+
+        $db->save($entity);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage(
+            'Invalid enum name for field "status": Tests\Fixtures\Entity\InvalidEnumNameEntity',
+        );
+
+        // hydrating fails
+        $db->findOne(InvalidEnumNameEntity::class, $entity->getId());
     }
 }

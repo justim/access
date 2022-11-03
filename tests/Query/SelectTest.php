@@ -13,6 +13,8 @@ use Access\Query\Select;
 use Tests\Fixtures\Entity\MissingTableEntity;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
+use Tests\Fixtures\UserStatus;
+use Tests\Fixtures\UserStatus as FixturesUserStatus;
 
 class SelectTest extends TestCase
 {
@@ -371,5 +373,18 @@ class SelectTest extends TestCase
         );
 
         $this->assertEquals([], $query->getValues());
+    }
+
+    public function testEnumValue(): void
+    {
+        $query = new Select(User::class, 'u');
+        $query->where('u.status = ?', UserStatus::ACTIVE);
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.status = :w0)',
+            $query->getSql(),
+        );
+
+        $this->assertEquals(['w0' => 'ACTIVE'], $query->getValues());
     }
 }

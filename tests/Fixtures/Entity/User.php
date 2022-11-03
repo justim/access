@@ -18,6 +18,7 @@ use Tests\Fixtures\Repository\UserRepository;
 use Access\Entity;
 use Access\Entity\SoftDeletableTrait;
 use Access\Entity\TimestampableTrait;
+use Tests\Fixtures\UserStatus;
 
 /**
  * SAFETY Return types are not known, they are stored in an array config
@@ -44,6 +45,11 @@ class User extends Entity
         return [
             'role' => [
                 'default' => 'USER',
+            ],
+            'status' => [
+                'type' => self::FIELD_TYPE_ENUM,
+                'enumName' => UserStatus::class,
+                'default' => UserStatus::ACTIVE,
             ],
             'email' => [],
             'name' => [],
@@ -87,5 +93,15 @@ class User extends Entity
     public function overrideId(int $id): void
     {
         $this->set('id', $id);
+    }
+
+    public function setStatus(UserStatus $status): void
+    {
+        $this->set('status', $status);
+    }
+
+    public function getStatus(): UserStatus
+    {
+        return $this->get('status');
     }
 }

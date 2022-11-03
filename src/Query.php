@@ -22,6 +22,7 @@ use Access\Entity;
 use Access\IdentifiableInterface;
 use Access\Query\QueryGeneratorState;
 use Access\Query\Cursor\Cursor;
+use BackedEnum;
 
 /**
  * Base class for building queries
@@ -433,6 +434,10 @@ abstract class Query
 
         if ($value === true || $value === false) {
             return (int) $value;
+        }
+
+        if ($value instanceof BackedEnum) {
+            return $value->value;
         }
 
         if (is_array($value)) {

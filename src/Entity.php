@@ -15,6 +15,8 @@ namespace Access;
 
 use Access\IdentifiableInterface;
 use Access\Repository;
+use BackedEnum;
+use ValueError;
 
 /**
  * Entity functionality
@@ -29,6 +31,7 @@ abstract class Entity implements IdentifiableInterface
     protected const FIELD_TYPE_DATETIME = 'datetime';
     protected const FIELD_TYPE_DATE = 'date';
     protected const FIELD_TYPE_JSON = 'json';
+    protected const FIELD_TYPE_ENUM = 'enum';
 
     /**
      * Get the table name of the entity
@@ -41,7 +44,7 @@ abstract class Entity implements IdentifiableInterface
      * Get the field definitions
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
+     * @psalm-return array<string, array{default?: mixed, type?: string, enumName?: class-string, virtual?: bool, excludeInCopy?: bool}>
      */
     abstract public static function fields(): array;
 
@@ -365,6 +368,7 @@ abstract class Entity implements IdentifiableInterface
             foreach ($updatedFields as $field => $value) {
                 if ($this->isBuiltinDatetimeField($field)) {
                     $this->values[$field] = $this->fromDatabaseFormatValue(
+                        $field,
                         self::FIELD_TYPE_DATETIME,
                         $value,
                     );
@@ -397,6 +401,7 @@ abstract class Entity implements IdentifiableInterface
 
             if ($this->isBuiltinDatetimeField($field)) {
                 $this->values[$field] = $this->fromDatabaseFormatValue(
+                    $field,
                     self::FIELD_TYPE_DATETIME,
                     $value,
                 );
@@ -470,6 +475,13 @@ abstract class Entity implements IdentifiableInterface
             case self::FIELD_TYPE_JSON:
                 return json_encode($value);
 
+            case self::FIELD_TYPE_ENUM:
+                if ($value instanceof BackedEnum) {
+                    return $value->value;
+                }
+
+                return $value;
+
             default:
                 return $value;
         }
@@ -493,7 +505,12 @@ abstract class Entity implements IdentifiableInterface
                 return $value;
             }
 
-            $value = $this->fromDatabaseFormatValue($options['type'], $value);
+            $value = $this->fromDatabaseFormatValue(
+                $field,
+                $options['type'],
+                $value,
+                $options['enumName'] ?? null,
+            );
         }
 
         return $value;
@@ -502,12 +519,18 @@ abstract class Entity implements IdentifiableInterface
     /**
      * Get a value for a type as a PHP value
      *
+     * @param string $field
      * @param string $type
      * @param mixed $value
+     * @param class-string|null $enumName
      * @return mixed
      */
-    private function fromDatabaseFormatValue(string $type, mixed $value): mixed
-    {
+    private function fromDatabaseFormatValue(
+        string $field,
+        string $type,
+        mixed $value,
+        ?string $enumName = null,
+    ): mixed {
         if ($value === null) {
             return $value;
         }
@@ -547,6 +570,27 @@ abstract class Entity implements IdentifiableInterface
                 }
 
                 return json_decode($value, true);
+
+            case self::FIELD_TYPE_ENUM:
+                if (empty($enumName)) {
+                    throw new Exception(sprintf('Missing enum name for field "%s"', $field));
+                }
+
+                if (!is_subclass_of($enumName, BackedEnum::class)) {
+                    throw new Exception(
+                        sprintf('Invalid enum name for field "%s": %s', $field, $enumName),
+                    );
+                }
+
+                if (!is_int($value) && !is_string($value)) {
+                    throw new Exception('Invalid backing value for enum');
+                }
+
+                try {
+                    return $enumName::from($value);
+                } catch (ValueError $e) {
+                    throw new Exception('Invalid enum value', $e->getCode(), $e);
+                }
 
             default:
                 return $value;
@@ -598,7 +642,7 @@ abstract class Entity implements IdentifiableInterface
      * Defaults to `self::fields`
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
+     * @psalm-return array<string, array{default?: mixed, type?: string, enumName?: class-string, virtual?: bool, excludeInCopy?: bool}>
      */
     protected function getResolvedFields(): array
     {

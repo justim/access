@@ -19,6 +19,7 @@ use Access\Query;
 
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
+use Tests\Fixtures\UserStatus;
 
 class DebugQueryTest extends AbstractBaseTestCase
 {
@@ -504,6 +505,33 @@ class DebugQueryTest extends AbstractBaseTestCase
 
         $this->assertEquals(
             'SELECT `projects`.* FROM `projects` WHERE ((name = "abc") AND (name IS NULL OR name = "def"))',
+            $runnableSql,
+        );
+    }
+
+    public function testEnumValue(): void
+    {
+        $query = new Query\Select(User::class, 'u');
+        $query->where('u.status = ?', UserStatus::ACTIVE);
+
+        $debug = new DebugQuery($query);
+
+        $runnableSql = $debug->toRunnableQuery();
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.status = "ACTIVE")',
+            $runnableSql,
+        );
+
+        $query = new Query\Select(User::class, 'u');
+        $query->where(new Clause\Condition\Equals('u.status', UserStatus::BANNED));
+
+        $debug = new DebugQuery($query);
+
+        $runnableSql = $debug->toRunnableQuery();
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND `u`.`status` = "BANNED"',
             $runnableSql,
         );
     }
