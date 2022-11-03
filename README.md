@@ -32,7 +32,7 @@ foreach ($users as $user) {
 
 ## Requirements
 
-- PHP 8.0, or higher
+- PHP 8.1, or higher
 - PDO extension
 
 ## Installation
