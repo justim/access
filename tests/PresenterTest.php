@@ -760,13 +760,12 @@ class PresenterTest extends AbstractBaseTestCase
             'projects' => [],
         ];
 
+        $dep = new Clause\Multiple();
+        $dep->add(new Clause\Condition\Equals('id', 1));
+        $dep->add(new Clause\Condition\Equals('id', 2));
+
         $presenter = new Presenter($db);
-        $presenter->addDependency(
-            new Clause\Multiple(
-                new Clause\Condition\Equals('id', 1),
-                new Clause\Condition\Equals('id', 2),
-            ),
-        );
+        $presenter->addDependency($dep);
         $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
 
         $this->assertEquals($expected, $result);
@@ -790,13 +789,12 @@ class PresenterTest extends AbstractBaseTestCase
             ],
         ];
 
+        $dep = new Clause\MultipleOr();
+        $dep->add(new Clause\Condition\Equals('id', 1));
+        $dep->add(new Clause\Condition\Equals('id', 2));
+
         $presenter = new Presenter($db);
-        $presenter->addDependency(
-            new Clause\MultipleOr(
-                new Clause\Condition\Equals('id', 1),
-                new Clause\Condition\Equals('id', 2),
-            ),
-        );
+        $presenter->addDependency($dep);
         $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
 
         $this->assertEquals($expected, $result);

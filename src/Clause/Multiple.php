@@ -54,6 +54,19 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface
     }
 
     /**
+     * Add an extra clauses to this multiple
+     *
+     * @param ClauseInterface $clauses Extra clauses
+     * @return static The current multiple
+     */
+    public function add(ClauseInterface ...$clauses): static
+    {
+        $this->clauses = array_merge($this->clauses, $clauses);
+
+        return $this;
+    }
+
+    /**
      * Test given entity against conditions
      *
      * Must match _all_ sub-conditions to match
