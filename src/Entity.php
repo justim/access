@@ -16,6 +16,7 @@ namespace Access;
 use Access\IdentifiableInterface;
 use Access\Repository;
 use BackedEnum;
+use Psr\Clock\ClockInterface;
 use ValueError;
 
 /**
@@ -267,8 +268,10 @@ abstract class Entity implements IdentifiableInterface
      *
      * @return array<string, mixed>
      */
-    final public function getInsertValues(): array
+    final public function getInsertValues(ClockInterface $clock = null): array
     {
+        $clock ??= new InternalClock();
+
         $values = [];
         $fields = $this->getResolvedFields();
 
@@ -294,12 +297,12 @@ abstract class Entity implements IdentifiableInterface
         if (static::timestamps()) {
             $values[self::CREATED_AT_FIELD] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
-                new \DateTimeImmutable(),
+                $clock->now(),
             );
 
             $values[self::UPDATED_AT_FIELD] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
-                new \DateTimeImmutable(),
+                $clock->now(),
             );
         }
 
@@ -315,8 +318,10 @@ abstract class Entity implements IdentifiableInterface
      *
      * @return array<string, mixed>
      */
-    final public function getUpdateValues(): array
+    final public function getUpdateValues(ClockInterface $clock = null): array
     {
+        $clock ??= new InternalClock();
+
         /** @var array<string, mixed> $values */
         $values = [];
         $fields = $this->getResolvedFields();
@@ -345,7 +350,7 @@ abstract class Entity implements IdentifiableInterface
         if (!empty($values) && static::timestamps()) {
             $values[self::UPDATED_AT_FIELD] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
-                new \DateTimeImmutable(),
+                $clock->now(),
             );
         }
 

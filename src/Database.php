@@ -24,6 +24,8 @@ use Access\Repository;
 use Access\Statement;
 use Access\StatementPool;
 use Access\Transaction;
+use DateTimeImmutable;
+use Psr\Clock\ClockInterface;
 
 /**
  * An Access database
@@ -56,15 +58,26 @@ class Database
     private Profiler $profiler;
 
     /**
+     * Clock used for the timestamps
+     *
+     * @var ClockInterface $clock
+     */
+    private ClockInterface $clock;
+
+    /**
      * Create a Access database with a PDO connection
      *
      * @param \PDO $connection A PDO connection
      * @param Profiler $profiler A custom profiler, optionally
      */
-    public function __construct(\PDO $connection, Profiler $profiler = null)
-    {
+    public function __construct(
+        \PDO $connection,
+        Profiler $profiler = null,
+        ClockInterface $clock = null,
+    ) {
         $this->statementPool = new StatementPool($this);
         $this->profiler = $profiler ?? new Profiler();
+        $this->clock = $clock ?? new InternalClock();
 
         $this->setConnection($connection);
     }
@@ -76,11 +89,14 @@ class Database
      * @param Profiler $profiler A custom profiler, optionally
      * @return self A Access database object
      */
-    public static function create(string $connectionString, Profiler $profiler = null): self
-    {
+    public static function create(
+        string $connectionString,
+        Profiler $profiler = null,
+        ClockInterface $clock = null,
+    ): self {
         try {
             $connection = new \PDO($connectionString);
-            return new self($connection, $profiler);
+            return new self($connection, $profiler, $clock);
         } catch (\Exception $e) {
             throw new Exception("Invalid database: {$connectionString}", 0, $e);
         }
@@ -352,7 +368,7 @@ class Database
     {
         $this->assertValidEntityClass(get_class($model));
 
-        $values = $model->getInsertValues();
+        $values = $model->getInsertValues($this->clock);
 
         $query = new Query\Insert($model::tableName());
         $query->values($values);
@@ -378,7 +394,7 @@ class Database
         $this->assertValidEntityClass(get_class($model));
 
         $id = $model->getId();
-        $values = $model->getUpdateValues();
+        $values = $model->getUpdateValues($this->clock);
 
         $query = new Query\Update($model::tableName());
         $query->values($values);
@@ -454,7 +470,8 @@ class Database
                 throw new Exception('Soft delete method is not public');
             }
 
-            $setDeletedAt->invoke($model);
+            $now = $this->now();
+            $setDeletedAt->invoke($model, $now);
 
             return $this->update($model);
         } catch (\Exception $e) {
@@ -539,6 +556,14 @@ class Database
     public function createCollection(): Collection
     {
         return new Collection($this);
+    }
+
+    /**
+     * Returns the current time as a DateTimeImmutable Object
+     */
+    public function now(): DateTimeImmutable
+    {
+        return $this->clock->now();
     }
 
     /**

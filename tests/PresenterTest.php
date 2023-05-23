@@ -845,7 +845,7 @@ class PresenterTest extends AbstractBaseTestCase
     {
         [$db, , $projectOne] = $this->createAndSetupEntities();
 
-        $now = new \DateTimeImmutable();
+        $now = $db->now();
 
         $expected = [
             'id' => $projectOne->getId(),

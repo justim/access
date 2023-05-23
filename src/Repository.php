@@ -23,6 +23,7 @@ use Access\Entity;
 use Access\EntityProvider\VirtualFieldEntity;
 use Access\EntityProvider\VirtualFieldEntityProvider;
 use Access\Query;
+use DateTimeImmutable;
 
 /**
  * Entity repository
@@ -424,5 +425,13 @@ class Repository
     protected function query(Query $query): void
     {
         $this->db->query($query);
+    }
+
+    /**
+     * Returns the current time as a DateTimeImmutable Object
+     */
+    protected function now(): DateTimeImmutable
+    {
+        return $this->db->now();
     }
 }

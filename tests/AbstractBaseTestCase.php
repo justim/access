@@ -17,15 +17,15 @@ use PHPUnit\Framework\TestCase;
 
 use Access\Database;
 use Access\Query\Raw;
+use Psr\Clock\ClockInterface;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
+use Tests\Fixtures\MockClock;
 
 abstract class AbstractBaseTestCase extends TestCase
 {
-    public static function createDatabase(): Database
+    private static function createTables(Database $db): Database
     {
-        $db = Database::create('sqlite::memory:');
-
         $createUsersQuery = new Raw('CREATE TABLE `users` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `role` VARCHAR(20) DEFAULT NULL,
@@ -52,6 +52,21 @@ abstract class AbstractBaseTestCase extends TestCase
         $db->query($createProjectsQuery);
 
         return $db;
+    }
+
+    public static function createDatabase(): Database
+    {
+        $db = Database::create('sqlite::memory:');
+
+        return self::createTables($db);
+    }
+
+    public static function createDatabaseWithMockClock(ClockInterface $clock = null): Database
+    {
+        $clock = $clock ?? new MockClock();
+        $db = Database::create('sqlite::memory:', null, $clock);
+
+        return self::createTables($db);
     }
 
     public static function nukeDatabase(Database $db): void
