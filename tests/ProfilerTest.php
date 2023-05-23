@@ -34,8 +34,8 @@ class ProfilerTest extends AbstractBaseTestCase
         $this->assertIsFloat($export['duration']);
         $this->assertIsFloat($profiler->getTotalDuration());
 
-        // two create tables and four inserts
-        $this->assertEquals(6, count($export['queries']));
+        // three create tables and four inserts
+        $this->assertEquals(7, count($export['queries']));
     }
 
     public function testNumberOfResults(): void

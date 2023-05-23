@@ -15,11 +15,26 @@ namespace Tests;
 
 use DateTimeImmutable;
 use Tests\AbstractBaseTestCase;
+use Tests\Fixtures\Entity\LogMessage;
 use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\MockClock;
 
 class ClockTest extends AbstractBaseTestCase
 {
+    public function testCreatable(): void
+    {
+        $now = new DateTimeImmutable('2023-05-23 00:00:00');
+        $clock = new MockClock($now);
+        $db = self::createDatabaseWithMockClock($clock);
+
+        $logMessage = new LogMessage();
+        $logMessage->setMessage('Something happened!');
+        $db->save($logMessage);
+
+        // the mock datetime is set as the created at time
+        $this->assertEquals($now, $logMessage->getCreatedAt());
+    }
+
     public function testClockRoundtrip(): void
     {
         $now = new DateTimeImmutable('2023-05-23 00:00:00');

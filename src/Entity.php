@@ -62,6 +62,16 @@ abstract class Entity implements IdentifiableInterface
     }
 
     /**
+     * Does the entity have `created_at` field
+     *
+     * @return bool
+     */
+    public static function creatable(): bool
+    {
+        return false;
+    }
+
+    /**
      * Is the entity soft deletable
      *
      * A `deleted_at` must be present
@@ -294,12 +304,14 @@ abstract class Entity implements IdentifiableInterface
             $values[$field] = $this->toDatabaseFormat($field, $value);
         }
 
-        if (static::timestamps()) {
+        if (static::timestamps() || static::creatable()) {
             $values[self::CREATED_AT_FIELD] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
                 $clock->now(),
             );
+        }
 
+        if (static::timestamps()) {
             $values[self::UPDATED_AT_FIELD] = $this->toDatabaseFormatValue(
                 self::FIELD_TYPE_DATETIME,
                 $clock->now(),
@@ -612,6 +624,10 @@ abstract class Entity implements IdentifiableInterface
      */
     private function isBuiltinDatetimeField(string $field): bool
     {
+        if (static::creatable() && $field === self::CREATED_AT_FIELD) {
+            return true;
+        }
+
         if (
             static::timestamps() &&
             ($field === self::CREATED_AT_FIELD || $field === self::UPDATED_AT_FIELD)

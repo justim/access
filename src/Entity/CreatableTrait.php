@@ -16,33 +16,29 @@ namespace Access\Entity;
 use Access\Entity;
 
 /**
- * Helper methods to work with the timestamps
+ * Helper methods to work with the create_at field
  *
  * @author Tim <me@justim.net>
  */
-trait TimestampableTrait
+trait CreatableTrait
 {
-    use CreatableTrait;
-
     /**
-     * Does the entity have timestamps
-     *
-     * A `created_at` and `updated_at` date time field
+     * Does the entity have `created_at` field
      *
      * @return bool
      */
-    public static function timestamps(): bool
+    public static function creatable(): bool
     {
         return true;
     }
 
     /**
-     * Get the time this entity was last updated
+     * Get the time this entity was created
      *
      * @return \DateTimeImmutable
      */
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->get(Entity::UPDATED_AT_FIELD);
+        return $this->get(Entity::CREATED_AT_FIELD);
     }
 }

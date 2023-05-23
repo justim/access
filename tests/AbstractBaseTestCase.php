@@ -51,6 +51,14 @@ abstract class AbstractBaseTestCase extends TestCase
 
         $db->query($createProjectsQuery);
 
+        $createLogMessagesQuery = new Raw('CREATE TABLE `log_messages` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `message` VARCHAR(100) DEFAULT NULL,
+            `created_at` DATETIME
+        )');
+
+        $db->query($createLogMessagesQuery);
+
         return $db;
     }
 
