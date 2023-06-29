@@ -26,7 +26,7 @@ use Access\Query\QueryGeneratorState;
  *
  * @author Tim <me@justim.net>
  */
-class Multiple implements ConditionInterface, OrderByInterface, FilterInterface
+class Multiple implements ConditionInterface, OrderByInterface, FilterInterface, \Countable
 {
     /**
      * Combinator for AND
@@ -51,6 +51,14 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface
     public function __construct(ClauseInterface ...$clauses)
     {
         $this->clauses = $clauses;
+    }
+
+    /**
+     * Return the number of clauses currently available
+     */
+    public function count(): int
+    {
+        return count($this->clauses);
     }
 
     /**
