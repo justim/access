@@ -296,7 +296,7 @@ class DebugQueryTest extends AbstractBaseTestCase
 
         $runnableSql = $debug->toRunnableQuery();
 
-        $this->assertEquals('INSERT INTO `users` (name) VALUES (NULL)', $runnableSql);
+        $this->assertEquals('INSERT INTO `users` (`name`) VALUES (NULL)', $runnableSql);
     }
 
     public function testSimpleEqualsConditionClause(): void

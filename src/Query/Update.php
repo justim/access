@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Clause\Field;
 use Access\Query;
 
 /**
@@ -38,9 +39,20 @@ class Update extends Query
     {
         $parts = [];
 
-        foreach (array_keys($this->values) as $i => $q) {
-            $placeholder = self::PREFIX_PARAM . (string) $i;
-            $parts[] = self::escapeIdentifier($q) . ' = :' . $placeholder;
+        $i = 0;
+        /** @var mixed $value */
+        foreach ($this->values as $q => $value) {
+            if ($value instanceof Field) {
+                // use the name of the field directly
+                $parts[] =
+                    self::escapeIdentifier($q) . ' = ' . self::escapeIdentifier($value->getName());
+            } else {
+                $placeholder = self::PREFIX_PARAM . (string) $i;
+
+                $parts[] = self::escapeIdentifier($q) . ' = :' . $placeholder;
+
+                $i++;
+            }
         }
 
         $fields = implode(', ', $parts);

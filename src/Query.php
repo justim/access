@@ -16,6 +16,7 @@ namespace Access;
 use Access\Clause\Condition\IsNull;
 use Access\Clause\Condition\Raw;
 use Access\Clause\ConditionInterface;
+use Access\Clause\Field;
 use Access\Clause\Multiple;
 use Access\Clause\MultipleOr;
 use Access\Entity;
@@ -372,11 +373,14 @@ abstract class Query
         $i = 0;
         /** @var mixed $value */
         foreach ($this->values as $value) {
-            $index = self::PREFIX_PARAM . $i;
+            // this is not a value, but a direct reference to a field, no need for an indexed value
+            if (!$value instanceof Field) {
+                $index = self::PREFIX_PARAM . $i;
 
-            /** @psalm-suppress MixedAssignment */
-            $indexedValues[$index] = $this->toDatabaseFormat($value);
-            $i++;
+                /** @psalm-suppress MixedAssignment */
+                $indexedValues[$index] = $this->toDatabaseFormat($value);
+                $i++;
+            }
         }
 
         foreach ($this->joins as $i => $join) {

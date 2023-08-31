@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 use Access\Query\Update;
 use Access\Clause\Condition;
+use Access\Clause\Field;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 
@@ -115,5 +116,20 @@ class UpdateTest extends TestCase
             $query->getSql(),
         );
         $this->assertEquals(['p0' => 'Dave', 'w0' => 1], $query->getValues());
+    }
+
+    public function testField(): void
+    {
+        $query = new Update(User::class, 'u');
+        $query->values([
+            'name' => new Field('u.email'),
+        ]);
+        $query->where(new Condition\Equals('u.id', 1));
+
+        $this->assertEquals(
+            'UPDATE `users` AS `u` SET `name` = `u`.`email` WHERE `u`.`deleted_at` IS NULL AND `u`.`id` = :w0',
+            $query->getSql(),
+        );
+        $this->assertEquals(['w0' => 1], $query->getValues());
     }
 }

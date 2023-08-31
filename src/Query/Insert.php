@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Clause\Field;
 use Access\Query;
 
 /**
@@ -37,8 +38,24 @@ class Insert extends Query
     public function getSql(): ?string
     {
         $sqlInsert = 'INSERT INTO ' . self::escapeIdentifier($this->tableName);
-        $sqlFields = ' (' . implode(', ', array_keys($this->values)) . ')';
-        $sqlValues = ' VALUES (' . implode(', ', array_fill(0, count($this->values), '?')) . ')';
+
+        // escape field names
+        $sqlFields = array_map(
+            fn(string $field): string => self::escapeIdentifier($field),
+            array_keys($this->values),
+        );
+
+        $sqlFields = ' (' . implode(', ', $sqlFields) . ')';
+
+        // filter out `Field` instances and use name directly
+        $sqlValues = array_map(
+            fn(mixed $value): string => $value instanceof Field
+                ? self::escapeIdentifier($value->getName())
+                : '?',
+            $this->values,
+        );
+
+        $sqlValues = ' VALUES (' . implode(', ', $sqlValues) . ')';
 
         $sql = $sqlInsert . $sqlFields . $sqlValues;
 
