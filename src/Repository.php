@@ -23,6 +23,9 @@ use Access\Entity;
 use Access\EntityProvider\VirtualFieldEntity;
 use Access\EntityProvider\VirtualFieldEntityProvider;
 use Access\Query;
+use Access\Query\Cursor\CurrentIdsCursor;
+use Access\Query\Cursor\Cursor;
+use Access\Query\Cursor\PageCursor;
 use DateTimeImmutable;
 
 /**
@@ -266,6 +269,164 @@ class Repository
             $batch->addEntity($entity);
 
             if ($batch->isFull($batchSize)) {
+                yield $batch;
+
+                /** @var Batch<TEntity> $batch */
+                $batch = new Batch($this->db);
+            }
+        }
+
+        if (!$batch->isEmpty()) {
+            yield $batch;
+        }
+    }
+
+    /**
+     * Execute a select query in a paginated fashion
+     *
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param int|PageCursor|null $pageSize Size of the pages (or a predifined cursor, will reset cursor)
+     * @return \Generator - yields Entity
+     */
+    public function selectPaginated(
+        Query\Select $query,
+        int|PageCursor|null $pageSize = null,
+    ): \Generator {
+        if ($pageSize instanceof PageCursor) {
+            $cursor = $pageSize;
+            $cursor->setPage(1);
+        } else {
+            $cursor = new PageCursor(1, $pageSize);
+        }
+
+        yield from $this->selectCursor($query, $cursor, function (PageCursor $cursor): void {
+            $cursor->setPage($cursor->getPage() + 1);
+        });
+    }
+
+    /**
+     * Execute a select query in a paginated fashion (batched)
+     *
+     * @psalm-return \Generator<int, Batch<TEntity>, mixed, void> - yields Batches
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param int|null $pageSize Size of the pages
+     * @return \Generator - yields Entity
+     */
+    public function selectBatchedPaginated(Query\Select $query, ?int $pageSize = null): \Generator
+    {
+        $cursor = new PageCursor(1, $pageSize);
+        $entities = $this->selectPaginated($query, $cursor);
+
+        yield from $this->selectBatchedCursor($entities, $cursor->getPageSize());
+    }
+
+    /**
+     * Execute a select query in a current ids cursor fashion
+     *
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param int|CurrentIdsCursor|null $pageSize Size of the pages (or a predifined cursor, will reset cursor)
+     * @return \Generator - yields Entity
+     */
+    public function selectCurrentIdsCursor(
+        Query\Select $query,
+        int|CurrentIdsCursor|null $pageSize = null,
+    ): \Generator {
+        if ($pageSize instanceof CurrentIdsCursor) {
+            $cursor = $pageSize;
+            $cursor->setCurrentIds([]);
+        } else {
+            $cursor = new CurrentIdsCursor([], $pageSize);
+        }
+
+        yield from $this->selectCursor(
+            $query,
+            $cursor,
+            /**
+             * @param int[] $entityIds
+             */
+            function (CurrentIdsCursor $cursor, array $entityIds): void {
+                $cursor->addCurrentIds($entityIds);
+            },
+        );
+    }
+
+    /**
+     * Execute a select query in a current ids cursor fashion (batched)
+     *
+     * @psalm-return \Generator<int, Batch<TEntity>, mixed, void> - yields Batches
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param int|null $pageSize Size of the pages
+     * @return \Generator - yields Batch
+     */
+    public function selectBatchedCurrentIdsCursor(
+        Query\Select $query,
+        int $pageSize = null,
+    ): \Generator {
+        $cursor = new CurrentIdsCursor([], $pageSize);
+        $entities = $this->selectCurrentIdsCursor($query, $cursor);
+
+        yield from $this->selectBatchedCursor($entities, $cursor->getPageSize());
+    }
+
+    /**
+     * Execute a select query in a cursor fashion
+     *
+     * @psalm-template TCursor of Cursor
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param Cursor $cursor Cursor to use for query
+     * @psalm-param TCursor $cursor Cursor to use for query
+     * @psalm-param callable(TCursor, int[]): void $next
+     * @return \Generator - yields Entity
+     */
+    private function selectCursor(Query\Select $query, Cursor $cursor, callable $next): \Generator
+    {
+        // store the original query, the cursor might mutate it non-idempotently
+        $baseQuery = clone $query;
+
+        do {
+            $query = clone $baseQuery;
+            $query->applyCursor($cursor);
+
+            $entities = $this->select($query);
+            $entityIds = [];
+
+            foreach ($entities as $entity) {
+                $entityId = $entity->getId();
+                $entityIds[] = $entityId;
+                yield $entityId => $entity;
+            }
+
+            $next($cursor, $entityIds);
+        } while (count($entityIds) === $cursor->getPageSize());
+    }
+
+    /**
+     * Execute a select query in a paginated fashion
+     *
+     * @psalm-return \Generator<int, Batch<TEntity>, mixed, void> - yields Batches
+     *
+     * @param \Generator $entities The entities to batch
+     * @psalm-param \Generator<int, TEntity, mixed, void> $entities The entities to batch
+     * @param int $pageSize Size of the pages
+     * @return \Generator - yields Entity
+     */
+    private function selectBatchedCursor(\Generator $entities, int $pageSize): \Generator
+    {
+        /** @var Batch<TEntity> $batch */
+        $batch = new Batch($this->db);
+
+        foreach ($entities as $entity) {
+            $batch->addEntity($entity);
+
+            if ($batch->isFull($pageSize)) {
                 yield $batch;
 
                 /** @var Batch<TEntity> $batch */

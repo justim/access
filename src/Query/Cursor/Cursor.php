@@ -41,9 +41,9 @@ abstract class Cursor
      *
      * @param int $pageSize Page size, defaults to 50
      */
-    public function __construct(int $pageSize = self::DEFAULT_PAGE_SIZE)
+    public function __construct(?int $pageSize = self::DEFAULT_PAGE_SIZE)
     {
-        $this->setPageSize($pageSize);
+        $this->setPageSize($pageSize ?? self::DEFAULT_PAGE_SIZE);
     }
 
     /**

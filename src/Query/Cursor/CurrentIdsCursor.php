@@ -36,7 +36,7 @@ class CurrentIdsCursor extends Cursor
      * @param int[] $currentIds The current IDs
      * @param int $pageSize Page size, defaults to 50
      */
-    public function __construct(array $currentIds = [], int $pageSize = self::DEFAULT_PAGE_SIZE)
+    public function __construct(array $currentIds = [], ?int $pageSize = self::DEFAULT_PAGE_SIZE)
     {
         parent::__construct($pageSize);
 

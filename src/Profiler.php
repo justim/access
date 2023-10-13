@@ -36,7 +36,8 @@ class Profiler
      */
     public function createForQuery(Query $query): QueryProfile
     {
-        $queryProfile = new QueryProfile($query);
+        // make sure to create a clone of the query, it might be modified afterwards
+        $queryProfile = new QueryProfile(clone $query);
         $this->queryProfiles[] = $queryProfile;
 
         return $queryProfile;

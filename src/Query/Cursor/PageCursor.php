@@ -35,11 +35,21 @@ class PageCursor extends Cursor
      * @param int $page Page number
      * @param int $pageSize Page size, defaults to 50
      */
-    public function __construct(int $page = 1, int $pageSize = self::DEFAULT_PAGE_SIZE)
+    public function __construct(int $page = 1, ?int $pageSize = self::DEFAULT_PAGE_SIZE)
     {
         parent::__construct($pageSize);
 
         $this->setPage($page);
+    }
+
+    /**
+     * Get the current page number of cursor
+     *
+     * @return int Page number
+     */
+    public function getPage(): int
+    {
+        return $this->page;
     }
 
     /**
