@@ -124,7 +124,7 @@ abstract class Condition implements ConditionInterface
             self::KIND_IN => $this->contains($value, $this->value),
             self::KIND_NOT_IN => !$this->contains($value, $this->value),
             self::KIND_RAW, self::KIND_RELATION => false,
-            default => false
+            default => false,
         };
     }
 
@@ -172,7 +172,9 @@ abstract class Condition implements ConditionInterface
                 $escapedFieldName,
                 Query::escapeIdentifier($this->value),
             ),
-            default => throw new Exception(sprintf('Invalid kind of condition: "%s"', $this->kind))
+            default => throw new Exception(
+                sprintf('Invalid kind of condition: "%s"', $this->kind),
+            ),
         };
 
         if ($this->kind === self::KIND_RELATION) {
