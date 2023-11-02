@@ -15,8 +15,11 @@ namespace Access;
 
 use Access\Database;
 use Access\Exception;
+use Access\Query\Commit;
+use Access\Query\Rollback;
 use Access\Query\RollbackToSavepoint;
 use Access\Query\Savepoint;
+use Access\Query\Begin;
 
 /**
  * Abstraction to handle database transactions
@@ -78,6 +81,8 @@ class Transaction
             $query = new Savepoint($this->savepointIdentifier);
             $this->db->query($query);
         } else {
+            $query = new Begin();
+            $this->db->getProfiler()->createForQuery($query);
             $connection->beginTransaction();
         }
 
@@ -100,6 +105,10 @@ class Transaction
         }
 
         $this->db->getConnection()->commit();
+
+        $query = new Commit();
+        $this->db->getProfiler()->createForQuery($query);
+
         $this->inTransaction = false;
     }
 
@@ -121,6 +130,10 @@ class Transaction
         }
 
         $this->db->getConnection()->rollBack();
+
+        $query = new Rollback();
+        $this->db->getProfiler()->createForQuery($query);
+
         $this->inTransaction = false;
     }
 
