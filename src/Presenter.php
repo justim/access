@@ -19,6 +19,7 @@ use Access\Clause\OrderByInterface;
 use Access\Collection;
 use Access\Database;
 use Access\Entity;
+use Access\Presenter\CustomMarkerInterface;
 use Access\Presenter\EntityPool;
 use Access\Presenter\EntityPresenter;
 use Access\Presenter\FutureMarker;
@@ -158,7 +159,7 @@ class Presenter
             $markers = $this->collectMarkers($presentation);
 
             // there are no markers left in the presentation to be resolved
-            if (empty($markers['entities'])) {
+            if (empty($markers['entities']) && empty($markers['custom'])) {
                 break;
             }
 
@@ -206,19 +207,24 @@ class Presenter
      * Collect all markers left by present calls
      *
      * @return array<string, array>
-     * @psalm-return array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>}
+     * @psalm-return array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>, custom: mixed[]}
      */
     private function collectMarkers(array $presentation): array
     {
-        /** @psalm-var array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>} $markers */
+        /** @psalm-var array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>, custom: mixed[]} $markers */
         $markers = [
             'presenters' => [],
             'futures' => [],
             'entities' => [],
+            'custom' => [],
         ];
 
         array_walk_recursive($presentation, function (mixed $item) use (&$markers) {
-            /** @psalm-var array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>} $markers */
+            /** @psalm-var array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>, custom: mixed[]} $markers */
+
+            if ($item instanceof CustomMarkerInterface) {
+                $markers['custom'][] = $item;
+            }
 
             if (!$item instanceof EntityMarkerInterface) {
                 return;
@@ -300,6 +306,8 @@ class Presenter
         );
 
         $this->resolveFutureMarkers($presentation, $markers['futures'], $currentFutureMarkers);
+
+        $this->resolveCustomMarkers($presentation);
     }
 
     /**
@@ -486,6 +494,15 @@ class Presenter
         }
 
         return true;
+    }
+
+    private function resolveCustomMarkers(array &$presentation): void
+    {
+        array_walk_recursive($presentation, function (mixed &$item) {
+            if ($item instanceof CustomMarkerInterface) {
+                $item = $item->fetch();
+            }
+        });
     }
 
     /**

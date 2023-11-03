@@ -40,6 +40,7 @@ use Tests\Fixtures\Presenter\UserOptionalDependencyPresenter;
 use Tests\Fixtures\Presenter\UserWithClausePresenter;
 use Tests\Fixtures\Presenter\UserWithDatabasePresenter;
 use Tests\Fixtures\Presenter\UserWithProjectNamesPresenter;
+use Tests\Fixtures\Presenter\UserWithSingleNumberMarkerPresenter;
 use Tests\Fixtures\Presenter\UserWithUserPresenter;
 use Tests\Fixtures\StatusFormatter;
 
@@ -1219,6 +1220,21 @@ class PresenterTest extends AbstractBaseTestCase
 
         $presenter = new Presenter($db);
         $result = $presenter->presentEntity(UserWithProjectNamesPresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testCustomMarker(): void
+    {
+        [$db, $userOne] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'singleNumber' => 42,
+        ];
+
+        $presenter = $db->createPresenter();
+        $result = $presenter->presentEntity(UserWithSingleNumberMarkerPresenter::class, $userOne);
 
         $this->assertEquals($expected, $result);
     }

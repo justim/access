@@ -476,3 +476,32 @@ This will _not_ does additional queries to fetch the user needed for the owner
 marker in the `ProjectPresenter` entity presenter. Unless, of course, the
 specific user is not available in the collection; in that case an addition query
 will be executed.
+
+## Custom markers
+
+To have a bit of flexibility to lazily fetch other information than entities it
+is also possible to use custom markers. Custom markers allow you to collect
+information that you want to resolve in a single pass, like presenting
+information about an entities coming from other source. For example:
+
+```php
+use Access\Presenter\CustomMarkerInterface;
+
+class SomeMarker implements CustomMarkerInterface
+{
+    public function __construct(private mixed $someId)
+    {
+        // add some ID to a pool somewhere
+    }
+
+    public function fetch(): mixed
+    {
+        // do something with the information fetch based on the ID
+    }
+}
+```
+
+In your presenter you can just return an instance of `SomeMarker`, and in the
+resolve pass of the presenter all custom markers will be fetched. A typical
+setup would be to inject a `SomeMarker` provider that collects the IDs and will
+do the needed calculations when the first fetch is done.
