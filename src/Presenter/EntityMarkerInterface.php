@@ -22,7 +22,7 @@ use Access\Clause\ClauseInterface;
  * @psalm-template TEntity of \Access\Entity
  * @author Tim <me@justim.net>
  */
-interface MarkerInterface
+interface EntityMarkerInterface
 {
     /**
      * Get the entity class name

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Access\Presenter;
 
 use Access\Clause\ClauseInterface;
-use Access\Presenter\MarkerInterface;
+use Access\Presenter\EntityMarkerInterface;
 
 /**
  * Presentation marker
@@ -24,7 +24,7 @@ use Access\Presenter\MarkerInterface;
  * @psalm-template TEntity of \Access\Entity
  * @author Tim <me@justim.net>
  */
-final class PresentationMarker implements MarkerInterface
+final class PresentationMarker implements EntityMarkerInterface
 {
     /**
      * Presenter class to present with

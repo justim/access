@@ -99,13 +99,13 @@ abstract class EntityPresenter
      * @param string $presenterKlass Class to present the collection with
      * @param int[] $ids Primary IDs of entities associated with presenter
      * @param ClauseInterface|null $relationClause Optional clause to manipulate resulting entities
-     * @return MarkerInterface|array|null List of presentation markers
+     * @return EntityMarkerInterface|array|null List of presentation markers
      */
     protected function presentMultiple(
         string $presenterKlass,
         array $ids,
         ?ClauseInterface $clause = null,
-    ): MarkerInterface|array|null {
+    ): EntityMarkerInterface|array|null {
         Database::assertValidPresenterClass($presenterKlass);
 
         if (empty($ids)) {

@@ -22,7 +22,7 @@ use Access\Entity;
 use Access\Presenter\EntityPool;
 use Access\Presenter\EntityPresenter;
 use Access\Presenter\FutureMarker;
-use Access\Presenter\MarkerInterface;
+use Access\Presenter\EntityMarkerInterface;
 use Access\Presenter\PresentationMarker;
 
 /**
@@ -220,7 +220,7 @@ class Presenter
         array_walk_recursive($presentation, function (mixed $item) use (&$markers) {
             /** @psalm-var array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>} $markers */
 
-            if (!$item instanceof MarkerInterface) {
+            if (!$item instanceof EntityMarkerInterface) {
                 return;
             }
 
@@ -415,14 +415,14 @@ class Presenter
      * @psalm-param callable(Entity): mixed $callbackSingle
      * @psalm-param callable(Collection): mixed $callbackMultiple
      *
-     * @param MarkerInterface $marker Marker to resolve
+     * @param EntityMarkerInterface $marker Marker to resolve
      * @param Collection $collection Collection that contains the entit(y|ies) linked to marker
      * @param callable $callbackSingle Called when the marker is single
      * @param callable $callbackMultiple Called when the marker is multiple
      * @return mixed
      */
     private function resolveMarker(
-        MarkerInterface $marker,
+        EntityMarkerInterface $marker,
         Collection $collection,
         callable $callbackSingle,
         callable $callbackMultiple,
@@ -461,7 +461,7 @@ class Presenter
      *
      * Uses the field name and the optionally some clauses in the marker
      */
-    private function matchMarker(MarkerInterface $marker, Entity $entity): bool
+    private function matchMarker(EntityMarkerInterface $marker, Entity $entity): bool
     {
         $values = array_merge($entity->getValues(), [
             'id' => $entity->getId(),
