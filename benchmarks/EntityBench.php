@@ -33,6 +33,7 @@ class EntityBench
         $createUsersQuery = new Raw('CREATE TABLE `users` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `role` VARCHAR(20) DEFAULT NULL,
+            `status` VARCHAR(20) DEFAULT NULL,
             `name` VARCHAR(50) DEFAULT NULL,
             `email` VARCHAR(150) DEFAULT NULL,
             `created_at` DATETIME,
