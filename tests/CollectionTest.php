@@ -389,6 +389,9 @@ class CollectionTest extends AbstractBaseTestCase
     {
         $db = self::createDatabaseWithDummyData();
 
+        /** @var User $user */
+        $user = $db->findOne(User::class, 1);
+
         /** @var ProjectRepository $projectRepo */
         $projectRepo = $db->getRepository(Project::class);
         $projects = $projectRepo->findAllCollection();
@@ -397,6 +400,7 @@ class CollectionTest extends AbstractBaseTestCase
         $this->assertTrue($projects->contains($project));
 
         $project = new Project();
+        $project->setOwnerId($user->getId());
         $db->save($project);
 
         $this->assertFalse($projects->contains($project));

@@ -26,6 +26,8 @@ abstract class AbstractBaseTestCase extends TestCase
 {
     private static function createTables(Database $db): Database
     {
+        $db->query(new Raw('PRAGMA foreign_keys = ON'));
+
         $createUsersQuery = new Raw('CREATE TABLE `users` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `role` VARCHAR(20) DEFAULT NULL,
@@ -42,11 +44,12 @@ abstract class AbstractBaseTestCase extends TestCase
         $createProjectsQuery = new Raw('CREATE TABLE `projects` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `status` VARCHAR(20) DEFAULT NULL,
-            `owner_id` INTEGER,
+            `owner_id` INTEGER NOT NULL,
             `name` VARCHAR(50) DEFAULT NULL,
             `published_at` DATE DEFAULT NULL,
             `created_at` DATETIME,
-            `updated_at` DATETIME
+            `updated_at` DATETIME,
+            FOREIGN KEY(owner_id) REFERENCES users(id)
         )');
 
         $db->query($createProjectsQuery);

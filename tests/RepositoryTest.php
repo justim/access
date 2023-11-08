@@ -18,6 +18,7 @@ use Access\EntityProvider\VirtualArrayEntity;
 use Access\Exception;
 use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
+use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\Repository\ProjectRepository;
 
 class RepositoryTest extends AbstractBaseTestCase
@@ -399,10 +400,14 @@ class RepositoryTest extends AbstractBaseTestCase
     {
         $db = self::createDatabaseWithDummyData();
 
+        /** @var User $user */
+        $user = $db->findOne(User::class, 1);
+
         /** @var ProjectRepository $projectRepo */
         $projectRepo = $db->getRepository(Project::class);
 
         $project = new Project();
+        $project->setOwnerId($user->getId());
         $project->setName('Some project');
         $projectRepo->save($project);
 

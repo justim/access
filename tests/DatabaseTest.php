@@ -166,15 +166,15 @@ class DatabaseTest extends AbstractBaseTestCase
     {
         $db = self::createDatabaseWithDummyData();
 
-        /** @var User $user */
-        $user = $db->findOne(User::class, 2);
-        $this->assertNotNull($user);
+        /** @var Project $project */
+        $project = $db->findOne(Project::class, 2);
+        $this->assertNotNull($project);
 
-        $db->delete($user);
+        $db->delete($project);
 
-        /** @var User|null $user */
-        $user = $db->findOne(User::class, 2);
-        $this->assertNull($user);
+        /** @var Project|null $project */
+        $project = $db->findOne(Project::class, 2);
+        $this->assertNull($project);
     }
 
     public function testQuerySelect(): void
