@@ -177,6 +177,53 @@ class DatabaseTest extends AbstractBaseTestCase
         $this->assertNull($project);
     }
 
+    public function testDeleteCascade(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var User $user */
+        $user = $db->findOne(User::class, 2);
+        $this->assertNotNull($user);
+
+        /** @var Project $project */
+        $project = $db->findOne(Project::class, 2);
+        $this->assertNotNull($project);
+
+        $db->delete($user);
+
+        /** @var User|null $user */
+        $user = $db->findOne(User::class, 2);
+        $this->assertNull($user);
+
+        /** @var Project|null $project */
+        $project = $db->findOne(Project::class, 2);
+        $this->assertNull($project);
+    }
+
+    public function testSoftDeleteCascade(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var User $user */
+        $user = $db->findOne(User::class, 2);
+        $this->assertNotNull($user);
+
+        /** @var Project $project */
+        $project = $db->findOne(Project::class, 2);
+        $this->assertNotNull($project);
+
+        $db->softDelete($user);
+
+        /** @var User|null $user */
+        $user = $db->findOne(User::class, 2);
+        $this->assertNull($user);
+
+        // still here, project is not soft deletable
+        /** @var Project|null $project */
+        $project = $db->findOne(Project::class, 2);
+        $this->assertNotNull($project);
+    }
+
     public function testQuerySelect(): void
     {
         $db = self::createDatabaseWithDummyData();

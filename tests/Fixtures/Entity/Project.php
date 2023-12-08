@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Entity;
 
+use Access\Cascade;
 use Tests\Fixtures\Repository\ProjectRepository;
 
 use Access\Entity;
@@ -43,6 +44,8 @@ class Project extends Entity
             'name' => [],
             'owner_id' => [
                 'type' => self::FIELD_TYPE_INT,
+                'target' => User::class,
+                'cascade' => Cascade::deleteSame(),
             ],
             'published_at' => [
                 'default' => fn() => null,

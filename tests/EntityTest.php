@@ -18,6 +18,8 @@ use Access\Exception;
 use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\InvalidEnumNameEntity;
 use Tests\Fixtures\Entity\MissingEnumNameEntity;
+use Tests\Fixtures\Entity\MissingPublicSoftDeleteEntity;
+use Tests\Fixtures\Entity\MissingSetDeletedEntity;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\Repository\ProjectRepository;
@@ -209,5 +211,29 @@ class EntityTest extends AbstractBaseTestCase
 
         // hydrating fails
         $db->findOne(InvalidEnumNameEntity::class, $entity->getId());
+    }
+
+    public function testMissingPublicSoftDelete(): void
+    {
+        $db = self::createDatabase();
+
+        $entity = new MissingPublicSoftDeleteEntity();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Soft delete method is not public');
+
+        $db->softDelete($entity);
+    }
+
+    public function testMissingSetDeleted(): void
+    {
+        $db = self::createDatabase();
+
+        $entity = new MissingSetDeletedEntity();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Entity is not soft deletable');
+
+        $db->softDelete($entity);
     }
 }

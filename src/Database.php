@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Cascade\CascadeDeleteResolver;
 use Access\Entity;
 use Access\Exception;
 use Access\Lock;
@@ -430,6 +431,8 @@ class Database
     /**
      * Delete a model from the database
      *
+     * A transaction is started and the model is deleted
+     *
      * @param Entity $model Model to delete
      * @return bool Was something actually deleted
      */
@@ -437,22 +440,31 @@ class Database
     {
         $this->assertValidEntityClass(get_class($model));
 
-        $id = $model->getId();
+        $transaction = $this->beginTransaction();
 
-        $query = new Query\Delete($model::tableName());
-        $query->where([
-            'id = ?' => $id,
-        ]);
+        try {
+            $resolver = new CascadeDeleteResolver($this, $model, DeleteKind::Regular);
+            $updated = $resolver->execute();
 
-        $stmt = new Statement($this, $this->profiler, $query);
-        $gen = $stmt->execute();
-        $model->markUpdated();
+            $transaction->commit();
 
-        return $gen->getReturn() > 0;
+            return $updated;
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+
+            // just pass on our own exceptions
+            if ($e instanceof Exception) {
+                throw $e;
+            }
+
+            throw new Exception('Entity is not deletable', 0, $e);
+        }
     }
 
     /**
      * Mark the entity as soft-deleted and save to database
+     *
+     * A transaction is started and the model is soft deleted
      *
      * @param Entity $model Entity to soft delete
      * @return bool Was something actually soft deleted
@@ -465,16 +477,31 @@ class Database
 
         try {
             $setDeletedAt = new \ReflectionMethod($model, 'setDeletedAt');
+        } catch (\ReflectionException $e) {
+            throw new Exception('Entity is not soft deletable', 0, $e);
+        }
 
-            if (!$setDeletedAt->isPublic()) {
-                throw new Exception('Soft delete method is not public');
+        if (!$setDeletedAt->isPublic()) {
+            throw new Exception('Soft delete method is not public');
+        }
+
+        $transaction = $this->beginTransaction();
+
+        try {
+            $resolver = new CascadeDeleteResolver($this, $model, DeleteKind::Soft);
+            $updated = $resolver->execute();
+
+            $transaction->commit();
+
+            return $updated;
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+
+            // just pass on our own exceptions
+            if ($e instanceof Exception) {
+                throw $e;
             }
 
-            $now = $this->now();
-            $setDeletedAt->invoke($model, $now);
-
-            return $this->update($model);
-        } catch (\Exception $e) {
             throw new Exception('Entity is not soft deletable', 0, $e);
         }
     }

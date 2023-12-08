@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Access\Database;
 use Access\Query\Raw;
 use Psr\Clock\ClockInterface;
+use Tests\Fixtures\Entity\ProfileImage;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\MockClock;
@@ -28,15 +29,25 @@ abstract class AbstractBaseTestCase extends TestCase
     {
         $db->query(new Raw('PRAGMA foreign_keys = ON'));
 
+        $createProfileImagesQuery = new Raw('CREATE TABLE `profile_images` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `created_at` DATETIME,
+            `updated_at` DATETIME
+        )');
+
+        $db->query($createProfileImagesQuery);
+
         $createUsersQuery = new Raw('CREATE TABLE `users` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `role` VARCHAR(20) DEFAULT NULL,
+            `profile_image_id` INTEGER DEFAULT NULL,
             `status` VARCHAR(20) DEFAULT NULL,
             `name` VARCHAR(50) DEFAULT NULL,
             `email` VARCHAR(150) DEFAULT NULL,
             `created_at` DATETIME,
             `updated_at` DATETIME,
-            `deleted_at` DATETIME DEFAULT NULL
+            `deleted_at` DATETIME DEFAULT NULL,
+            FOREIGN KEY(profile_image_id) REFERENCES profile_images(id)
         )');
 
         $db->query($createUsersQuery);
@@ -82,16 +93,20 @@ abstract class AbstractBaseTestCase extends TestCase
 
     public static function nukeDatabase(Database $db): void
     {
+        $dropProjectsQuery = new Raw('DROP TABLE `projects`');
+        $db->query($dropProjectsQuery);
+
         $dropUsersQuery = new Raw('DROP TABLE `users`');
         $db->query($dropUsersQuery);
 
-        $dropProjectsQuery = new Raw('DROP TABLE `projects`');
-        $db->query($dropProjectsQuery);
+        $dropProfileImagesQuery = new Raw('DROP TABLE `profile_images`');
+        $db->query($dropProfileImagesQuery);
     }
 
     /**
      * Create a dummy database with:
      *
+     * - 1 profile image
      * - 2 users
      * - 2 projects
      */
@@ -99,9 +114,13 @@ abstract class AbstractBaseTestCase extends TestCase
     {
         $db = self::createDatabase();
 
+        $profileImage = new ProfileImage();
+        $db->save($profileImage);
+
         $dave = new User();
         $dave->setEmail('dave@example.com');
         $dave->setName('Dave');
+        $dave->setProfileImageId($profileImage->getId());
         $db->insert($dave);
 
         $bob = new User();

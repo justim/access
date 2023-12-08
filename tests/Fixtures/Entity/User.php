@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Entity;
 
+use Access\Cascade;
 use Tests\Fixtures\Repository\UserRepository;
 
 use Access\Entity;
@@ -40,11 +41,25 @@ class User extends Entity
         return 'users';
     }
 
+    public static function relations(): array
+    {
+        return [
+            'owner_of' => [
+                'target' => Project::class,
+                'field' => 'owner_id',
+                'cascade' => Cascade::deleteSame(),
+            ],
+        ];
+    }
+
     public static function fields(): array
     {
         return [
             'role' => [
                 'default' => 'USER',
+            ],
+            'profile_image_id' => [
+                'type' => self::FIELD_TYPE_INT,
             ],
             'status' => [
                 'type' => self::FIELD_TYPE_ENUM,
@@ -103,5 +118,10 @@ class User extends Entity
     public function getStatus(): UserStatus
     {
         return $this->get('status');
+    }
+
+    public function setProfileImageId(?int $profileImageId): void
+    {
+        $this->set('profile_image_id', $profileImageId);
     }
 }

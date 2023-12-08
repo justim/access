@@ -23,6 +23,22 @@ use ValueError;
  * Entity functionality
  *
  * @author Tim <me@justim.net>
+ *
+ * @psalm-type FieldOptions = array{
+ *  default?: mixed,
+ *  type?: self::FIELD_TYPE_*,
+ *  enumName?: class-string,
+ *  virtual?: bool,
+ *  excludeInCopy?: bool,
+ *  target?: class-string<Entity>,
+ *  cascade?: Cascade,
+ * }
+ *
+ * @psalm-type RelationOptions = array{
+ *  target: class-string<Entity>,
+ *  field: string,
+ *  cascade?: Cascade,
+ * }
  */
 abstract class Entity implements IdentifiableInterface
 {
@@ -45,9 +61,18 @@ abstract class Entity implements IdentifiableInterface
      * Get the field definitions
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default?: mixed, type?: string, enumName?: class-string, virtual?: bool, excludeInCopy?: bool}>
+     * @psalm-return array<string, FieldOptions>
      */
     abstract public static function fields(): array;
+
+    /**
+     * @return array<string, mixed>
+     * @psalm-return array<string, RelationOptions>
+     */
+    public static function relations(): array
+    {
+        return [];
+    }
 
     /**
      * Does the entity have timestamps
@@ -560,6 +585,10 @@ abstract class Entity implements IdentifiableInterface
                 return boolval($value);
 
             case self::FIELD_TYPE_DATETIME:
+                if ($value instanceof \DateTimeInterface) {
+                    return $this->fromMutable($value);
+                }
+
                 if (!is_string($value)) {
                     throw new Exception('Invalid datetime value');
                 }
@@ -663,7 +692,7 @@ abstract class Entity implements IdentifiableInterface
      * Defaults to `self::fields`
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default?: mixed, type?: string, enumName?: class-string, virtual?: bool, excludeInCopy?: bool}>
+     * @psalm-return array<string, FieldOptions>
      */
     protected function getResolvedFields(): array
     {
