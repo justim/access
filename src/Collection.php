@@ -46,10 +46,16 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * Create a entity batch
      *
      * @param Database $db
+     * @param iterable<Entity>|null $iterable List of entities
+     * @psalm-param iterable<TEntity>|null $iterable List of entities
      */
-    public function __construct(Database $db)
+    public function __construct(Database $db, ?iterable $iterable = null)
     {
         $this->db = $db;
+
+        if ($iterable !== null) {
+            $this->fromIterable($iterable);
+        }
     }
 
     /**

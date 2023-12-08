@@ -551,11 +551,15 @@ class Database
     /**
      * Create a new empty collection
      *
+     * @psalm-template TEntity of Entity
+     *
      * @return Collection Empty collection
+     * @param iterable<Entity>|null $iterable List of entities
+     * @psalm-param iterable<TEntity>|null $iterable List of entities
      */
-    public function createCollection(): Collection
+    public function createCollection(iterable $iterable = null): Collection
     {
-        return new Collection($this);
+        return new Collection($this, $iterable);
     }
 
     /**

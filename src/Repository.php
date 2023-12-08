@@ -143,8 +143,7 @@ class Repository
         $iterator = $this->findBy($fields, $limit);
 
         /** @var Collection<TEntity> $collection */
-        $collection = new Collection($this->db);
-        $collection->fromIterable($iterator);
+        $collection = new Collection($this->db, $iterator);
 
         return $collection;
     }
@@ -178,8 +177,7 @@ class Repository
     {
         $iterator = $this->findByIds($ids, $limit);
 
-        $collection = new Collection($this->db);
-        $collection->fromIterable($iterator);
+        $collection = new Collection($this->db, $iterator);
 
         return $collection;
     }
@@ -219,8 +217,7 @@ class Repository
         $iterator = $this->findAll($limit, $orderBy);
 
         /** @var Collection<TEntity> $collection */
-        $collection = new Collection($this->db);
-        $collection->fromIterable($iterator);
+        $collection = new Collection($this->db, $iterator);
 
         return $collection;
     }
@@ -448,12 +445,10 @@ class Repository
      */
     public function selectCollection(Query\Select $query): Collection
     {
-        /** @var Collection<TEntity> $collection */
-        $collection = new Collection($this->db);
-
         $result = $this->select($query);
 
-        $collection->fromIterable($result);
+        /** @var Collection<TEntity> $collection */
+        $collection = new Collection($this->db, $result);
 
         return $collection;
     }
@@ -545,8 +540,7 @@ class Repository
     ): Collection {
         $entities = $this->selectWithEntityProvider($query, $entityProvider);
 
-        $collection = $this->db->createCollection();
-        $collection->fromIterable($entities);
+        $collection = $this->db->createCollection($entities);
 
         return $collection;
     }
