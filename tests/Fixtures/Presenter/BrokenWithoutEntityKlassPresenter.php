@@ -18,6 +18,9 @@ use Access\Presenter\EntityPresenter;
 
 /**
  * Broken without class presenter
+ *
+ * SAFETY For testing
+ * @psalm-suppress MissingTemplateParam
  */
 class BrokenWithoutEntityKlassPresenter extends EntityPresenter
 {

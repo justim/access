@@ -114,6 +114,10 @@ abstract class Condition implements ConditionInterface
             $value = $values[$this->field->getName()];
         }
 
+        /**
+         * SAFETY technically it is possible to have other values here, having a `default` is a good idea here
+         * @psalm-suppress DocblockTypeContradiction
+         */
         return match ($this->kind) {
             self::KIND_EQUALS => $value === $this->value,
             self::KIND_NOT_EQUALS => $value !== $this->value,
@@ -157,6 +161,11 @@ abstract class Condition implements ConditionInterface
     {
         $escapedFieldName = Query::escapeIdentifier($this->field->getName());
 
+        /**
+         * SAFETY technically it is possible to have other values here, having a `default` is a good idea here
+         * @psalm-suppress DocblockTypeContradiction
+         * @psalm-suppress NoValue
+         */
         $condition = match ($this->kind) {
             self::KIND_EQUALS => sprintf('%s = ?', $escapedFieldName),
             self::KIND_NOT_EQUALS => sprintf('%s != ?', $escapedFieldName),

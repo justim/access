@@ -22,6 +22,7 @@ use Access\Presenter\EntityMarkerInterface;
  * @internal
  * @psalm-template TEntityPresenter of \Access\Presenter\EntityPresenter
  * @psalm-template TEntity of \Access\Entity
+ * @template-implements EntityMarkerInterface<TEntity>
  * @author Tim <me@justim.net>
  */
 final class PresentationMarker implements EntityMarkerInterface

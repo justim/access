@@ -462,6 +462,8 @@ class Repository
      *
      * @param Query\Select $query Select query to be executed
      * @param string $virtualFieldName Field name to return
+     * @param string|null $virtualType Type of the virtual field
+     * @psalm-param Entity::FIELD_TYPE_*|null $virtualType Field name to return
      * @return \Generator
      */
     public function selectVirtualField(
@@ -487,6 +489,7 @@ class Repository
      * @param Query\Select $query Select query to be executed
      * @param string $virtualFieldName Field name to return
      * @param string $virtualType Type of the virtual field
+     * @psalm-param Entity::FIELD_TYPE_*|null $virtualType Field name to return
      * @return mixed
      */
     public function selectOneVirtualField(
@@ -533,6 +536,7 @@ class Repository
      * @param Query\Select $query Select query to be executed
      * @param EntityProvider $entityProvider Entity provider to create base entities
      * @return Collection Collection with entities
+     * @psalm-return Collection<Entity> Collection with entities
      */
     public function selectWithEntityProviderCollection(
         Query\Select $query,

@@ -13,10 +13,14 @@ declare(strict_types=1);
 
 namespace Access\EntityProvider;
 
+use Access\Entity;
+
 /**
  * Provide empty entity shells for virtual field use
  *
  * @author Tim <me@justim.net>
+ *
+ * @template-extends VirtualEntityProvider<VirtualFieldEntity>
  */
 class VirtualFieldEntityProvider extends VirtualEntityProvider
 {
@@ -31,6 +35,7 @@ class VirtualFieldEntityProvider extends VirtualEntityProvider
      * Optional type of the virtual field
      *
      * @var string|null
+     * @psalm-var Entity::FIELD_TYPE_*|null
      */
     private ?string $virtualType;
 
@@ -39,6 +44,7 @@ class VirtualFieldEntityProvider extends VirtualEntityProvider
      *
      * @param string $virtualFieldName Name of the virtual field
      * @param string|null $virtualType Type of the virtual field
+     * @psalm-param Entity::FIELD_TYPE_*|null $virtualType
      */
     public function __construct(string $virtualFieldName, ?string $virtualType)
     {

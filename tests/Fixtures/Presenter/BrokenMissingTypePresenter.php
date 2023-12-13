@@ -19,6 +19,8 @@ use Tests\Fixtures\Entity\User;
 
 /**
  * Broken missing type presenter
+ *
+ * @template-extends EntityPresenter<User>
  */
 class BrokenMissingTypePresenter extends EntityPresenter
 {

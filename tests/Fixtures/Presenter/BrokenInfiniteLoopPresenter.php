@@ -19,6 +19,8 @@ use Tests\Fixtures\Entity\User;
 
 /**
  * Broken infinite loop presenter
+ *
+ * @template-extends EntityPresenter<User>
  */
 class BrokenInfiniteLoopPresenter extends EntityPresenter
 {

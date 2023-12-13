@@ -32,13 +32,18 @@ class VirtualFieldEntity extends VirtualEntity
      *
      * @param string $virtualFieldName Name of the virtual field
      * @param string|null $virtualType Type of the virtual field
+     * @psalm-param self::FIELD_TYPE_*|null $virtualType
      */
     public function __construct(string $virtualFieldName, ?string $virtualType)
     {
+        $field = [];
+
+        if ($virtualType !== null) {
+            $field['type'] = $virtualType;
+        }
+
         parent::__construct([
-            $virtualFieldName => [
-                'type' => $virtualType,
-            ],
+            $virtualFieldName => $field,
         ]);
 
         $this->virtualFieldName = $virtualFieldName;

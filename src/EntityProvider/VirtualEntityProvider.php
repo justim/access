@@ -20,6 +20,9 @@ use Access\Exception;
  * Provide empty entity shells for virtual use
  *
  * @author Tim <me@justim.net>
+ *
+ * @psalm-template TEntity of VirtualEntity
+ * @template-extends EntityProvider<TEntity>
  */
 abstract class VirtualEntityProvider extends EntityProvider
 {
@@ -32,6 +35,7 @@ abstract class VirtualEntityProvider extends EntityProvider
      * Create a virtual field entity
      *
      * @return VirtualEntity
+     * @psalm-return TEntity
      */
     public function create(): VirtualEntity
     {

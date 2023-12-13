@@ -19,6 +19,8 @@ use Tests\Fixtures\Entity\User;
 
 /**
  * Broken non public receive dependencies presenter
+ *
+ * @template-extends EntityPresenter<User>
  */
 class BrokenNonPublicReceiveDependenciesPresenter extends EntityPresenter
 {

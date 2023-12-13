@@ -26,8 +26,11 @@ use Access\Presenter;
 /**
  * Collection of entities
  *
- * @psalm-template TEntity of Entity
  * @author Tim <me@justim.net>
+ *
+ * @psalm-template TEntity of Entity
+ * @template-implements \ArrayAccess<int, TEntity>
+ * @template-implements \IteratorAggregate<int, TEntity>
  */
 class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 {
@@ -453,7 +456,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @throws Exception
      */
-    public function offsetSet(mixed $id, mixed $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         throw new Exception('Not possible to add new entities through array access');
     }
@@ -463,7 +466,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @throws Exception
      */
-    public function offsetUnset(mixed $id): void
+    public function offsetUnset(mixed $offset): void
     {
         throw new Exception('Not possible to remove entities through array access');
     }
@@ -476,7 +479,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * @return Iterator
      * @psalm-return Iterator<TEntity>
      */
-    public function getIterator(): \Traversable
+    public function getIterator(): Iterator
     {
         return new Iterator($this->entities);
     }

@@ -20,8 +20,11 @@ use Access\Exception;
 /**
  * Grouped collections of entities
  *
- * @psalm-template TEntity of \Access\Entity
  * @author Tim <me@justim.net>
+ *
+ * @psalm-template TEntity of \Access\Entity
+ * @template-implements \ArrayAccess<int, Collection<TEntity>>
+ * @template-implements \IteratorAggregate<array-key, Collection<TEntity>>
  */
 class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
 {
@@ -71,7 +74,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @throws Exception
      */
-    public function offsetSet(mixed $id, mixed $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         throw new Exception('Not possible to add new collections through array access');
     }
@@ -81,7 +84,7 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @throws Exception
      */
-    public function offsetUnset(mixed $id): void
+    public function offsetUnset(mixed $offset): void
     {
         throw new Exception('Not possible to remove collections through array access');
     }
@@ -91,9 +94,10 @@ class GroupedCollection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * Iterator implementation
      *
-     * @return GroupedCollectionIterator<TEntity>
+     * @return GroupedCollectionIterator
+     * @psalm-return GroupedCollectionIterator<TEntity>
      */
-    public function getIterator(): \Traversable
+    public function getIterator(): GroupedCollectionIterator
     {
         return new GroupedCollectionIterator($this->groups);
     }

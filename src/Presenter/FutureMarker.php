@@ -21,6 +21,7 @@ use Access\Presenter\EntityMarkerInterface;
  *
  * @internal
  * @psalm-template TEntity of \Access\Entity
+ * @template-implements EntityMarkerInterface<TEntity>
  * @author Tim <me@justim.net>
  */
 final class FutureMarker implements EntityMarkerInterface

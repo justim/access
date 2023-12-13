@@ -291,7 +291,9 @@ class CollectionTest extends AbstractBaseTestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to add new collections through array access');
 
-        $grouped[3] = new Collection($db);
+        /** @var Collection<Project> $collection */
+        $collection = new Collection($db);
+        $grouped[3] = $collection;
     }
 
     public function testInversedRefs(): void

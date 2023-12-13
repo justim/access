@@ -18,8 +18,10 @@ use Access\Collection;
 /**
  * Grouped collection of collections
  *
- * @psalm-template TEntity of \Access\Entity
  * @author Tim <me@justim.net>
+ *
+ * @psalm-template TEntity of \Access\Entity
+ * @template-implements \Iterator<array-key, Collection<TEntity>>
  */
 class GroupedCollectionIterator implements \Iterator
 {

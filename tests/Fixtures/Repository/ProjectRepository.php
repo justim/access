@@ -132,6 +132,11 @@ class ProjectRepository extends Repository
 
         $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
 
+        /**
+         * Extending the template does not seems to work for anonymous classes
+         *
+         * @psalm-suppress MissingTemplateParam
+         */
         return $this->selectWithEntityProvider(
             $query,
             new class extends VirtualEntityProvider {
@@ -168,6 +173,9 @@ class ProjectRepository extends Repository
         );
     }
 
+    /**
+     * @psalm-return Collection<VirtualArrayEntity>
+     */
     public function findVirtualArrayUserNames(): Collection
     {
         $query = new Select(Project::class, 'p', [
@@ -179,6 +187,12 @@ class ProjectRepository extends Repository
         $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
         $query->limit(1);
 
+        /**
+         * This should work, the `VirtualArrayEntityProvider` provider has the right template extends
+         *
+         * @psalm-suppress InvalidArgument
+         * @var Collection<VirtualArrayEntity>
+         */
         return $this->selectWithEntityProviderCollection(
             $query,
             new VirtualArrayEntityProvider([
@@ -202,6 +216,11 @@ class ProjectRepository extends Repository
         $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
         $query->limit(1);
 
+        /**
+         * This should work, the `VirtualArrayEntityProvider` provider has the right template extends
+         *
+         * @psalm-suppress InvalidArgument
+         */
         return $this->selectWithEntityProviderCollection(
             $query,
             new VirtualArrayEntityProvider([
@@ -218,6 +237,10 @@ class ProjectRepository extends Repository
 
         $query->innerJoin(User::class, 'u', ['p.owner_id = u.id']);
 
+        /**
+         * SAFEFY This is a broken example, the virtual entity is not created
+         * @psalm-suppress MissingTemplateParam
+         */
         return $this->selectWithEntityProviderCollection(
             $query,
             new class extends VirtualEntityProvider {},

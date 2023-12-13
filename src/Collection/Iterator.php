@@ -19,6 +19,7 @@ use Access\Entity;
  * Collection of entities
  *
  * @psalm-template TEntity of Entity
+ * @template-implements \Iterator<int, TEntity>
  * @author Tim <me@justim.net>
  */
 class Iterator implements \Iterator

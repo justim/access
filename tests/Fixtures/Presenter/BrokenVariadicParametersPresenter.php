@@ -19,6 +19,8 @@ use Tests\Fixtures\Entity\User;
 
 /**
  * Broken variadic parameters presenter
+ *
+ * @template-extends EntityPresenter<User>
  */
 class BrokenVariadicParametersPresenter extends EntityPresenter
 {

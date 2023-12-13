@@ -20,6 +20,7 @@ use Access\Exception;
  *
  * This virtual entity is immutable
  *
+ * @template-implements \ArrayAccess<string, mixed>
  * @author Tim <me@justim.net>
  */
 class VirtualArrayEntity extends VirtualEntity implements \ArrayAccess
@@ -51,7 +52,7 @@ class VirtualArrayEntity extends VirtualEntity implements \ArrayAccess
      *
      * @throws Exception
      */
-    public function offsetSet(mixed $id, mixed $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         throw new Exception('Not possible to update virtual array entities');
     }
@@ -61,7 +62,7 @@ class VirtualArrayEntity extends VirtualEntity implements \ArrayAccess
      *
      * @throws Exception
      */
-    public function offsetUnset(mixed $id): void
+    public function offsetUnset(mixed $offset): void
     {
         throw new Exception('Not possible to update virtual array entities');
     }

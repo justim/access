@@ -249,7 +249,8 @@ class RepositoryTest extends AbstractBaseTestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to update virtual array entities');
 
-        $names[1]['user_name'] = 'Bob';
+        $name = $names[1];
+        $name['user_name'] = 'Bob';
     }
 
     public function testSelectVirtualArrayEntityIllegalUnset(): void

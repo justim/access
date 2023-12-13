@@ -13,17 +13,31 @@ declare(strict_types=1);
 
 namespace Access\EntityProvider;
 
+use Access\Entity;
+use Access\Cascade;
+
 /**
  * Provide empty entity shells for virtual array use
  *
  * @author Tim <me@justim.net>
+ *
+ * @template-extends VirtualEntityProvider<VirtualArrayEntity>
+ * @psalm-type FieldOptions = array{
+ *  default?: mixed,
+ *  type?: Entity::FIELD_TYPE_*,
+ *  enumName?: class-string,
+ *  virtual?: bool,
+ *  excludeInCopy?: bool,
+ *  target?: class-string<Entity>,
+ *  cascade?: Cascade,
+ * }
  */
 class VirtualArrayEntityProvider extends VirtualEntityProvider
 {
     /**
      * Fields used in this virtual entity
      *
-     * @psalm-var array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
+     * @psalm-var array<string, FieldOptions>
      */
     private array $fields;
 
@@ -31,6 +45,7 @@ class VirtualArrayEntityProvider extends VirtualEntityProvider
      * Create a virtual array entity provider
      *
      * @param array $fields Fiels used in virtual array entity
+     * @psalm-param array<string, FieldOptions> $fields Fiels used in virtual array entity
      */
     public function __construct(array $fields)
     {

@@ -13,19 +13,30 @@ declare(strict_types=1);
 
 namespace Access\EntityProvider;
 
+use Access\Cascade;
 use Access\Entity;
 
 /**
  * Base entity class to fetch a virtual entity
  *
  * @author Tim <me@justim.net>
+ *
+ * @psalm-type FieldOptions = array{
+ *  default?: mixed,
+ *  type?: Entity::FIELD_TYPE_*,
+ *  enumName?: class-string,
+ *  virtual?: bool,
+ *  excludeInCopy?: bool,
+ *  target?: class-string<Entity>,
+ *  cascade?: Cascade,
+ * }
  */
 abstract class VirtualEntity extends Entity
 {
     /**
      * Fields used in this virtual entity
      *
-     * @psalm-var array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
+     * @psalm-var array<string, FieldOptions>
      */
     private array $fields;
 
@@ -33,6 +44,7 @@ abstract class VirtualEntity extends Entity
      * Create a virtual entity
      *
      * @param array $fields Fiels used in virtual entity
+     * @psalm-param array<string, FieldOptions> $fields
      */
     public function __construct(array $fields)
     {
@@ -59,7 +71,7 @@ abstract class VirtualEntity extends Entity
      * @codeCoverageIgnore
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
+     * @psalm-return array<string, FieldOptions>
      */
     public static function fields(): array
     {
@@ -70,7 +82,7 @@ abstract class VirtualEntity extends Entity
      * Resolved table definition with virtual field info
      *
      * @return array<string, mixed>
-     * @psalm-return array<string, array{default?: mixed, type?: string, virtual?: bool, excludeInCopy?: bool}>
+     * @psalm-return array<string, FieldOptions>
      */
     protected function getResolvedFields(): array
     {
