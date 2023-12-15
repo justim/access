@@ -13,6 +13,7 @@ module.exports = {
             items: [
                 'database',
                 'entities',
+                'cascade',
                 'repositories',
                 'queries',
                 'collections',

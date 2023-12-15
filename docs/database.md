@@ -24,7 +24,7 @@ connection that is used a bit more.
 ```php title="With an existing \PDO connection"
 use Access\Database;
 
-\$connection = new \PDO('sqlite::memory:');
+$connection = new \PDO('sqlite::memory:');
 
 $db = new Database($connection);
 ```

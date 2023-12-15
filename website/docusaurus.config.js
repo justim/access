@@ -1,5 +1,8 @@
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
-module.exports = {
+
+import { themes } from 'prism-react-renderer';
+
+export default {
     title: 'Access',
     tagline: ' A simple MySQL wrapper optimized for bigger data sets ',
     url: 'https://access.justim.net',
@@ -9,6 +12,7 @@ module.exports = {
     favicon: 'images/favicon.ico',
     organizationName: 'justim', // Usually your GitHub org/user name.
     projectName: 'access', // Usually your repo name.
+    trailingSlash: false,
     themeConfig: {
         colorMode: {
             respectPrefersColorScheme: true,
@@ -38,7 +42,7 @@ module.exports = {
             copyright: `Copyright © ${new Date().getFullYear()} Access`,
         },
         prism: {
-            theme: require('prism-react-renderer/themes/okaidia'),
+            theme: themes.okaidia,
             additionalLanguages: ['php'],
         },
     },
