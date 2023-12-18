@@ -31,7 +31,7 @@ final class EntityPool
      * @var array<string, array<string, Collection>>
      * @psalm-var array<class-string<TEntity>, array<string, Collection<TEntity>>>
      */
-    private array $entites = [];
+    private array $entities = [];
 
     /**
      * Create a entity pool
@@ -138,12 +138,12 @@ final class EntityPool
         string $entityKlass,
         string $fieldName,
     ): Collection {
-        if (!isset($this->entites[$entityKlass][$fieldName])) {
+        if (!isset($this->entities[$entityKlass][$fieldName])) {
             /** @var Collection<TEntity> $collection */
             $collection = new Collection($this->db);
-            $this->entites[$entityKlass][$fieldName] = $collection;
+            $this->entities[$entityKlass][$fieldName] = $collection;
         }
 
-        return $this->entites[$entityKlass][$fieldName];
+        return $this->entities[$entityKlass][$fieldName];
     }
 }
