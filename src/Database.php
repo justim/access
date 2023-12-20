@@ -602,6 +602,7 @@ class Database
      *
      * @param string $klass Entity class name
      * @throws Exception When entity class name is invalid
+     * @psalm-assert class-string<Entity> $klass
      */
     public static function assertValidEntityClass(string $klass): void
     {
@@ -619,6 +620,7 @@ class Database
      *
      * @param string $presenterClassName Presenter class name
      * @throws Exception When presenter class name is invalid
+     * @psalm-assert class-string<EntityPresenter> $presenterClassName
      */
     public static function assertValidPresenterClass(string $presenterClassName): void
     {
@@ -636,6 +638,7 @@ class Database
      *
      * @param string $repositoryClassName Repository class name
      * @throws Exception When repository class name is invalid
+     * @psalm-assert class-string<Repository> $repositoryClassName
      */
     private static function assertValidRepositoryClass(string $repositoryClassName): void
     {
