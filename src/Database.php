@@ -583,6 +583,7 @@ class Database
      * @return Collection Empty collection
      * @param iterable<Entity>|null $iterable List of entities
      * @psalm-param iterable<TEntity>|null $iterable List of entities
+     * @psalm-return ($iterable is null ? Collection : Collection<TEntity>)
      */
     public function createCollection(iterable $iterable = null): Collection
     {
