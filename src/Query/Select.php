@@ -23,7 +23,7 @@ use Access\Query;
 class Select extends Query
 {
     /**
-     * @var array<string, string|self>
+     * @var array<string, string|Select>
      */
     private array $virtualFields = [];
 
@@ -35,7 +35,7 @@ class Select extends Query
     /**
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
-     * @param array<string, string|self> $virtualFields List of virtual fields, 'name' => 'SQL'
+     * @param array<string, string|Select> $virtualFields List of virtual fields, 'name' => 'SQL'
      */
     public function __construct(string $tableName, string $alias = null, array $virtualFields = [])
     {
