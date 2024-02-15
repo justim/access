@@ -337,6 +337,47 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
+     * Create a new deduplicated collection
+     *
+     * Will only include entities that have the field set, this includes a value of `null`
+     *
+     * @param string|null $fieldName Field name to deduplicate on (default: ID)
+     * @return Collection<TEntity> Newly created, and deduplicated, collection
+     */
+    public function deduplicate(?string $fieldName = null): Collection
+    {
+        /** @var mixed[] $seenValues */
+        $seenValues = [];
+        $entities = [];
+
+        foreach ($this->entities as $entity) {
+            if ($fieldName === 'id' || $fieldName === null) {
+                $value = $entity->getId();
+            } else {
+                $values = $entity->getValues();
+
+                if (!array_key_exists($fieldName, $values)) {
+                    continue;
+                }
+
+                /** @var mixed $value */
+                $value = $values[$fieldName];
+            }
+
+            if (array_search($value, $seenValues, true) === false) {
+                $entities[] = $entity;
+                /** @psalm-suppress MixedAssignment */
+                $seenValues[] = $value;
+            }
+        }
+
+        /** @var self<TEntity> $result */
+        $result = new self($this->db, $entities);
+
+        return $result;
+    }
+
+    /**
      * Is a given entity contained in collection
      *
      * Comparison is made by ID

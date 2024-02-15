@@ -16,6 +16,7 @@ namespace Tests\Fixtures\Repository;
 use Tests\Fixtures\Entity\User;
 
 use Access\Collection;
+use Access\Query;
 use Access\Repository;
 
 /**
@@ -26,5 +27,21 @@ class UserRepository extends Repository
     public function findNothing(): Collection
     {
         return $this->createEmptyCollection();
+    }
+
+    public function findDuplicates(): Collection
+    {
+        $queryOne = new Query\Select(User::class, 'u1', [
+            // make sure the field names are unique, so union will include all records
+            'one' => '1',
+        ]);
+
+        $queryTwo = new Query\Select(User::class, 'u2', [
+            'two' => '2',
+        ]);
+
+        $query = new Query\Union($queryOne, $queryTwo);
+
+        return $this->selectCollection($query);
     }
 }

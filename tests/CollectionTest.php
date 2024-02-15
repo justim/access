@@ -493,4 +493,27 @@ class CollectionTest extends AbstractBaseTestCase
         $filteredIds = $filteredProjects->getIds();
         $this->assertEquals([2, 1], $filteredIds);
     }
+
+    public function testDeduplication(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var UserRepository $userRepo */
+        $userRepo = $db->getRepository(User::class);
+        $users = $userRepo->findDuplicates();
+
+        $this->assertEquals(4, $users->count());
+
+        $deduplicated = $users->deduplicate();
+
+        $this->assertEquals(2, $deduplicated->count());
+
+        $deduplicated = $users->deduplicate('name');
+
+        $this->assertEquals(2, $deduplicated->count());
+
+        $deduplicated = $users->deduplicate('non-existent');
+
+        $this->assertEquals(0, $deduplicated->count());
+    }
 }
