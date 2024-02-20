@@ -629,6 +629,10 @@ class Database
             throw new Exception('Invalid presenter: ' . $presenterClassName);
         }
 
+        /**
+         * It's an assertion
+         * @psalm-suppress TypeDoesNotContainType
+         */
         if (empty($presenterClassName::getEntityKlass())) {
             throw new Exception('Missing entity klass for presenter: ' . $presenterClassName);
         }

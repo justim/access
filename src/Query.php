@@ -121,6 +121,10 @@ abstract class Query
             $this->tableName = $tableName::tableName();
 
             if ($tableName::isSoftDeletable()) {
+                /**
+                 * All cases for which `?:` returns falsey should default to `$this->tableName`
+                 * @psalm-suppress RiskyTruthyFalsyComparison
+                 */
                 $tableIdentifier = $alias ?: $this->tableName;
                 $deletedAtCondition = new IsNull(
                     sprintf('%s.%s', $tableIdentifier, Entity::DELETED_AT_FIELD),
@@ -611,6 +615,10 @@ abstract class Query
      */
     protected function getOrderBySql(): string
     {
+        /**
+         * All cases for which `empty` returns falsey should default to an empty string
+         * @psalm-suppress RiskyTruthyFalsyComparison
+         */
         if (empty($this->orderBy)) {
             return '';
         }
@@ -628,6 +636,10 @@ abstract class Query
      */
     protected function getLimitSql(): string
     {
+        /**
+         * All cases for which `empty` returns falsey should default to an empty string
+         * @psalm-suppress RiskyTruthyFalsyComparison
+         */
         if (empty($this->limit)) {
             return '';
         }
