@@ -387,4 +387,58 @@ class SelectTest extends TestCase
 
         $this->assertEquals(['w0' => 'ACTIVE'], $query->getValues());
     }
+
+    public function testSimpleIncludeSoftDeleted(): void
+    {
+        $query = new Select(User::class, 'u');
+        $query->setIncludeSoftDeleted(true);
+
+        $this->assertEquals('SELECT `u`.* FROM `users` AS `u`', $query->getSql());
+
+        $this->assertEquals([], $query->getValues());
+    }
+
+    public function testIncludeSoftDeletedWithSubquery(): void
+    {
+        $subQuery = new Select(User::class, 'u2');
+
+        // does exclude the soft deleted
+        $this->assertEquals(
+            'SELECT `u2`.* FROM `users` AS `u2` WHERE `u2`.`deleted_at` IS NULL',
+            $subQuery->getSql(),
+        );
+
+        $query = new Select(User::class, 'u', [
+            'something' => $subQuery,
+        ]);
+
+        $query->setIncludeSoftDeleted(true);
+
+        $this->assertEquals(
+            'SELECT `u`.*, (SELECT `u2`.* FROM `users` AS `u2`) AS `something` FROM `users` AS `u`',
+            $query->getSql(),
+        );
+
+        $this->assertEquals([], $query->getValues());
+
+        // still does exclude the soft deleted
+        $this->assertEquals(
+            'SELECT `u2`.* FROM `users` AS `u2` WHERE `u2`.`deleted_at` IS NULL',
+            $subQuery->getSql(),
+        );
+    }
+
+    public function testIncludeSoftDeletedWithJoin(): void
+    {
+        $query = new Select(User::class, 'u');
+        $query->innerJoin(User::class, 'u2', 'u.id = u2.id');
+        $query->setIncludeSoftDeleted(true);
+
+        $this->assertEquals(
+            'SELECT `u`.* FROM `users` AS `u` INNER JOIN `users` AS `u2` ON (u.id = u2.id)',
+            $query->getSql(),
+        );
+
+        $this->assertEquals([], $query->getValues());
+    }
 }
