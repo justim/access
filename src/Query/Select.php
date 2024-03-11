@@ -124,7 +124,9 @@ class Select extends Query
             $escapedAlias = self::escapeIdentifier($alias);
 
             if ($value instanceof self) {
-                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted($this->includeSoftDeleted);
+                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted(
+                    $this->includeSoftDeletedFilter,
+                );
 
                 $subSql = preg_replace(
                     '/:(([a-z][0-9]+)+)/',
@@ -157,7 +159,9 @@ class Select extends Query
 
         foreach ($this->virtualFields as $value) {
             if ($value instanceof self) {
-                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted($this->includeSoftDeleted);
+                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted(
+                    $this->includeSoftDeletedFilter,
+                );
 
                 /** @var mixed $nestedValue */
                 foreach ($value->getValues() as $nestedIndex => $nestedValue) {

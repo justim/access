@@ -77,7 +77,7 @@ class Union extends Select
         $i = 0;
 
         foreach ($this->queries as $query) {
-            $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeleted);
+            $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
             $unions[] = preg_replace(
                 '/:(([a-z]+[a-z0-9]*))/',
@@ -115,7 +115,7 @@ class Union extends Select
         $i = 0;
 
         foreach ($this->queries as $query) {
-            $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeleted);
+            $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
             /** @var mixed $nestedValue */
             foreach ($query->getValues() as $nestedIndex => $nestedValue) {

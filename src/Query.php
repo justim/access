@@ -23,6 +23,7 @@ use Access\Entity;
 use Access\IdentifiableInterface;
 use Access\Query\QueryGeneratorState;
 use Access\Query\Cursor\Cursor;
+use Access\Query\IncludeSoftDeletedFilter;
 use BackedEnum;
 
 /**
@@ -123,9 +124,11 @@ abstract class Query
     /**
      * Include soft deleted items in the query
      *
-     * @var bool
+     * By default soft deleted items are excluded
+     *
+     * @var IncludeSoftDeletedFilter
      */
-    protected bool $includeSoftDeleted = false;
+    protected IncludeSoftDeletedFilter $includeSoftDeletedFilter = IncludeSoftDeletedFilter::Exclude;
 
     /**
      * Create a query
@@ -786,7 +789,10 @@ abstract class Query
     {
         $conditions_ = [];
 
-        if ($softDeleteCondition !== null && !$this->includeSoftDeleted) {
+        if (
+            $softDeleteCondition !== null &&
+            $this->includeSoftDeletedFilter === IncludeSoftDeletedFilter::Exclude
+        ) {
             $conditions_[] = $softDeleteCondition;
         }
 
@@ -800,12 +806,23 @@ abstract class Query
      *
      * All queries/join that are used by this query will also include soft deleted
      *
-     * @return bool The old value
+     * @return IncludeSoftDeletedFilter The old value
      */
-    public function setIncludeSoftDeleted(bool $includeSoftDeleted): bool
-    {
-        $oldValue = $this->includeSoftDeleted;
-        $this->includeSoftDeleted = $includeSoftDeleted;
+    public function setIncludeSoftDeleted(
+        IncludeSoftDeletedFilter|bool $includeSoftDeleted,
+    ): IncludeSoftDeletedFilter {
+        $oldValue = $this->includeSoftDeletedFilter;
+
+        if (is_bool($includeSoftDeleted)) {
+            $includeSoftDeleted = $includeSoftDeleted
+                ? IncludeSoftDeletedFilter::Include
+                : IncludeSoftDeletedFilter::Exclude;
+        }
+
+        if ($includeSoftDeleted !== IncludeSoftDeletedFilter::Auto) {
+            $this->includeSoftDeletedFilter = $includeSoftDeleted;
+        }
+
         return $oldValue;
     }
 }

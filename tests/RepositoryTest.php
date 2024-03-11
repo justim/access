@@ -20,6 +20,7 @@ use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\Repository\ProjectRepository;
+use Tests\Fixtures\Repository\UserRepository;
 
 class RepositoryTest extends AbstractBaseTestCase
 {
@@ -413,5 +414,30 @@ class RepositoryTest extends AbstractBaseTestCase
         $projectRepo->save($project);
 
         $this->assertEquals(3, $project->getId());
+    }
+
+    public function testWithIncludeSoftDeleted(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var UserRepository $userRepo */
+        $userRepo = $db->getRepository(User::class);
+
+        // user exists in the database
+        $user = $userRepo->findOne(1);
+        $this->assertNotNull($user);
+
+        $db->softDelete($user);
+
+        // user is soft deleted
+        $user = $userRepo->findOne(1);
+        $this->assertNull($user);
+
+        // create a new repository with include soft deleted
+        $userRepo = $userRepo->withIncludeSoftDeleted(true);
+
+        // the user is findable again
+        $user = $userRepo->findOne(1);
+        $this->assertNotNull($user);
     }
 }
