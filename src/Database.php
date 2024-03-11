@@ -21,6 +21,7 @@ use Access\Presenter;
 use Access\Presenter\EntityPresenter;
 use Access\Profiler;
 use Access\Query;
+use Access\Query\IncludeSoftDeletedFilter;
 use Access\Repository;
 use Access\Statement;
 use Access\StatementPool;
@@ -64,6 +65,13 @@ class Database
      * @var ClockInterface $clock
      */
     private ClockInterface $clock;
+
+    /**
+     * Include soft deleted items in the query
+     *
+     * Initially set to `Auto`, will follow the setting of the query
+     */
+    private IncludeSoftDeletedFilter $includeSoftDeletedFilter = IncludeSoftDeletedFilter::Auto;
 
     /**
      * Create a Access database with a PDO connection
@@ -191,7 +199,7 @@ class Database
          * @psalm-suppress UnsafeInstantiation */
         $repository = new $repositoryClassName($this, $klass);
 
-        return $repository;
+        return $repository->withIncludeSoftDeleted($this->includeSoftDeletedFilter);
     }
 
     /**
@@ -297,19 +305,25 @@ class Database
         EntityProvider $entityProvider,
         Query\Select $query,
     ): \Generator {
-        $stmt = new Statement($this, $this->profiler, $query);
+        $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
-        /** @var array<string, mixed> $record */
-        foreach ($stmt->execute() as $record) {
-            $model = $entityProvider->create();
-            $model->hydrate($record);
+        try {
+            $stmt = new Statement($this, $this->profiler, $query);
 
-            // not every model has an ID
-            if ($model->hasId()) {
-                yield $model->getId() => $model;
-            } else {
-                yield null => $model;
+            /** @var array<string, mixed> $record */
+            foreach ($stmt->execute() as $record) {
+                $model = $entityProvider->create();
+                $model->hydrate($record);
+
+                // not every model has an ID
+                if ($model->hasId()) {
+                    yield $model->getId() => $model;
+                } else {
+                    yield null => $model;
+                }
             }
+        } finally {
+            $query->setIncludeSoftDeleted($oldIncludeSoftDeleted);
         }
     }
 
@@ -522,11 +536,17 @@ class Database
             );
         }
 
-        $stmt = new Statement($this, $this->profiler, $query);
-        $gen = $stmt->execute();
+        $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
-        // consume generator
-        $gen->getReturn();
+        try {
+            $stmt = new Statement($this, $this->profiler, $query);
+            $gen = $stmt->execute();
+
+            // consume generator
+            $gen->getReturn();
+        } finally {
+            $query->setIncludeSoftDeleted($oldIncludeSoftDeleted);
+        }
     }
 
     /**
@@ -596,6 +616,25 @@ class Database
     public function now(): DateTimeImmutable
     {
         return $this->clock->now();
+    }
+
+    /**
+     * Create database instance with a different includeSoftDeleted setting
+     *
+     * All queries/join that are used by this query will also include soft deleted
+     *
+     * Initially set to `null`, will follow the setting of the query
+     *
+     * @return static Version of the database instance with the new setting
+     */
+    public function withIncludeSoftDeleted(bool $includeSoftDeleted): static
+    {
+        $self = clone $this;
+        $self->includeSoftDeletedFilter = $includeSoftDeleted
+            ? IncludeSoftDeletedFilter::Include
+            : IncludeSoftDeletedFilter::Exclude;
+
+        return $self;
     }
 
     /**
