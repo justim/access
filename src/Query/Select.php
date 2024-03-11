@@ -124,6 +124,8 @@ class Select extends Query
             $escapedAlias = self::escapeIdentifier($alias);
 
             if ($value instanceof self) {
+                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted($this->includeSoftDeleted);
+
                 $subSql = preg_replace(
                     '/:(([a-z][0-9]+)+)/',
                     ':' . self::PREFIX_SUBQUERY_VIRTUAL . $i . '$1',
@@ -132,6 +134,8 @@ class Select extends Query
 
                 $sql .= ", ($subSql) AS $escapedAlias";
                 $i++;
+
+                $value->setIncludeSoftDeleted($oldIncludeSoftDeleted);
             } else {
                 $sql .= ", $value AS $escapedAlias";
             }
@@ -153,6 +157,8 @@ class Select extends Query
 
         foreach ($this->virtualFields as $value) {
             if ($value instanceof self) {
+                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted($this->includeSoftDeleted);
+
                 /** @var mixed $nestedValue */
                 foreach ($value->getValues() as $nestedIndex => $nestedValue) {
                     $doubleNestedIndex = self::PREFIX_SUBQUERY_VIRTUAL . $i . $nestedIndex;
@@ -162,6 +168,8 @@ class Select extends Query
                 }
 
                 $i++;
+
+                $value->setIncludeSoftDeleted($oldIncludeSoftDeleted);
             }
         }
 

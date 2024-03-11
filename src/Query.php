@@ -87,7 +87,13 @@ abstract class Query
     protected ?int $offset = null;
 
     /**
-     * @psalm-var array<array-key, array{type: string, tableName: string, alias: string, on: ConditionInterface[]}>
+     * @psalm-var array<array-key, array{
+     *  type: string,
+     *  tableName: string,
+     *  alias: string,
+     *  on: ConditionInterface[],
+     *  softDeleteCondition: IsNull|null,
+     * }>
      * @var array
      */
     protected array $joins = [];
@@ -108,6 +114,20 @@ abstract class Query
     protected ?string $orderBy = null;
 
     /**
+     * Condition to exclude soft deleted items
+     *
+     * Only filled when the entity is soft deleted
+     */
+    private ?IsNull $softDeleteCondition = null;
+
+    /**
+     * Include soft deleted items in the query
+     *
+     * @var bool
+     */
+    protected bool $includeSoftDeleted = false;
+
+    /**
      * Create a query
      *
      * @param string $tableName Name of the table (or name of entity class)
@@ -126,11 +146,9 @@ abstract class Query
                  * @psalm-suppress RiskyTruthyFalsyComparison
                  */
                 $tableIdentifier = $alias ?: $this->tableName;
-                $deletedAtCondition = new IsNull(
+                $this->softDeleteCondition = new IsNull(
                     sprintf('%s.%s', $tableIdentifier, Entity::DELETED_AT_FIELD),
                 );
-
-                $this->where($deletedAtCondition);
             }
         }
 
@@ -222,11 +240,12 @@ abstract class Query
         array|string|ConditionInterface $on,
     ): static {
         $onClause = [];
+        $softDeleteCondition = null;
 
         if (is_subclass_of($tableName, Entity::class)) {
             if ($tableName::isSoftDeletable()) {
                 $tableIdentifier = $alias ?: $tableName::tableName();
-                $onClause[] = new IsNull(
+                $softDeleteCondition = new IsNull(
                     sprintf('%s.%s', $tableIdentifier, Entity::DELETED_AT_FIELD),
                 );
             }
@@ -241,6 +260,7 @@ abstract class Query
             'tableName' => $tableName,
             'alias' => $alias,
             'on' => $onClause,
+            'softDeleteCondition' => $softDeleteCondition,
         ];
 
         return $this;
@@ -388,14 +408,21 @@ abstract class Query
         }
 
         foreach ($this->joins as $i => $join) {
+            $joinConditions = $this->preprocessConditions(
+                $join['on'],
+                $join['softDeleteCondition'],
+            );
+
             $this->getConditionValues(
                 $indexedValues,
-                $join['on'],
+                $joinConditions,
                 self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
             );
         }
 
-        $this->getConditionValues($indexedValues, $this->where, self::PREFIX_WHERE);
+        $where = $this->preprocessConditions($this->where, $this->softDeleteCondition);
+
+        $this->getConditionValues($indexedValues, $where, self::PREFIX_WHERE);
         $this->getConditionValues($indexedValues, $this->having, self::PREFIX_HAVING);
 
         return $indexedValues;
@@ -514,9 +541,14 @@ abstract class Query
                     break;
             }
 
+            $joinConditions = $this->preprocessConditions(
+                $join['on'],
+                $join['softDeleteCondition'],
+            );
+
             $onSql = $this->getConditionSql(
                 'ON',
-                $join['on'],
+                $joinConditions,
                 self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
             );
 
@@ -542,7 +574,9 @@ abstract class Query
      */
     protected function getWhereSql(): string
     {
-        return $this->getConditionSql('WHERE', $this->where, self::PREFIX_WHERE);
+        $where = $this->preprocessConditions($this->where, $this->softDeleteCondition);
+
+        return $this->getConditionSql('WHERE', $where, self::PREFIX_WHERE);
     }
 
     /**
@@ -742,5 +776,36 @@ abstract class Query
         }
 
         return $result;
+    }
+
+    /**
+     * @param ConditionInterface[] $conditions
+     * @return ConditionInterface[]
+     */
+    private function preprocessConditions(array $conditions, ?IsNull $softDeleteCondition): array
+    {
+        $conditions_ = [];
+
+        if ($softDeleteCondition !== null && !$this->includeSoftDeleted) {
+            $conditions_[] = $softDeleteCondition;
+        }
+
+        array_push($conditions_, ...$conditions);
+
+        return $conditions_;
+    }
+
+    /**
+     * Set include soft deleted items in the query
+     *
+     * All queries/join that are used by this query will also include soft deleted
+     *
+     * @return bool The old value
+     */
+    public function setIncludeSoftDeleted(bool $includeSoftDeleted): bool
+    {
+        $oldValue = $this->includeSoftDeleted;
+        $this->includeSoftDeleted = $includeSoftDeleted;
+        return $oldValue;
     }
 }
