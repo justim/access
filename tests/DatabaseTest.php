@@ -302,4 +302,26 @@ class DatabaseTest extends AbstractBaseTestCase
 
         $db->softDelete($project);
     }
+
+    public function testWithIncludeSoftDeleted(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        // user exists in the database
+        $user = $db->findOne(User::class, 1);
+        $this->assertNotNull($user);
+
+        $db->softDelete($user);
+
+        // user is soft deleted
+        $user = $db->findOne(User::class, 1);
+        $this->assertNull($user);
+
+        // create a new database instance with include soft deleted
+        $db = $db->withIncludeSoftDeleted(true);
+
+        // the user is findable again
+        $user = $db->findOne(User::class, 1);
+        $this->assertNotNull($user);
+    }
 }
