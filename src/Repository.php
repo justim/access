@@ -26,6 +26,7 @@ use Access\Query;
 use Access\Query\Cursor\CurrentIdsCursor;
 use Access\Query\Cursor\Cursor;
 use Access\Query\Cursor\PageCursor;
+use Access\Query\IncludeSoftDeletedFilter;
 use DateTimeImmutable;
 
 /**
@@ -49,6 +50,13 @@ class Repository
      * @var string Entity class name
      */
     private string $klass;
+
+    /**
+     * Include soft deleted items in the query
+     *
+     * Initially set to `Auto`, will follow the setting of the query
+     */
+    private IncludeSoftDeletedFilter $includeSoftDeletedFilter = IncludeSoftDeletedFilter::Auto;
 
     /**
      * Create a entity repository
@@ -127,7 +135,7 @@ class Repository
             $query->limit($limit);
         }
 
-        yield from $this->db->select($this->klass, $query);
+        yield from $this->select($query);
     }
 
     /**
@@ -201,7 +209,7 @@ class Repository
             $query->limit($limit);
         }
 
-        yield from $this->db->select($this->klass, $query);
+        yield from $this->select($query);
     }
 
     /**
@@ -232,7 +240,13 @@ class Repository
      */
     public function select(Query\Select $query): \Generator
     {
-        yield from $this->db->select($this->klass, $query);
+        $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
+
+        try {
+            yield from $this->db->select($this->klass, $query);
+        } finally {
+            $query->setIncludeSoftDeleted($oldIncludeSoftDeleted);
+        }
     }
 
     /**
@@ -244,7 +258,13 @@ class Repository
      */
     public function selectOne(Query\Select $query): ?Entity
     {
-        return $this->db->selectOne($this->klass, $query);
+        $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
+
+        try {
+            return $this->db->selectOne($this->klass, $query);
+        } finally {
+            $query->setIncludeSoftDeleted($oldIncludeSoftDeleted);
+        }
     }
 
     /**
@@ -471,13 +491,19 @@ class Repository
         string $virtualFieldName,
         string $virtualType = null,
     ): \Generator {
-        $entityProvider = new VirtualFieldEntityProvider($virtualFieldName, $virtualType);
+        $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
-        $entities = $this->db->selectWithEntityProvider($entityProvider, $query);
+        try {
+            $entityProvider = new VirtualFieldEntityProvider($virtualFieldName, $virtualType);
 
-        /** @var VirtualFieldEntity $entity */
-        foreach ($entities as $id => $entity) {
-            yield $id => $entity->getVirtualField();
+            $entities = $this->db->selectWithEntityProvider($entityProvider, $query);
+
+            /** @var VirtualFieldEntity $entity */
+            foreach ($entities as $id => $entity) {
+                yield $id => $entity->getVirtualField();
+            }
+        } finally {
+            $query->setIncludeSoftDeleted($oldIncludeSoftDeleted);
         }
     }
 
@@ -523,10 +549,16 @@ class Repository
         Query\Select $query,
         EntityProvider $entityProvider,
     ): \Generator {
-        $entities = $this->db->selectWithEntityProvider($entityProvider, $query);
+        $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
-        foreach ($entities as $id => $entity) {
-            yield $id => $entity;
+        try {
+            $entities = $this->db->selectWithEntityProvider($entityProvider, $query);
+
+            foreach ($entities as $id => $entity) {
+                yield $id => $entity;
+            }
+        } finally {
+            $query->setIncludeSoftDeleted($oldIncludeSoftDeleted);
         }
     }
 
@@ -583,7 +615,13 @@ class Repository
      */
     protected function query(Query $query): void
     {
-        $this->db->query($query);
+        $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
+
+        try {
+            $this->db->query($query);
+        } finally {
+            $query->setIncludeSoftDeleted($oldIncludeSoftDeleted);
+        }
     }
 
     /**
@@ -592,5 +630,24 @@ class Repository
     protected function now(): DateTimeImmutable
     {
         return $this->db->now();
+    }
+
+    /**
+     * Create repository with a different includeSoftDeleted setting
+     *
+     * All queries/join that are used by this query will also include soft deleted
+     *
+     * Initially set to `null`, will follow the setting of the query
+     *
+     * @return static Version of the repository with the new setting
+     */
+    public function withIncludeSoftDeleted(bool $includeSoftDeleted): static
+    {
+        $self = clone $this;
+        $self->includeSoftDeletedFilter = $includeSoftDeleted
+            ? IncludeSoftDeletedFilter::Include
+            : IncludeSoftDeletedFilter::Exclude;
+
+        return $self;
     }
 }
