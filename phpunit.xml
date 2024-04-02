@@ -1,10 +1,6 @@
 <?xml version="1.0"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="vendor/autoload.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">src</directory>
-        </include>
-
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="vendor/autoload.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd" cacheDirectory=".phpunit.cache">
+    <coverage>
         <report>
             <clover outputFile="build/logs/clover.xml"/>
             <html outputDirectory="build/logs/browser.html"/>
@@ -18,4 +14,10 @@
     </testsuites>
 
     <logging/>
+
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </source>
 </phpunit>
