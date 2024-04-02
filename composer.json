@@ -18,7 +18,7 @@
         "php-coveralls/php-coveralls": "^2.7",
         "phpbench/phpbench": "^1.2",
         "vimeo/psalm": "^5.23",
-        "symfony/var-dumper": "^7.0",
+        "symfony/var-dumper": "^6.4",
         "psalm/plugin-phpunit": "^0.19.0"
     },
     "autoload-dev": {
