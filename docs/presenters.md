@@ -4,8 +4,8 @@ title: Presenters
 slug: /presenters
 ---
 
-Presenters are Access' way to serialize entities and collection to something you
-can send over the wire with `json_encode`. To be more specific, it converts
+Presenters are Access' way to serialize entities and collections to something
+you can send over the wire with `json_encode`. To be more specific, it converts
 entities to `array`s and because collections are basically lists of entities,
 those get converted to `array`s of `array`s.
 
@@ -18,9 +18,10 @@ including, but not limited to, solving the `n+1` problem for nested entities.
 
 ## Simple entity presenter
 
-To start simple you need to create a class that extends the `EntityPresenter`,
-and implement two methods. One to tell which entity is associated with this
-presenter (`getEntityKlass`) and the other to do the converting (`fromEntity`).
+To start simples, you need to create a class that extends the `EntityPresenter`,
+and implement two methods. One method to tell which entity is associated with
+this presenter (`getEntityKlass`) and the other to do the converting
+(`fromEntity`).
 
 ```php
 use Access\Presenter\EntityPresenter;
@@ -47,7 +48,7 @@ class UserPresenter extends EntityPresenter
 }
 ```
 
-To use this presenter you need the [`Access\Database`](database) instance and
+To use this presenter you need an instance of [`Access\Database`](database) and
 call `presentEntity`.
 
 ```php
@@ -98,11 +99,11 @@ $result = $db->presentCollection(UserPresenter::class, $users);
 To make things more interesting, we need create another presenter, this time for
 the `Project` entity. This `ProjectPresenter` presenter references another
 presenter by using `present()`, you need to provide the presenter you want to
-use for your field and the ID of the entity. Calling the `present` method does
-not really do anything, it merely saves the needed information and "marks" the
-location in the result. The presenter will then lookup all the "markers", fetch
-the needed entities in a single query and resolve all the markers with the
-result of entity presenter.
+use for your field and the ID of the entity. Calling the `present` method by
+itself does not really do anything, it merely saves the needed information and
+"marks" the location in the result. The presenter will then lookup all the
+"markers", fetch the needed entities in a single query and resolve all the
+markers with the result of entity presenter.
 
 ```php
 use Access\Presenter\EntityPresenter;
@@ -143,8 +144,8 @@ $result = $db->presentEntity(ProjectPresenter::class, $project);
 ```
 
 The underlying presenter fetches the needed `User` entity based on the mark left
-my `present`. This case it is obvious that done with a single query, but this
-scales to using this entity presenter for collections as well.
+my `present`. In this case it is obvious that it's done with a single query,
+but this scales to using this entity presenter for collections as well.
 
 ```php
 // get a list of projects from somewhere
@@ -171,12 +172,12 @@ $result = $db->presentCollection(ProjectPresenter::class, $projects);
 ```
 
 This is also done with a single query; all the marks are collected, then the
-entities are fetched in one go and after that the markers are replaced with the
-result of the `fromEntity` of the associated entity presenter. It is possible
-that that result also contains a bunch of marker, like the profile image of the
-owner, for example. The presenter will keep resolving the markers for as long as
-the are there. Adding a profile image from another entity presenter would only
-increase the number of queries with one.
+entities are fetched in one go, and after that the markers are replaced with
+the result of the `fromEntity` of the associated entity presenter. It is
+possible that the result also contains a bunch of markers, like the profile
+image of the owner, for example. The presenter will keep resolving the markers
+for as long as there are any in the result. Adding a profile image from another
+entity presenter would only increase the number of queries with one.
 
 Of course `present` is a little bit limited, it only works for `has-one`
 relations. The `EntityPresenter` provides a bunch more methods to resolve more
@@ -242,9 +243,9 @@ $result = $db->presentEntity(UserWithProjectsPresenter::class, $user);
 ```
 
 As you can see the `owner` field of the project is also filled, as that entity
-presenter uses `UserPresenter`. This feature is very powerfu, you can easily
+presenter uses `UserPresenter`. This feature is very powerful, you can easily
 create more complex entity presenters by composing them together. Keep in mind,
-though, to prevent circular entity presenters. This will throw an exception.
+though, prevent circular entity presenters. This will throw an exception.
 
 :::note Avoid circular entity presenters
 This will completely blow up with an `Access\Exception`.
@@ -306,6 +307,8 @@ themselves.
 -   `Access\Clauses\Condition\LessThen`
 -   `Access\Clauses\Condition\LessThanOrEquals`
 -   `Access\Clauses\Condition\NotEquals`
+-   `Access\Clauses\Condition\In`
+-   `Access\Clauses\Condition\NotIn`
 
 ### Ordering clauses
 
@@ -337,10 +340,11 @@ class UserWithOrderedProjectsPresenter extends EntityPresenter
 }
 ```
 
-There are only two order by clauses:
+There are only three order by clauses:
 
 -   `Access\Clause\OrderBy\Ascending`
 -   `Access\Clause\OrderBy\Descending`
+-   `Access\Clause\OrderBy\Random`
 
 ### Multiple clauses
 
@@ -373,7 +377,7 @@ class UserWithOrderedPublishedProjectsPresenter extends EntityPresenter
                 UserPresenter::class, // entity presenter
                 'owner_id', // field name linking the user to the projects
                 $user->getId(), // value of the field
-                new Clause\Multiple()
+                new Clause\Multiple(
                     new Clause\Condition\Equals('status', 'PUBLISHED'),
                     new Clause\OrderBy\Ascending('name'),
                 ),
@@ -388,10 +392,10 @@ class UserWithOrderedPublishedProjectsPresenter extends EntityPresenter
 ### Dependency injection
 
 Sometimes you need a bit more information than just the entity you are
-converting, like some service to generate URLs. The presenter functions like a
+converting, like some service to generate URLs. The presenter behaves like a
 rudimentary dependency container. First you need access to the `Presenter` that
 is used for the actual presenting, so far we've only looked at the shortcuts to
-skip creating a `Presenter`. To get an presenter you can just call
+skip creating a `Presenter`. To get a presenter you can just call
 `createPresenter` on the [database](database) instance.
 
 ```php
@@ -416,7 +420,7 @@ $presenter = $db->createPresenter();
 $presenter->addDependency($urlService);
 ```
 
-Now your presenter a reference to the URL service, but on its own nothing
+Now your presenter has a reference to the URL service, but on its own nothing
 happens. We need a way for the entity presenters to access this dependency.
 Dependencies are injected into the constructor of the entity presenter and are
 matched on type.
@@ -445,11 +449,11 @@ class UserWithExternalUrlPresenter extends EntityPresenter
 }
 ```
 
-Dependencies are only injected into entity presenters with an constructor and
-the order of dependencies does not matter. And your entity can also mark the
-dependency as optional with a default value for the constructor argument.
-Otherwise the presenter will throw an exception when a dependency is not
-available.
+Dependencies are only injected into entity presenters with a constructor and
+the order of dependencies does not matter. And your entity presenter can also
+mark the dependency as optional with a default value for the constructor
+argument. Otherwise the presenter will throw an exception when a dependency is
+not available.
 
 ### Providing collections
 
@@ -472,10 +476,10 @@ $presenter->provideCollection(User::class, $users);
 $result = $presenter->presentEntity(ProjectPresenter::class, $project);
 ```
 
-This will _not_ does additional queries to fetch the user needed for the owner
+This will _not_ do additional queries to fetch the user needed for the owner
 marker in the `ProjectPresenter` entity presenter. Unless, of course, the
-specific user is not available in the collection; in that case an addition query
-will be executed.
+specific user is not available in the collection; in that case an addition
+query will be executed.
 
 ## Custom markers
 
