@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Clause\Condition;
 
+use Access\Clause\Field;
+
 /**
  * Field must _not_ be null
  *
@@ -23,9 +25,9 @@ class IsNotNull extends Condition
     /**
      * Create not null condition
      *
-     * @param string $fieldName Name of the field to compare
+     * @param string|Field $fieldName Name of the field to compare
      */
-    public function __construct(string $fieldName)
+    public function __construct(string|Field $fieldName)
     {
         parent::__construct($fieldName, self::KIND_NOT_EQUALS, null);
     }

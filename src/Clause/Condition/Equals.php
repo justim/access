@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Clause\Condition;
 
+use Access\Clause\Field;
+
 /**
  * Field must be equal to value
  *
@@ -23,10 +25,10 @@ class Equals extends Condition
     /**
      * Create equal condition
      *
-     * @param string $fieldName Name of the field to compare
+     * @param string|Field $fieldName Name of the field to compare
      * @param mixed $value Value to compare
      */
-    public function __construct(string $fieldName, mixed $value)
+    public function __construct(string|Field $fieldName, mixed $value)
     {
         parent::__construct($fieldName, self::KIND_EQUALS, $value);
     }

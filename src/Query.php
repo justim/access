@@ -695,12 +695,16 @@ abstract class Query
      *
      * MySQL only
      *
-     * @param string $identifier Identifier to escape
+     * @param string|Field $identifier Identifier to escape
      * @return string
      * @internal
      */
-    public static function escapeIdentifier(string $identifier): string
+    public static function escapeIdentifier(string|Field $identifier): string
     {
+        if ($identifier instanceof Field) {
+            $identifier = $identifier->getName();
+        }
+
         return str_replace('.', '`.`', sprintf('`%s`', str_replace('`', '``', $identifier)));
     }
 

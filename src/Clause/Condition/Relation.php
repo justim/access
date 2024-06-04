@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Clause\Condition;
 
+use Access\Clause\Field;
+
 /**
  * Positive relation between two fields
  *
@@ -23,10 +25,10 @@ class Relation extends Condition
     /**
      * Create raw condition
      *
-     * @param string $fieldNameOne Field name to compare
-     * @param string $fieldNameTwo Field name to compare with
+     * @param string|Field $fieldNameOne Field name to compare
+     * @param string|Field $fieldNameTwo Field name to compare with
      */
-    public function __construct(string $fieldNameOne, string $fieldNameTwo)
+    public function __construct(string|Field $fieldNameOne, string|Field $fieldNameTwo)
     {
         parent::__construct($fieldNameOne, self::KIND_RELATION, $fieldNameTwo);
     }

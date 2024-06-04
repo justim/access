@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Clause\Condition;
 
+use Access\Clause\Field;
+
 /**
  * Field must be in the list of values
  *
@@ -23,10 +25,10 @@ class In extends Condition
     /**
      * Create equal condition
      *
-     * @param string $fieldName Name of the field to compare
+     * @param string|Field $fieldName Name of the field to compare
      * @param iterable<mixed> $values List of values
      */
-    public function __construct(string $fieldName, iterable $values)
+    public function __construct(string|Field $fieldName, iterable $values)
     {
         parent::__construct($fieldName, self::KIND_IN, $values);
     }

@@ -231,11 +231,7 @@ abstract class Condition implements ConditionInterface
                 $condition = '1 = 2';
             }
         } elseif ($this->value instanceof Field) {
-            $condition = str_replace(
-                '?',
-                Query::escapeIdentifier($this->value->getName()),
-                $condition,
-            );
+            $condition = str_replace('?', Query::escapeIdentifier($this->value), $condition);
         }
 
         return $condition;
