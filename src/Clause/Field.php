@@ -40,4 +40,16 @@ class Field
     {
         return $this->name;
     }
+
+    /**
+     * Add the table name to the field name if it doesn't already have it
+     */
+    public function maybeAddTableName(string $tableName): void
+    {
+        if (str_contains($this->name, '.')) {
+            return;
+        }
+
+        $this->name = $tableName . '.' . $this->name;
+    }
 }

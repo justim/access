@@ -233,6 +233,37 @@ $query->applyCursor($cursor);
 // SELECT `users`.* FROM `users` ORDER BY id ASC LIMIT 10 OFFSET 20
 ```
 
+A more efficient way to offset the records is to order the query in a
+consistent way and offset on that field with a minimum or maximum value.
+
+```php
+use Access\Query\Select;
+use Access\Query\Cursor\MaxValueCursor;
+
+$cursor = new MaxValueCursor(3, 'id', 10); // defaults are `null`, `'id'` and 50
+
+$query = new Select(User::class);
+$query->orderBy('id ASC');
+$query->applyCursor($cursor);
+
+// SELECT `users`.* FROM `users` WHERE `users`.`id` > 3 ORDER BY id ASC LIMIT 10
+```
+
+The same can be done in the other direction, with a descending order.
+
+```php
+use Access\Query\Select;
+use Access\Query\Cursor\MinValueCursor;
+
+$cursor = new MinValueCursor(3, 'id', 10); // defaults are `null`, `'id'` and 50
+
+$query = new Select(User::class);
+$query->orderBy('id DESC'); // the other direction
+$query->applyCursor($cursor);
+
+// SELECT `users`.* FROM `users` WHERE `users`.`id` < 3 ORDER BY id DESC LIMIT 10
+```
+
 Using a simple limit/offset does not work in all cases, for example when your
 list changes a lot and records would appear on a different page then when you
 requested the page. A solution for this is to ask for the next number of

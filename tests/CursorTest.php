@@ -20,6 +20,8 @@ use Access\Query\Select;
 use Tests\AbstractBaseTestCase;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Repository\ProjectRepository;
+use Access\Query\Cursor\MaxValueCursor;
+use Access\Query\Cursor\MinValueCursor;
 
 class CursorTest extends AbstractBaseTestCase
 {
@@ -251,5 +253,71 @@ class CursorTest extends AbstractBaseTestCase
 
         // all queries should be used
         $this->assertCount(0, $expectedQueries);
+    }
+
+    public function testMinValueCursor(): void
+    {
+        $query = new Select(Project::class);
+        $query->orderBy('id DESC');
+
+        $cursor = new MinValueCursor(field: 'projects.id');
+        $query->applyCursor($cursor);
+
+        $this->assertEquals(PageCursor::DEFAULT_PAGE_SIZE, $cursor->getPageSize());
+
+        $this->assertEquals(
+            'SELECT `projects`.* FROM `projects` ORDER BY id DESC LIMIT 50',
+            $query->getSql(),
+        );
+
+        $this->assertEquals([], $query->getValues());
+
+        $pageSize = 20;
+
+        $cursor->setOffset(3);
+        $cursor->setPageSize($pageSize);
+        $query->applyCursor($cursor);
+
+        $this->assertEquals($pageSize, $cursor->getPageSize());
+
+        $this->assertEquals(
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` < :w0 ORDER BY id DESC LIMIT 20',
+            $query->getSql(),
+        );
+
+        $this->assertEquals(['w0' => 3], $query->getValues());
+    }
+
+    public function testMaxValueCursor(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->orderBy('id ASC');
+
+        $cursor = new MaxValueCursor();
+        $query->applyCursor($cursor);
+
+        $this->assertEquals(PageCursor::DEFAULT_PAGE_SIZE, $cursor->getPageSize());
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` ORDER BY id ASC LIMIT 50',
+            $query->getSql(),
+        );
+
+        $this->assertEquals([], $query->getValues());
+
+        $pageSize = 20;
+
+        $cursor->setOffset(3);
+        $cursor->setPageSize($pageSize);
+        $query->applyCursor($cursor);
+
+        $this->assertEquals($pageSize, $cursor->getPageSize());
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` WHERE `p`.`id` > :w0 ORDER BY id ASC LIMIT 20',
+            $query->getSql(),
+        );
+
+        $this->assertEquals(['w0' => 3], $query->getValues());
     }
 }
