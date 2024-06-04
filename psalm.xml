@@ -30,6 +30,9 @@
                 <directory name="tests" />
             </errorLevel>
         </RedundantCondition>
+
+        <!-- overly zealous -->
+        <RiskyTruthyFalsyComparison errorLevel="suppress"/>
     </issueHandlers>
 
     <plugins>
