@@ -25,6 +25,8 @@ use Access\EntityProvider\VirtualFieldEntityProvider;
 use Access\Query;
 use Access\Query\Cursor\CurrentIdsCursor;
 use Access\Query\Cursor\Cursor;
+use Access\Query\Cursor\MaxValueCursor;
+use Access\Query\Cursor\MinValueCursor;
 use Access\Query\Cursor\PageCursor;
 use Access\Query\IncludeSoftDeletedFilter;
 use DateTimeImmutable;
@@ -385,6 +387,126 @@ class Repository
     ): \Generator {
         $cursor = new CurrentIdsCursor([], $pageSize);
         $entities = $this->selectCurrentIdsCursor($query, $cursor);
+
+        yield from $this->selectBatchedCursor($entities, $cursor->getPageSize());
+    }
+
+    /**
+     * Execute a select query in a paginated fashion
+     *
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param int|MinValueCursor|null $pageSize Size of the pages (or a predifined cursor)
+     * @return \Generator - yields Entity
+     */
+    public function selectMinValueCursor(
+        Query\Select $query,
+        int|MinValueCursor|null $pageSize = null,
+    ): \Generator {
+        if ($pageSize instanceof MinValueCursor) {
+            $cursor = $pageSize;
+        } else {
+            $cursor = new MinValueCursor(pageSize: $pageSize);
+        }
+
+        yield from $this->selectCursor(
+            $query,
+            $cursor,
+            /**
+             * @param int[] $entityIds
+             */
+            function (MinValueCursor $cursor, array $entityIds): void {
+                if (empty($entityIds)) {
+                    // the cursor is empty, we are done
+                    return;
+                }
+
+                $cursor->setOffset(min([...$entityIds]));
+            },
+        );
+    }
+
+    /**
+     * Execute a select query in a paginated fashion (batched)
+     *
+     * @psalm-return \Generator<int, Batch<TEntity>, mixed, void> - yields Batches
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param int|MinValueCursor|null $pageSize Size of the pages (or a predifined cursor)
+     * @return \Generator - yields Entity
+     */
+    public function selectBatchedMinValueCursor(
+        Query\Select $query,
+        int|MinValueCursor|null $pageSize = null,
+    ): \Generator {
+        if ($pageSize instanceof MinValueCursor) {
+            $cursor = $pageSize;
+        } else {
+            $cursor = new MinValueCursor(pageSize: $pageSize);
+        }
+
+        $entities = $this->selectMinValueCursor($query, $cursor);
+
+        yield from $this->selectBatchedCursor($entities, $cursor->getPageSize());
+    }
+
+    /**
+     * Execute a select query in a paginated fashion
+     *
+     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param int|MaxValueCursor|null $pageSize Size of the pages (or a predifined cursor)
+     * @return \Generator - yields Entity
+     */
+    public function selectMaxValueCursor(
+        Query\Select $query,
+        int|MaxValueCursor|null $pageSize = null,
+    ): \Generator {
+        if ($pageSize instanceof MaxValueCursor) {
+            $cursor = $pageSize;
+        } else {
+            $cursor = new MaxValueCursor(pageSize: $pageSize);
+        }
+
+        yield from $this->selectCursor(
+            $query,
+            $cursor,
+            /**
+             * @param int[] $entityIds
+             */
+            function (MaxValueCursor $cursor, array $entityIds): void {
+                if (empty($entityIds)) {
+                    // the cursor is empty, we are done
+                    return;
+                }
+
+                $cursor->setOffset(max([...$entityIds]));
+            },
+        );
+    }
+
+    /**
+     * Execute a select query in a paginated fashion (batched)
+     *
+     * @psalm-return \Generator<int, Batch<TEntity>, mixed, void> - yields Batches
+     *
+     * @param Query\Select $query Select query to be executed
+     * @param int|MaxValueCursor|null $pageSize Size of the pages (or a predifined cursor)
+     * @return \Generator - yields Entity
+     */
+    public function selectBatchedMaxValueCursor(
+        Query\Select $query,
+        int|MaxValueCursor|null $pageSize = null,
+    ): \Generator {
+        if ($pageSize instanceof MaxValueCursor) {
+            $cursor = $pageSize;
+        } else {
+            $cursor = new MaxValueCursor(pageSize: $pageSize);
+        }
+
+        $entities = $this->selectMaxValueCursor($query, $cursor);
 
         yield from $this->selectBatchedCursor($entities, $cursor->getPageSize());
     }

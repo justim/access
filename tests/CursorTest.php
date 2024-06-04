@@ -320,4 +320,106 @@ class CursorTest extends AbstractBaseTestCase
 
         $this->assertEquals(['w0' => 3], $query->getValues());
     }
+
+    public function testBatchedMinValueCursor(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $profiler = $db->getProfiler();
+        $profiler->clear();
+
+        $query = new Select(Project::class);
+        $query->orderBy('id DESC');
+
+        $projects = $projectRepo->selectBatchedMinValueCursor($query, 1);
+
+        $batchCount = 0;
+        $projectCount = 0;
+
+        foreach ($projects as $batch) {
+            $this->assertInstanceOf(Batch::class, $batch);
+
+            $batchCount++;
+
+            foreach ($batch as $project) {
+                $this->assertInstanceOf(Project::class, $project);
+
+                $projectCount++;
+            }
+        }
+
+        $this->assertEquals(2, $batchCount);
+        $this->assertEquals(2, $projectCount);
+
+        $expectedQueries = [
+            'SELECT `projects`.* FROM `projects` ORDER BY id DESC LIMIT 1',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` < :w0 ORDER BY id DESC LIMIT 1',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` < :w0 ORDER BY id DESC LIMIT 1',
+        ];
+
+        $expectedValues = [[], ['w0' => 2], ['w0' => 1]];
+
+        foreach ($profiler->export()['queries'] as $query) {
+            $this->assertEquals($query['sql'], array_shift($expectedQueries));
+            $this->assertEquals($query['values'], array_shift($expectedValues));
+        }
+
+        // all queries should be used
+        $this->assertCount(0, $expectedQueries);
+        $this->assertCount(0, $expectedValues);
+    }
+
+    public function testBatchedMaxValueCursor(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+
+        $profiler = $db->getProfiler();
+        $profiler->clear();
+
+        $query = new Select(Project::class);
+        $query->orderBy('id ASC');
+
+        $projects = $projectRepo->selectBatchedMaxValueCursor($query, 1);
+
+        $batchCount = 0;
+        $projectCount = 0;
+
+        foreach ($projects as $batch) {
+            $this->assertInstanceOf(Batch::class, $batch);
+
+            $batchCount++;
+
+            foreach ($batch as $project) {
+                $this->assertInstanceOf(Project::class, $project);
+
+                $projectCount++;
+            }
+        }
+
+        $this->assertEquals(2, $batchCount);
+        $this->assertEquals(2, $projectCount);
+
+        $expectedQueries = [
+            'SELECT `projects`.* FROM `projects` ORDER BY id ASC LIMIT 1',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` > :w0 ORDER BY id ASC LIMIT 1',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` > :w0 ORDER BY id ASC LIMIT 1',
+        ];
+
+        $expectedValues = [[], ['w0' => 1], ['w0' => 2]];
+
+        foreach ($profiler->export()['queries'] as $query) {
+            $this->assertEquals($query['sql'], array_shift($expectedQueries));
+            $this->assertEquals($query['values'], array_shift($expectedValues));
+        }
+
+        // all queries should be used
+        $this->assertCount(0, $expectedQueries);
+        $this->assertCount(0, $expectedValues);
+    }
 }
