@@ -304,7 +304,7 @@ class Repository
      * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
      *
      * @param Query\Select $query Select query to be executed
-     * @param int|PageCursor|null $pageSize Size of the pages (or a predifined cursor, will reset cursor)
+     * @param int|PageCursor|null $pageSize Size of the pages (or a predifined cursor)
      * @return \Generator - yields Entity
      */
     public function selectPaginated(
@@ -313,7 +313,6 @@ class Repository
     ): \Generator {
         if ($pageSize instanceof PageCursor) {
             $cursor = $pageSize;
-            $cursor->setPage(1);
         } else {
             $cursor = new PageCursor(1, $pageSize);
         }
@@ -346,7 +345,7 @@ class Repository
      * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
      *
      * @param Query\Select $query Select query to be executed
-     * @param int|CurrentIdsCursor|null $pageSize Size of the pages (or a predifined cursor, will reset cursor)
+     * @param int|CurrentIdsCursor|null $pageSize Size of the pages (or a predifined cursor)
      * @return \Generator - yields Entity
      */
     public function selectCurrentIdsCursor(
@@ -355,7 +354,6 @@ class Repository
     ): \Generator {
         if ($pageSize instanceof CurrentIdsCursor) {
             $cursor = $pageSize;
-            $cursor->setCurrentIds([]);
         } else {
             $cursor = new CurrentIdsCursor([], $pageSize);
         }
