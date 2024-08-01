@@ -59,13 +59,13 @@ class CursorTest extends AbstractBaseTestCase
     public function testCurrentIdsCursor(): void
     {
         $query = new Select(Project::class);
-        $query->orderBy('RAND()');
+        $query->orderBy('RANDOM()');
 
         $cursor = new CurrentIdsCursor();
         $query->applyCursor($cursor);
 
         $this->assertEquals(
-            'SELECT `projects`.* FROM `projects` ORDER BY RAND() LIMIT 50',
+            'SELECT `projects`.* FROM `projects` ORDER BY RANDOM() LIMIT 50',
             $query->getSql(),
         );
 
@@ -76,7 +76,7 @@ class CursorTest extends AbstractBaseTestCase
         $query->applyCursor($cursor);
 
         $this->assertEquals(
-            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0, :w1) ORDER BY RAND() LIMIT 50',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0, :w1) ORDER BY RANDOM() LIMIT 50',
             $query->getSql(),
         );
 

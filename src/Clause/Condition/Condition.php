@@ -88,6 +88,14 @@ abstract class Condition implements ConditionInterface
     }
 
     /**
+     * Get the field to compare
+     */
+    public function getField(): Field
+    {
+        return $this->field;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function matchesEntity(?Entity $entity): bool

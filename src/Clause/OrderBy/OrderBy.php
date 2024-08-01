@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Access\Clause\OrderBy;
 
+use Access\Clause\Condition\Raw;
 use Access\Clause\Field;
 use Access\Clause\OrderByInterface;
 use Access\Collection;
 use Access\Entity;
+use Access\Query;
+use Access\Query\QueryGeneratorState;
 
 /**
  * Sort clause
@@ -38,7 +41,7 @@ abstract class OrderBy implements OrderByInterface
     /**
      * Field to sort on
      */
-    private Field $field;
+    private Field|Raw $field;
 
     /**
      * Direction to sort on
@@ -48,10 +51,10 @@ abstract class OrderBy implements OrderByInterface
     /**
      * Create a sort clause for field and direction
      *
-     * @param string|Field $fieldName Field to sort on
+     * @param string|Field|Raw $fieldName Field to sort on
      * @param Direction|string $direction Direction to sort on
      */
-    protected function __construct(string|Field $fieldName, Direction|string $direction)
+    protected function __construct(string|Field|Raw $fieldName, Direction|string $direction)
     {
         if (is_string($fieldName)) {
             $fieldName = new Field($fieldName);
@@ -64,6 +67,11 @@ abstract class OrderBy implements OrderByInterface
         }
 
         $this->direction = $direction;
+    }
+
+    public function getField(): Field|Raw
+    {
+        return $this->field;
     }
 
     /**
@@ -84,7 +92,10 @@ abstract class OrderBy implements OrderByInterface
     public function createSortComparer(): callable
     {
         return function (Entity $one, Entity $two): int {
-            if ($this->field->getName() === 'id') {
+            if ($this->field instanceof Raw) {
+                // not possible to sort on raw field in PHP
+                return 0;
+            } elseif ($this->field->getName() === 'id') {
                 $valueOne = $one->getId();
                 $valueTwo = $two->getId();
             } else {
@@ -119,5 +130,21 @@ abstract class OrderBy implements OrderByInterface
                 return $valueOne <=> $valueTwo;
             }
         };
+    }
+
+    public function getConditionSql(QueryGeneratorState $state): string
+    {
+        if ($this->field instanceof Raw) {
+            $condition = $this->field->getField()->getName();
+        } else {
+            $condition = Query::escapeIdentifier($this->field->getName());
+        }
+
+        return sprintf('%s %s', $condition, $this->direction->toDatabaseFormat());
+    }
+
+    public function injectConditionValues(QueryGeneratorState $state): void
+    {
+        // no values to inject
     }
 }

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Clause\OrderBy;
 
+use Access\Query\QueryGeneratorState;
+
 /**
  * Random sort order
  *
@@ -35,5 +37,10 @@ class Random extends OrderBy
     {
         // a function that returns a random result of `a <=> b`
         return fn(): int => random_int(-1, 1);
+    }
+
+    public function getConditionSql(QueryGeneratorState $state): string
+    {
+        return 'RANDOM()';
     }
 }

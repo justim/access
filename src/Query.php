@@ -19,6 +19,12 @@ use Access\Clause\ConditionInterface;
 use Access\Clause\Field;
 use Access\Clause\Multiple;
 use Access\Clause\MultipleOr;
+use Access\Clause\OrderBy\Ascending;
+use Access\Clause\OrderBy\Descending;
+use Access\Clause\OrderBy\Direction;
+use Access\Clause\OrderBy\Random;
+use Access\Clause\OrderBy\Verbatim;
+use Access\Clause\OrderByInterface;
 use Access\Entity;
 use Access\IdentifiableInterface;
 use Access\Query\QueryGeneratorState;
@@ -52,6 +58,8 @@ abstract class Query
     protected const PREFIX_SUBQUERY_VIRTUAL = 's';
     /** @var string */
     protected const PREFIX_SUBQUERY_CONDITION = 'z';
+    /** @var string */
+    protected const PREFIX_ORDER = 'o';
 
     /**
      * Unescaped table name
@@ -110,9 +118,9 @@ abstract class Query
     protected array $groupBy = [];
 
     /**
-     * @var string|null
+     * @var OrderByInterface[]
      */
-    protected ?string $orderBy = null;
+    protected array $orderBy = [];
 
     /**
      * Condition to exclude soft deleted items
@@ -332,14 +340,47 @@ abstract class Query
     }
 
     /**
-     * Add a single ORDER BY part to query
+     * Add a single/multiple ORDER BY part(s) to query
      *
-     * @param string $orderBy Order by clause
+     * @param string|OrderByInterface|string[]|OrderByInterface $orderBy Order by clause
      * @return $this
      */
-    public function orderBy(string $orderBy): static
+    public function orderBy(string|OrderByInterface|array $orderBy): static
     {
-        $this->orderBy = $orderBy;
+        if (is_array($orderBy)) {
+            foreach ($orderBy as $order) {
+                $this->orderBy($order);
+            }
+
+            return $this;
+        }
+
+        if (is_string($orderBy)) {
+            if (str_contains($orderBy, ',')) {
+                return $this->orderBy(array_map('trim', explode(',', $orderBy)));
+            } elseif (preg_match('/^rand(om)?\(\)$/i', $orderBy)) {
+                $orderBy = new Random();
+            } elseif (preg_match('/^(.*) (asc|desc)$/i', $orderBy, $matches)) {
+                // can be anything, treat it as a raw field/expression
+                $field = new Raw($matches[1]);
+
+                $direction = match (strtolower($matches[2])) {
+                    'asc' => Direction::Ascending,
+                    'desc' => Direction::Descending,
+                    default => throw new Exception('Invalid direction'),
+                };
+
+                $orderBy = match ($direction) {
+                    Direction::Ascending => new Ascending($field),
+                    Direction::Descending => new Descending($field),
+                };
+            } else {
+                $field = new Raw($orderBy);
+                $orderBy = new Verbatim($field);
+            }
+        }
+
+        $this->orderBy[] = $orderBy;
 
         return $this;
     }
@@ -427,6 +468,7 @@ abstract class Query
 
         $this->getConditionValues($indexedValues, $where, self::PREFIX_WHERE);
         $this->getConditionValues($indexedValues, $this->having, self::PREFIX_HAVING);
+        $this->getConditionValues($indexedValues, $this->orderBy, self::PREFIX_ORDER);
 
         return $indexedValues;
     }
@@ -435,7 +477,7 @@ abstract class Query
      * Get the values used in a list of conditions
      *
      * @param array<string, mixed> $indexedValues (by ref) New condition values will added to this array
-     * @param ConditionInterface[] $definition Definition of conditions
+     * @param ConditionInterface[]|OrderByInterface[] $definition Definition of conditions
      * @param string $prefix Prefix used for the indexed values
      */
     private function getConditionValues(&$indexedValues, array $definition, string $prefix): void
@@ -602,12 +644,16 @@ abstract class Query
      * EX: ''
      *
      * @param string $what Type of condition (WHERE/HAVING/ON)
-     * @param ConditionInterface[] $definition Definition of the condition
+     * @param ConditionInterface[]|OrderByInterface[] $definition Definition of the condition
      * @param string $prefix Prefix for the placeholders
      * @return string
      */
-    private function getConditionSql(string $what, array $definition, string $prefix): string
-    {
+    private function getConditionSql(
+        string $what,
+        array $definition,
+        string $prefix,
+        string $combinator = ' AND ',
+    ): string {
         if (empty($definition)) {
             return '';
         }
@@ -619,7 +665,7 @@ abstract class Query
             $conditions[] = $definitionPart->getConditionSql($state);
         }
 
-        $condition = implode(' AND ', $conditions);
+        $condition = implode($combinator, $conditions);
         $sqlCondition = " {$what} {$condition}";
 
         return $this->replaceQuestionMarks($sqlCondition, $prefix);
@@ -652,15 +698,7 @@ abstract class Query
      */
     protected function getOrderBySql(): string
     {
-        /**
-         * All cases for which `empty` returns falsey should default to an empty string
-         * @psalm-suppress RiskyTruthyFalsyComparison
-         */
-        if (empty($this->orderBy)) {
-            return '';
-        }
-
-        return ' ORDER BY ' . $this->orderBy;
+        return $this->getConditionSql('ORDER BY', $this->orderBy, self::PREFIX_ORDER, ', ');
     }
 
     /**

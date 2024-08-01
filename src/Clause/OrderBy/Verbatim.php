@@ -15,21 +15,33 @@ namespace Access\Clause\OrderBy;
 
 use Access\Clause\Condition\Raw;
 use Access\Clause\Field;
+use Access\Query\QueryGeneratorState;
 
 /**
- * Ascending sort clause
+ * Descending sort clause
  *
  * @author Tim <me@justim.net>
  */
-class Ascending extends OrderBy
+class Verbatim extends OrderBy
 {
     /**
-     * Create a ascending sort clause
+     * Create a descending sort clause
      *
      * @param string|Field|Raw $fieldName Field to sort on
      */
     public function __construct(string|Field|Raw $fieldName)
     {
-        parent::__construct($fieldName, Direction::Ascending);
+        parent::__construct($fieldName, Direction::Descending);
+    }
+
+    public function getConditionSql(QueryGeneratorState $state): string
+    {
+        $field = $this->getField();
+
+        if ($field instanceof Raw) {
+            return $field->getField()->getName();
+        } else {
+            return $field->getName();
+        }
     }
 }
