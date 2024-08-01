@@ -41,6 +41,6 @@ class Random extends OrderBy
 
     public function getConditionSql(QueryGeneratorState $state): string
     {
-        return 'RANDOM()';
+        return $state->getDriver()->getFunctionNameRandom();
     }
 }

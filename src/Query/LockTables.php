@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access\Query;
 
 use Access\Database;
+use Access\Driver\DriverInterface;
 use Access\Entity;
 use Access\Query;
 
@@ -101,7 +102,7 @@ class LockTables extends Query
     /**
      * {@inheritdoc}
      */
-    public function getSql(): ?string
+    public function getSql(?DriverInterface $driver = null): ?string
     {
         if (empty($this->locks)) {
             return null;

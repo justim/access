@@ -65,7 +65,7 @@ class CursorTest extends AbstractBaseTestCase
         $query->applyCursor($cursor);
 
         $this->assertEquals(
-            'SELECT `projects`.* FROM `projects` ORDER BY RANDOM() LIMIT 50',
+            'SELECT `projects`.* FROM `projects` ORDER BY RAND() LIMIT 50',
             $query->getSql(),
         );
 
@@ -76,7 +76,7 @@ class CursorTest extends AbstractBaseTestCase
         $query->applyCursor($cursor);
 
         $this->assertEquals(
-            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0, :w1) ORDER BY RANDOM() LIMIT 50',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0, :w1) ORDER BY RAND() LIMIT 50',
             $query->getSql(),
         );
 
@@ -195,9 +195,9 @@ class CursorTest extends AbstractBaseTestCase
         $this->assertEquals(2, $projectCount);
 
         $expectedQueries = [
-            'SELECT `projects`.* FROM `projects` ORDER BY RANDOM() LIMIT 1',
-            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0) ORDER BY RANDOM() LIMIT 1',
-            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0, :w1) ORDER BY RANDOM() LIMIT 1',
+            'SELECT `projects`.* FROM `projects` ORDER BY RAND() LIMIT 1',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0) ORDER BY RAND() LIMIT 1',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0, :w1) ORDER BY RAND() LIMIT 1',
         ];
 
         foreach ($profiler->export()['queries'] as $query) {
@@ -242,9 +242,9 @@ class CursorTest extends AbstractBaseTestCase
         $this->assertEquals(2, $projectCount);
 
         $expectedQueries = [
-            'SELECT `projects`.* FROM `projects` ORDER BY RANDOM() LIMIT 1',
-            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0) ORDER BY RANDOM() LIMIT 1',
-            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0, :w1) ORDER BY RANDOM() LIMIT 1',
+            'SELECT `projects`.* FROM `projects` ORDER BY RAND() LIMIT 1',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0) ORDER BY RAND() LIMIT 1',
+            'SELECT `projects`.* FROM `projects` WHERE `projects`.`id` NOT IN (:w0, :w1) ORDER BY RAND() LIMIT 1',
         ];
 
         foreach ($profiler->export()['queries'] as $query) {

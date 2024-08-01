@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access\Query;
 
 use Access\Clause\Field;
+use Access\Driver\DriverInterface;
 use Access\Query;
 
 /**
@@ -35,8 +36,10 @@ class Update extends Query
     /**
      * {@inheritdoc}
      */
-    public function getSql(): ?string
+    public function getSql(?DriverInterface $driver = null): ?string
     {
+        $driver = $this->getDriver($driver);
+
         $parts = [];
 
         $i = 0;
@@ -64,9 +67,9 @@ class Update extends Query
 
         $sqlUpdate = 'UPDATE ' . self::escapeIdentifier($this->tableName);
         $sqlAlias = $this->getAliasSql();
-        $sqlJoins = $this->getJoinSql();
+        $sqlJoins = $this->getJoinSql($driver);
         $sqlFields = ' SET ' . $fields;
-        $sqlWhere = $this->getWhereSql();
+        $sqlWhere = $this->getWhereSql($driver);
         $sqlLimit = $this->getLimitSql();
 
         return $sqlUpdate . $sqlAlias . $sqlJoins . $sqlFields . $sqlWhere . $sqlLimit;

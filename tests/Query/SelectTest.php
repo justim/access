@@ -178,7 +178,7 @@ class SelectTest extends TestCase
         $query->orderBy('RANDOM()');
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` ORDER BY RANDOM()',
+            'SELECT `p`.* FROM `projects` AS `p` ORDER BY RAND()',
             $query->getSql(),
         );
     }

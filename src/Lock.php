@@ -97,7 +97,7 @@ class Lock
      */
     public function lock(): void
     {
-        if ($this->lockTablesQuery->getSql() === null) {
+        if ($this->lockTablesQuery->getSql($this->db->getDriver()) === null) {
             return;
         }
 

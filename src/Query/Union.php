@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Driver\DriverInterface;
 use Access\Exception\NotSupportedException;
 use Access\Query\Select;
 
@@ -71,8 +72,10 @@ class Union extends Select
      *
      * This includes all SELECT queries, UNIONed together. Plus, ORDER BY and LIMIT
      */
-    public function getSql(): string
+    public function getSql(?DriverInterface $driver = null): string
     {
+        $driver = $this->getDriver($driver);
+
         $unions = [];
         $i = 0;
 
@@ -82,7 +85,7 @@ class Union extends Select
             $unions[] = preg_replace(
                 '/:(([a-z]+[a-z0-9]*))/',
                 ':' . self::PREFIX_UNION . $i . '$1',
-                (string) $query->getSql(),
+                (string) $query->getSql($driver),
             );
 
             $i++;
@@ -91,7 +94,7 @@ class Union extends Select
         }
 
         $sqlUnion = implode(' UNION ', $unions);
-        $sqlOrderBy = $this->getOrderBySql();
+        $sqlOrderBy = $this->getOrderBySql($driver);
         $sqlLimit = $this->getLimitSql();
 
         if ($sqlLimit !== '' || $sqlOrderBy !== '') {
@@ -107,7 +110,7 @@ class Union extends Select
      *
      * @return array<string, mixed> The values
      */
-    public function getValues(): array
+    public function getValues(?DriverInterface $driver = null): array
     {
         /** @var array<string, mixed> $values */
         $values = [];
@@ -118,7 +121,7 @@ class Union extends Select
             $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
             /** @var mixed $nestedValue */
-            foreach ($query->getValues() as $nestedIndex => $nestedValue) {
+            foreach ($query->getValues($driver) as $nestedIndex => $nestedValue) {
                 $doubleNestedIndex = self::PREFIX_UNION . $i . $nestedIndex;
                 /** @psalm-suppress MixedAssignment */
                 $values[$doubleNestedIndex] = $nestedValue;

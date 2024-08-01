@@ -204,7 +204,7 @@ abstract class Condition implements ConditionInterface
             $subQuery = preg_replace(
                 '/:(([a-z][0-9]+)+)/',
                 ':' . $state->getSubQueryIndexPrefix() . '$1',
-                (string) $this->value->getSql(),
+                (string) $this->value->getSql($state->getDriver()),
             );
 
             /** @var string $condition */

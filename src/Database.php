@@ -14,6 +14,9 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Cascade\CascadeDeleteResolver;
+use Access\Driver\DriverInterface;
+use Access\Driver\Mysql;
+use Access\Driver\Sqlite;
 use Access\Entity;
 use Access\Exception;
 use Access\Lock;
@@ -44,6 +47,13 @@ class Database
      * @var \PDO $connection
      */
     private \PDO $connection;
+
+    /**
+     * Driver
+     *
+     * @var DriverInterface $driver
+     */
+    private DriverInterface $driver;
 
     /**
      * Statement pool
@@ -87,6 +97,14 @@ class Database
         $this->statementPool = new StatementPool($this);
         $this->profiler = $profiler ?? new Profiler();
         $this->clock = $clock ?? new InternalClock();
+
+        /** @var string $driverName */
+        $driverName = $connection->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        $this->driver = match ($driverName) {
+            Mysql::NAME => new Mysql(),
+            Sqlite::NAME => new Sqlite(),
+            default => throw new Exception("Unsupported driver: {$driverName}"),
+        };
 
         $this->setConnection($connection);
     }
@@ -153,6 +171,11 @@ class Database
     public function getProfiler(): Profiler
     {
         return $this->profiler;
+    }
+
+    public function getDriver(): DriverInterface
+    {
+        return $this->driver;
     }
 
     /**

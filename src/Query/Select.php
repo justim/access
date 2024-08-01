@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Driver\DriverInterface;
 use Access\Query;
 
 /**
@@ -76,18 +77,20 @@ class Select extends Query
     /**
      * {@inheritdoc}
      */
-    public function getSql(): ?string
+    public function getSql(?DriverInterface $driver = null): ?string
     {
+        $driver = $this->getDriver($driver);
+
         $escapedTableName = self::escapeIdentifier($this->tableName);
 
         $sqlSelect = $this->getSelectSql();
         $sqlFrom = " FROM {$escapedTableName}";
         $sqlAlias = $this->getAliasSql();
-        $sqlJoins = $this->getJoinSql();
-        $sqlWhere = $this->getWhereSql();
+        $sqlJoins = $this->getJoinSql($driver);
+        $sqlWhere = $this->getWhereSql($driver);
         $sqlGroupBy = $this->getGroupBySql();
-        $sqlHaving = $this->getHavingSql();
-        $sqlOrderBy = $this->getOrderBySql();
+        $sqlHaving = $this->getHavingSql($driver);
+        $sqlOrderBy = $this->getOrderBySql($driver);
         $sqlLimit = $this->getLimitSql();
 
         return $sqlSelect .
@@ -106,7 +109,7 @@ class Select extends Query
      *
      * @return string
      */
-    private function getSelectSql(): string
+    private function getSelectSql(?DriverInterface $driver = null): string
     {
         $escapedTableName = self::escapeIdentifier($this->tableName);
 
@@ -131,7 +134,7 @@ class Select extends Query
                 $subSql = preg_replace(
                     '/:(([a-z][0-9]+)+)/',
                     ':' . self::PREFIX_SUBQUERY_VIRTUAL . $i . '$1',
-                    (string) $value->getSql(),
+                    (string) $value->getSql($driver),
                 );
 
                 $sql .= ", ($subSql) AS $escapedAlias";
@@ -151,9 +154,9 @@ class Select extends Query
      *
      * @return array<string, mixed> The values
      */
-    public function getValues(): array
+    public function getValues(?DriverInterface $driver = null): array
     {
-        $values = parent::getValues();
+        $values = parent::getValues($driver);
 
         $i = 0;
 
@@ -164,7 +167,7 @@ class Select extends Query
                 );
 
                 /** @var mixed $nestedValue */
-                foreach ($value->getValues() as $nestedIndex => $nestedValue) {
+                foreach ($value->getValues($driver) as $nestedIndex => $nestedValue) {
                     $doubleNestedIndex = self::PREFIX_SUBQUERY_VIRTUAL . $i . $nestedIndex;
 
                     /** @psalm-suppress MixedAssignment */

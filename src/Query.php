@@ -25,6 +25,8 @@ use Access\Clause\OrderBy\Direction;
 use Access\Clause\OrderBy\Random;
 use Access\Clause\OrderBy\Verbatim;
 use Access\Clause\OrderByInterface;
+use Access\Driver\DriverInterface;
+use Access\Driver\Mysql;
 use Access\Entity;
 use Access\IdentifiableInterface;
 use Access\Query\QueryGeneratorState;
@@ -433,8 +435,10 @@ abstract class Query
      *
      * @return array<string, mixed> The values
      */
-    public function getValues(): array
+    public function getValues(?DriverInterface $driver = null): array
     {
+        $driver = $this->getDriver($driver);
+
         /** @var array<string, mixed> $indexedValues */
         $indexedValues = [];
 
@@ -458,6 +462,7 @@ abstract class Query
             );
 
             $this->getConditionValues(
+                $driver,
                 $indexedValues,
                 $joinConditions,
                 self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
@@ -466,9 +471,9 @@ abstract class Query
 
         $where = $this->preprocessConditions($this->where, $this->softDeleteCondition);
 
-        $this->getConditionValues($indexedValues, $where, self::PREFIX_WHERE);
-        $this->getConditionValues($indexedValues, $this->having, self::PREFIX_HAVING);
-        $this->getConditionValues($indexedValues, $this->orderBy, self::PREFIX_ORDER);
+        $this->getConditionValues($driver, $indexedValues, $where, self::PREFIX_WHERE);
+        $this->getConditionValues($driver, $indexedValues, $this->having, self::PREFIX_HAVING);
+        $this->getConditionValues($driver, $indexedValues, $this->orderBy, self::PREFIX_ORDER);
 
         return $indexedValues;
     }
@@ -480,9 +485,13 @@ abstract class Query
      * @param ConditionInterface[]|OrderByInterface[] $definition Definition of conditions
      * @param string $prefix Prefix used for the indexed values
      */
-    private function getConditionValues(&$indexedValues, array $definition, string $prefix): void
-    {
-        $state = new QueryGeneratorState($prefix, self::PREFIX_SUBQUERY_CONDITION);
+    private function getConditionValues(
+        DriverInterface $driver,
+        &$indexedValues,
+        array $definition,
+        string $prefix,
+    ): void {
+        $state = new QueryGeneratorState($driver, $prefix, self::PREFIX_SUBQUERY_CONDITION);
 
         foreach ($definition as $condition) {
             $condition->injectConditionValues($state);
@@ -537,7 +546,7 @@ abstract class Query
      *
      * @return string - `null` when no query is needed
      */
-    abstract public function getSql(): ?string;
+    abstract public function getSql(?DriverInterface $driver = null): ?string;
 
     /**
      * Get SQL for alias
@@ -567,11 +576,11 @@ abstract class Query
      *
      * @return string
      */
-    protected function getJoinSql(): string
+    protected function getJoinSql(DriverInterface $driver): string
     {
         $i = 0;
 
-        $joins = array_map(function ($join) use (&$i) {
+        $joins = array_map(function ($join) use ($driver, &$i) {
             /** @var int $i */
             $escapedJoinTableName = $this->escapeIdentifier($join['tableName']);
             $escapedAlias = self::escapeIdentifier($join['alias']);
@@ -592,6 +601,7 @@ abstract class Query
             );
 
             $onSql = $this->getConditionSql(
+                $driver,
                 'ON',
                 $joinConditions,
                 self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
@@ -617,11 +627,11 @@ abstract class Query
      *
      * @return string
      */
-    protected function getWhereSql(): string
+    protected function getWhereSql(DriverInterface $driver): string
     {
         $where = $this->preprocessConditions($this->where, $this->softDeleteCondition);
 
-        return $this->getConditionSql('WHERE', $where, self::PREFIX_WHERE);
+        return $this->getConditionSql($driver, 'WHERE', $where, self::PREFIX_WHERE);
     }
 
     /**
@@ -632,9 +642,9 @@ abstract class Query
      *
      * @return string
      */
-    protected function getHavingSql(): string
+    protected function getHavingSql(DriverInterface $driver): string
     {
-        return $this->getConditionSql('HAVING', $this->having, self::PREFIX_HAVING);
+        return $this->getConditionSql($driver, 'HAVING', $this->having, self::PREFIX_HAVING);
     }
 
     /**
@@ -649,6 +659,7 @@ abstract class Query
      * @return string
      */
     private function getConditionSql(
+        DriverInterface $driver,
         string $what,
         array $definition,
         string $prefix,
@@ -659,7 +670,7 @@ abstract class Query
         }
 
         $conditions = [];
-        $state = new QueryGeneratorState($prefix, self::PREFIX_SUBQUERY_CONDITION);
+        $state = new QueryGeneratorState($driver, $prefix, self::PREFIX_SUBQUERY_CONDITION);
 
         foreach ($definition as $definitionPart) {
             $conditions[] = $definitionPart->getConditionSql($state);
@@ -696,9 +707,15 @@ abstract class Query
      *
      * @return string
      */
-    protected function getOrderBySql(): string
+    protected function getOrderBySql(DriverInterface $driver): string
     {
-        return $this->getConditionSql('ORDER BY', $this->orderBy, self::PREFIX_ORDER, ', ');
+        return $this->getConditionSql(
+            $driver,
+            'ORDER BY',
+            $this->orderBy,
+            self::PREFIX_ORDER,
+            ', ',
+        );
     }
 
     /**
@@ -866,5 +883,10 @@ abstract class Query
         }
 
         return $oldValue;
+    }
+
+    protected function getDriver(?DriverInterface $driver = null): DriverInterface
+    {
+        return $driver ?? new Mysql();
     }
 }

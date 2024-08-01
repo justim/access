@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access\Query;
 
 use Access\Clause\Field;
+use Access\Driver\DriverInterface;
 use Access\Query;
 
 /**
@@ -35,7 +36,7 @@ class Insert extends Query
     /**
      * {@inheritdoc}
      */
-    public function getSql(): ?string
+    public function getSql(?DriverInterface $driver = null): ?string
     {
         $sqlInsert = 'INSERT INTO ' . self::escapeIdentifier($this->tableName);
 
