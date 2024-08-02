@@ -690,7 +690,7 @@ abstract class Query
      *
      * @return string
      */
-    protected function getGroupBySql()
+    protected function getGroupBySql(): string
     {
         if (empty($this->groupBy)) {
             return '';
