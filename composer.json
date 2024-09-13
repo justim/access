@@ -17,7 +17,7 @@
         "phpunit/phpunit": "^10.5",
         "php-coveralls/php-coveralls": "^2.7",
         "phpbench/phpbench": "^1.2",
-        "vimeo/psalm": "^5.23",
+        "vimeo/psalm": "^5.26",
         "symfony/var-dumper": "^6.4",
         "psalm/plugin-phpunit": "^0.19.0"
     },
