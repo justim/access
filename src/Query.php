@@ -26,7 +26,6 @@ use Access\Clause\OrderBy\Random;
 use Access\Clause\OrderBy\Verbatim;
 use Access\Clause\OrderByInterface;
 use Access\Driver\DriverInterface;
-use Access\Driver\Mysql;
 use Access\Entity;
 use Access\IdentifiableInterface;
 use Access\Query\QueryGeneratorState;
@@ -170,20 +169,6 @@ abstract class Query
         }
 
         $this->alias = $alias;
-    }
-
-    /**
-     * Get the resolved table name
-     *
-     * Meaning, the table name, or its alias
-     *
-     * Note: is SQL escaped for safe usage
-     *
-     * @return string Resolved table name
-     */
-    public function getResolvedTableName(): string
-    {
-        return self::escapeIdentifier($this->getRawResolvedTableName());
     }
 
     /**
@@ -437,7 +422,7 @@ abstract class Query
      */
     public function getValues(?DriverInterface $driver = null): array
     {
-        $driver = $this->getDriver($driver);
+        $driver = Database::getDriverOrDefault($driver);
 
         /** @var array<string, mixed> $indexedValues */
         $indexedValues = [];
@@ -556,12 +541,12 @@ abstract class Query
      *
      * @return string
      */
-    protected function getAliasSql(): string
+    protected function getAliasSql(DriverInterface $driver): string
     {
         $sqlAlias = '';
 
         if ($this->alias !== null) {
-            $escaptedAlias = self::escapeIdentifier($this->alias);
+            $escaptedAlias = $driver->escapeIdentifier($this->alias);
             $sqlAlias = " AS {$escaptedAlias}";
         }
 
@@ -582,8 +567,8 @@ abstract class Query
 
         $joins = array_map(function ($join) use ($driver, &$i) {
             /** @var int $i */
-            $escapedJoinTableName = $this->escapeIdentifier($join['tableName']);
-            $escapedAlias = self::escapeIdentifier($join['alias']);
+            $escapedJoinTableName = $driver->escapeIdentifier($join['tableName']);
+            $escapedAlias = $driver->escapeIdentifier($join['alias']);
             $sql = '';
 
             switch ($join['type']) {
@@ -746,24 +731,6 @@ abstract class Query
     }
 
     /**
-     * Escape identifier
-     *
-     * MySQL only
-     *
-     * @param string|Field $identifier Identifier to escape
-     * @return string
-     * @internal
-     */
-    public static function escapeIdentifier(string|Field $identifier): string
-    {
-        if ($identifier instanceof Field) {
-            $identifier = $identifier->getName();
-        }
-
-        return str_replace('.', '`.`', sprintf('`%s`', str_replace('`', '``', $identifier)));
-    }
-
-    /**
      * Replace `?` with numbered placeholders
      *
      * @param string $sql SQL that needs its `?`'s replaces
@@ -883,10 +850,5 @@ abstract class Query
         }
 
         return $oldValue;
-    }
-
-    protected function getDriver(?DriverInterface $driver = null): DriverInterface
-    {
-        return $driver ?? new Mysql();
     }
 }

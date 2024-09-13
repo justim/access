@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Driver;
 
+use Access\Clause\Field;
+
 /**
  * SQLite specific driver
  *
@@ -22,6 +24,32 @@ namespace Access\Driver;
 class Sqlite implements DriverInterface
 {
     public const NAME = 'sqlite';
+
+    /**
+     * Escape identifier
+     *
+     * @param string|Field $identifier Identifier to escape
+     * @return string
+     * @internal
+     */
+    public function escapeIdentifier(string|Field $identifier): string
+    {
+        if ($identifier instanceof Field) {
+            $identifier = $identifier->getName();
+        }
+
+        return str_replace('.', '"."', sprintf('"%s"', str_replace('"', '""', $identifier)));
+    }
+
+    /**
+     * Get a debug string value for a value in SQLite dialect
+     *
+     * Useful for the debug query, should not be used otherwise, use prepared statements
+     */
+    public function getDebugStringValue(mixed $value): string
+    {
+        return sprintf("'%s'", addslashes((string) $value));
+    }
 
     /**
      * Get the function name for random in SQLite dialect

@@ -134,10 +134,12 @@ abstract class OrderBy implements OrderByInterface
 
     public function getConditionSql(QueryGeneratorState $state): string
     {
+        $driver = $state->getDriver();
+
         if ($this->field instanceof Raw) {
             $condition = $this->field->getField()->getName();
         } else {
-            $condition = Query::escapeIdentifier($this->field->getName());
+            $condition = $driver->escapeIdentifier($this->field->getName());
         }
 
         return sprintf('%s %s', $condition, $this->direction->toDatabaseFormat());

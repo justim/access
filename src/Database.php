@@ -98,14 +98,6 @@ class Database
         $this->profiler = $profiler ?? new Profiler();
         $this->clock = $clock ?? new InternalClock();
 
-        /** @var string $driverName */
-        $driverName = $connection->getAttribute(\PDO::ATTR_DRIVER_NAME);
-        $this->driver = match ($driverName) {
-            Mysql::NAME => new Mysql(),
-            Sqlite::NAME => new Sqlite(),
-            default => throw new Exception("Unsupported driver: {$driverName}"),
-        };
-
         $this->setConnection($connection);
     }
 
@@ -151,6 +143,14 @@ class Database
 
         $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $this->connection = $connection;
+
+        /** @var string $driverName */
+        $driverName = $connection->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        $this->driver = match ($driverName) {
+            Mysql::NAME => new Mysql(),
+            Sqlite::NAME => new Sqlite(),
+            default => throw new Exception("Unsupported driver: {$driverName}"),
+        };
     }
 
     /**
@@ -173,9 +173,25 @@ class Database
         return $this->profiler;
     }
 
+    /**
+     * Get the current driver of the connection
+     */
     public function getDriver(): DriverInterface
     {
         return $this->driver;
+    }
+
+    /**
+     * Get the given driver, or an arbitrary default
+     *
+     * The default is `Mysql`.
+     *
+     * This method should be temporary, in a future version the methods
+     * accepting a driver will have their argument made non-nullable.
+     */
+    public static function getDriverOrDefault(?DriverInterface $driver): DriverInterface
+    {
+        return $driver ?? new Mysql();
     }
 
     /**

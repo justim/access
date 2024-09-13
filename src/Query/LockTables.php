@@ -25,11 +25,8 @@ use Access\Query;
  */
 class LockTables extends Query
 {
-    private const TYPE_READ = 'READ';
-    private const TYPE_WRITE = 'WRITE';
-
     /**
-     * @var array<string> $locks
+     * @var array<array{LockType, class-string<Entity>, ?string}> $locks
      */
     private array $locks = [];
 
@@ -56,7 +53,7 @@ class LockTables extends Query
     {
         Database::assertValidEntityClass($klass);
 
-        $this->add(self::TYPE_READ, $klass, $alias);
+        $this->add(LockType::Read, $klass, $alias);
     }
 
     /**
@@ -72,7 +69,7 @@ class LockTables extends Query
     {
         Database::assertValidEntityClass($klass);
 
-        $this->add(self::TYPE_WRITE, $klass, $alias);
+        $this->add(LockType::Write, $klass, $alias);
     }
 
     /**
@@ -81,22 +78,13 @@ class LockTables extends Query
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      *
-     * @param string $type Type of lock
+     * @param LockType $type Type of lock
      * @param string $klass Entity class name
      * @param string $alias Lock the table by its alias
      */
-    private function add(string $type, string $klass, ?string $alias): void
+    private function add(LockType $type, string $klass, ?string $alias): void
     {
-        if ($alias !== null) {
-            $this->locks[] = sprintf(
-                '%s AS %s %s',
-                self::escapeIdentifier($klass::tableName()),
-                self::escapeIdentifier($alias),
-                $type,
-            );
-        } else {
-            $this->locks[] = sprintf('%s %s', self::escapeIdentifier($klass::tableName()), $type);
-        }
+        $this->locks[] = [$type, $klass, $alias];
     }
 
     /**
@@ -108,7 +96,28 @@ class LockTables extends Query
             return null;
         }
 
-        $locks = implode(', ', $this->locks);
+        $driver = Database::getDriverOrDefault($driver);
+
+        $locks = [];
+
+        foreach ($this->locks as [$type, $klass, $alias]) {
+            if ($alias !== null) {
+                $locks[] = sprintf(
+                    '%s AS %s %s',
+                    $driver->escapeIdentifier($klass::tableName()),
+                    $driver->escapeIdentifier($alias),
+                    $type->value,
+                );
+            } else {
+                $locks[] = sprintf(
+                    '%s %s',
+                    $driver->escapeIdentifier($klass::tableName()),
+                    $type->value,
+                );
+            }
+        }
+
+        $locks = implode(', ', $locks);
         $sql = sprintf('LOCK TABLES %s', $locks);
 
         return $sql;

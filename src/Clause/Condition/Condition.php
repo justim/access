@@ -167,7 +167,9 @@ abstract class Condition implements ConditionInterface
      */
     public function getConditionSql(QueryGeneratorState $state): string
     {
-        $escapedFieldName = Query::escapeIdentifier($this->field->getName());
+        $driver = $state->getDriver();
+
+        $escapedFieldName = $driver->escapeIdentifier($this->field->getName());
 
         /**
          * SAFETY technically it is possible to have other values here, having a `default` is a good idea here
@@ -187,7 +189,7 @@ abstract class Condition implements ConditionInterface
             self::KIND_RELATION => sprintf(
                 '%s = %s',
                 $escapedFieldName,
-                Query::escapeIdentifier($this->value),
+                $driver->escapeIdentifier($this->value),
             ),
             default => throw new Exception(
                 sprintf('Invalid kind of condition: "%s"', $this->kind),
@@ -239,7 +241,7 @@ abstract class Condition implements ConditionInterface
                 $condition = '1 = 2';
             }
         } elseif ($this->value instanceof Field) {
-            $condition = str_replace('?', Query::escapeIdentifier($this->value), $condition);
+            $condition = str_replace('?', $driver->escapeIdentifier($this->value), $condition);
         }
 
         return $condition;

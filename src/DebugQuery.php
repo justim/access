@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Driver\DriverInterface;
 use Access\Query;
 
 /**
@@ -39,19 +40,21 @@ class DebugQuery
      *
      * @return string|null Runnable query
      */
-    public function toRunnableQuery(): ?string
+    public function toRunnableQuery(?DriverInterface $driver = null): ?string
     {
-        $sql = $this->query->getSql();
+        $driver = Database::getDriverOrDefault($driver);
+
+        $sql = $this->query->getSql($driver);
 
         if ($sql === null) {
             return null;
         }
 
-        $values = $this->query->getValues();
+        $values = $this->query->getValues($driver);
 
         /** @var mixed $value */
         foreach ($values as $placeholder => $value) {
-            $sql = preg_replace("/:$placeholder\b/", $this->toSqlValue($value), $sql);
+            $sql = preg_replace("/:$placeholder\b/", $this->toSqlValue($driver, $value), $sql);
         }
 
         return $sql;
@@ -61,7 +64,7 @@ class DebugQuery
      * @param mixed $value
      * @return string
      */
-    private function toSqlValue(mixed $value): string
+    private function toSqlValue(DriverInterface $driver, mixed $value): string
     {
         if ($value === null) {
             return 'NULL';
@@ -79,6 +82,6 @@ class DebugQuery
 
         // bools and dates are already processed
 
-        return sprintf('"%s"', addslashes((string) $value));
+        return $driver->getDebugStringValue($value);
     }
 }

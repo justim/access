@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Database;
 use Access\Driver\DriverInterface;
 use Access\Query;
 
@@ -37,17 +38,17 @@ class Delete extends Query
      */
     public function getSql(?DriverInterface $driver = null): ?string
     {
-        $driver = $this->getDriver($driver);
+        $driver = Database::getDriverOrDefault($driver);
 
         $sqlDeleteFrom = 'DELETE FROM ';
 
         if ($this->alias !== null) {
-            $escapedAlias = self::escapeIdentifier($this->alias);
+            $escapedAlias = $driver->escapeIdentifier($this->alias);
             $sqlDeleteFrom = "DELETE {$escapedAlias} FROM ";
         }
 
-        $sqlDelete = $sqlDeleteFrom . self::escapeIdentifier($this->tableName);
-        $sqlAlias = $this->getAliasSql();
+        $sqlDelete = $sqlDeleteFrom . $driver->escapeIdentifier($this->tableName);
+        $sqlAlias = $this->getAliasSql($driver);
         $sqlJoins = $this->getJoinSql($driver);
         $sqlWhere = $this->getWhereSql($driver);
         $sqlLimit = $this->getLimitSql();

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Database;
 use Access\Driver\DriverInterface;
 use Access\Exception\NotSupportedException;
 use Access\Query\Select;
@@ -74,7 +75,7 @@ class Union extends Select
      */
     public function getSql(?DriverInterface $driver = null): string
     {
-        $driver = $this->getDriver($driver);
+        $driver = Database::getDriverOrDefault($driver);
 
         $unions = [];
         $i = 0;

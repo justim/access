@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Database;
 use Access\Driver\DriverInterface;
 use Access\Query;
 
@@ -79,13 +80,13 @@ class Select extends Query
      */
     public function getSql(?DriverInterface $driver = null): ?string
     {
-        $driver = $this->getDriver($driver);
+        $driver = Database::getDriverOrDefault($driver);
 
-        $escapedTableName = self::escapeIdentifier($this->tableName);
+        $escapedTableName = $driver->escapeIdentifier($this->tableName);
 
-        $sqlSelect = $this->getSelectSql();
+        $sqlSelect = $this->getSelectSql($driver);
         $sqlFrom = " FROM {$escapedTableName}";
-        $sqlAlias = $this->getAliasSql();
+        $sqlAlias = $this->getAliasSql($driver);
         $sqlJoins = $this->getJoinSql($driver);
         $sqlWhere = $this->getWhereSql($driver);
         $sqlGroupBy = $this->getGroupBySql();
@@ -109,22 +110,22 @@ class Select extends Query
      *
      * @return string
      */
-    private function getSelectSql(?DriverInterface $driver = null): string
+    private function getSelectSql(DriverInterface $driver): string
     {
-        $escapedTableName = self::escapeIdentifier($this->tableName);
+        $escapedTableName = $driver->escapeIdentifier($this->tableName);
 
         $sql = "SELECT {$escapedTableName}.*";
 
         if ($this->select !== null) {
             $sql = "SELECT {$this->select}";
         } elseif ($this->alias !== null) {
-            $escapedAlias = self::escapeIdentifier($this->alias);
+            $escapedAlias = $driver->escapeIdentifier($this->alias);
             $sql = "SELECT {$escapedAlias}.*";
         }
 
         $i = 0;
         foreach ($this->virtualFields as $alias => $value) {
-            $escapedAlias = self::escapeIdentifier($alias);
+            $escapedAlias = $driver->escapeIdentifier($alias);
 
             if ($value instanceof self) {
                 $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted(

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Driver;
 
+use Access\Clause\Field;
+
 /**
  * Driver specific interface
  *
@@ -21,6 +23,22 @@ namespace Access\Driver;
  */
 interface DriverInterface
 {
+    /**
+     * Escape identifier
+     *
+     * @param string|Field $identifier Identifier to escape
+     * @return string
+     * @internal
+     */
+    public function escapeIdentifier(string|Field $identifier): string;
+
+    /**
+     * Get a debug string value for a value
+     *
+     * Useful for the debug query, should not be used otherwise, use prepared statements
+     */
+    public function getDebugStringValue(mixed $value): string;
+
     /**
      * Get the function name for random in SQL dialect
      */

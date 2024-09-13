@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Database;
 use Access\Driver\DriverInterface;
 use Access\Query;
 
@@ -47,6 +48,8 @@ class Savepoint extends Query
      */
     public function getSql(?DriverInterface $driver = null): ?string
     {
-        return sprintf('SAVEPOINT %s', self::escapeIdentifier($this->identifier));
+        $driver = Database::getDriverOrDefault($driver);
+
+        return sprintf('SAVEPOINT %s', $driver->escapeIdentifier($this->identifier));
     }
 }

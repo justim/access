@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access\Query;
 
 use Access\Clause\Field;
+use Access\Database;
 use Access\Driver\DriverInterface;
 use Access\Query;
 
@@ -38,11 +39,13 @@ class Insert extends Query
      */
     public function getSql(?DriverInterface $driver = null): ?string
     {
-        $sqlInsert = 'INSERT INTO ' . self::escapeIdentifier($this->tableName);
+        $driver = Database::getDriverOrDefault($driver);
+
+        $sqlInsert = 'INSERT INTO ' . $driver->escapeIdentifier($this->tableName);
 
         // escape field names
         $sqlFields = array_map(
-            fn(string $field): string => self::escapeIdentifier($field),
+            fn(string $field): string => $driver->escapeIdentifier($field),
             array_keys($this->values),
         );
 
@@ -51,7 +54,7 @@ class Insert extends Query
         // filter out `Field` instances and use name directly
         $sqlValues = array_map(
             fn(mixed $value): string => $value instanceof Field
-                ? self::escapeIdentifier($value->getName())
+                ? $driver->escapeIdentifier($value->getName())
                 : '?',
             $this->values,
         );
