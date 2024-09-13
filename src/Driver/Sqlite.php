@@ -58,4 +58,12 @@ class Sqlite implements DriverInterface
     {
         return 'RANDOM()';
     }
+
+    /**
+     * Has the SQLite driver support for LOCK/UNLOCK TABLES?
+     */
+    public function hasLockSupport(): bool
+    {
+        return false;
+    }
 }

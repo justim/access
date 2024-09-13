@@ -43,4 +43,9 @@ interface DriverInterface
      * Get the function name for random in SQL dialect
      */
     public function getFunctionNameRandom(): string;
+
+    /**
+     * Has the driver support for LOCK/UNLOCK TABLES?
+     */
+    public function hasLockSupport(): bool;
 }

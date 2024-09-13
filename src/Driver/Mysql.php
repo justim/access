@@ -58,4 +58,12 @@ class Mysql implements DriverInterface
     {
         return 'RAND()';
     }
+
+    /**
+     * Has the MySQL driver support for LOCK/UNLOCK TABLES?
+     */
+    public function hasLockSupport(): bool
+    {
+        return true;
+    }
 }

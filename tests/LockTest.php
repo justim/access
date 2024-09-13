@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Access\Exception;
 use Tests\AbstractBaseTestCase;
+use Tests\Fixtures\Entity\Project;
+use Tests\Fixtures\Entity\User;
 
 /**
- * SQLite has no support for locks
+ * SQLite has no support for locks, the tests are just "covering" the lock code
  *
  * Add some tests when we run our tests on a different database
  */
@@ -24,16 +27,69 @@ class LockTest extends AbstractBaseTestCase
 {
     public function testLockRead(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
+        $lock = $db->createLock();
+        $lock->read(Project::class);
+        $lock->read(User::class, 'u');
+        $lock->lock();
+        $lock->unlock();
+
         $this->assertTrue(true);
     }
 
     public function testLockWrite(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
+        $lock = $db->createLock();
+        $lock->write(Project::class);
+        $lock->write(User::class, 'u');
+        $lock->lock();
+        $lock->unlock();
+
         $this->assertTrue(true);
     }
 
-    public function testLocked(): void
+    public function testDestructor(): void
     {
+        $db = self::createDatabaseWithDummyData();
+
+        $lock = $db->createLock();
+        $lock->write(Project::class);
+        $lock->write(User::class, 'u');
+        $lock->lock();
+
+        $this->expectException(Exception::class);
+
+        // tables are never unlocked, this still works in
+        // SQLite without actually locking the tables
+        unset($lock);
+    }
+
+    public function testEmptyLock(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        $lock = $db->createLock();
+        $lock->lock();
+
+        // No tables are locked, destructor should not throw
+        unset($lock);
+
+        $this->assertTrue(true);
+    }
+
+    public function testEmptyUnlock(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        $lock = $db->createLock();
+        $lock->lock();
+        $lock->unlock();
+
+        // nothing happens
+
         $this->assertTrue(true);
     }
 }
