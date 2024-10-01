@@ -316,6 +316,7 @@ class CascadeDeleteResolver
                 continue;
             }
 
+            /** @phpstan-ignore isset.offset */
             if (!isset($relation['target'])) {
                 continue;
             }

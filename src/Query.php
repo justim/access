@@ -488,14 +488,24 @@ abstract class Query
     /**
      * Convert a value in a database usable format
      *
+     * @psalm-template T
      * @param mixed $value Any value
+     * @psalm-param T $value Any value
      * @return mixed Database usable format
+     * @psalm-return (T is Collection ? int[] : (T is null ? null : (T is bool ? int : (T is array ? mixed[] : (T is BackedEnum ? string|int : (T is int ? int : string))))))  Database usable format
      * @internal
      */
     public static function toDatabaseFormat(mixed $value): mixed
     {
         if ($value instanceof IdentifiableInterface) {
-            return self::toDatabaseFormat($value->getId());
+            /** @psalm-suppress MixedAssignment */
+            $id = $value->getId();
+
+            if (is_int($id)) {
+                return $id;
+            }
+
+            return self::toDatabaseFormat($id);
         }
 
         if ($value instanceof Collection) {
@@ -506,8 +516,12 @@ abstract class Query
             return $value->format(Entity::DATETIME_FORMAT);
         }
 
-        if ($value === true || $value === false) {
+        if (is_bool($value)) {
             return (int) $value;
+        }
+
+        if (is_int($value)) {
+            return $value;
         }
 
         if ($value instanceof BackedEnum) {
@@ -523,7 +537,11 @@ abstract class Query
             );
         }
 
-        return $value;
+        if ($value === null) {
+            return null;
+        }
+
+        return (string) $value;
     }
 
     /**
@@ -753,7 +771,7 @@ abstract class Query
     /**
      * Process condition input
      *
-     * @param array|string|ConditionInterface $condition List of clauses or a single one
+     * @param array<mixed>|string|ConditionInterface $condition List of clauses or a single one
      * @param mixed $value Value of the single condition
      * @param bool $valueWasProvided Was the value provided
      * @return ConditionInterface[]
@@ -764,7 +782,10 @@ abstract class Query
         bool $valueWasProvided,
     ): array {
         if (!is_array($condition)) {
-            /** @psalm-suppress DocblockTypeContradiction */
+            /**
+             * @psalm-suppress DocblockTypeContradiction
+             * @phpstan-ignore booleanAnd.alwaysFalse
+             */
             if (!is_string($condition) && !$condition instanceof ConditionInterface) {
                 throw new Exception('Condition should be a string or `ConditionInterface`');
             }

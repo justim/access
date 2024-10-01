@@ -123,8 +123,12 @@ abstract class Condition implements ConditionInterface
         }
 
         /**
-         * SAFETY technically it is possible to have other values here, having a `default` is a good idea here
+         * SAFETY technically it is possible to have other values here,
+         * regardless, having a `default` is a good idea here
          * @psalm-suppress DocblockTypeContradiction
+         *
+         * SAFETY the parent class guarantees the type of the value
+         * @psalm-suppress MixedArgument
          */
         return match ($this->kind) {
             self::KIND_EQUALS => $value === $this->value,
@@ -136,6 +140,7 @@ abstract class Condition implements ConditionInterface
             self::KIND_IN => $this->contains($value, $this->value),
             self::KIND_NOT_IN => !$this->contains($value, $this->value),
             self::KIND_RAW, self::KIND_RELATION => false,
+            /** @phpstan-ignore match.unreachable */
             default => false,
         };
     }
@@ -172,9 +177,13 @@ abstract class Condition implements ConditionInterface
         $escapedFieldName = $driver->escapeIdentifier($this->field->getName());
 
         /**
-         * SAFETY technically it is possible to have other values here, having a `default` is a good idea here
+         * SAFETY technically it is possible to have other values here,
+         * regardless, having a `default` is a good idea here
          * @psalm-suppress DocblockTypeContradiction
          * @psalm-suppress NoValue
+         *
+         * SAFETY the parent class guarantees the type of the value
+         * @psalm-suppress MixedArgument
          */
         $condition = match ($this->kind) {
             self::KIND_EQUALS => sprintf('%s = ?', $escapedFieldName),
@@ -191,6 +200,7 @@ abstract class Condition implements ConditionInterface
                 $escapedFieldName,
                 $driver->escapeIdentifier($this->value),
             ),
+            /** @phpstan-ignore match.unreachable */
             default => throw new Exception(
                 sprintf('Invalid kind of condition: "%s"', $this->kind),
             ),
@@ -263,6 +273,7 @@ abstract class Condition implements ConditionInterface
 
             // empty list will result in no emitted values, this links up with
             // the `1 = 2` from the query itself when there are not values
+            /** @var mixed $itemValue */
             foreach ($values as $itemValue) {
                 $state->addConditionValue($itemValue);
             }

@@ -134,7 +134,7 @@ class Database
     /**
      * Set a new PDO connection
      *
-     * @param \PDO A new PDO connection
+     * @param \PDO $connection A new PDO connection
      */
     final public function setConnection(\PDO $connection): void
     {

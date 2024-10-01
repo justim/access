@@ -152,6 +152,14 @@ class RepositoryTest extends AbstractBaseTestCase
         $names = $projectRepo->findVirtualUserNames();
         $names = iterator_to_array($names, false);
 
+        /**
+         * Technically this works, but you probably shouldn't use this in a real scenario.
+         * It's a nightmare to get the types right
+         *
+         * @psalm-suppress MixedInferredReturnType
+         * @psalm-suppress MixedReturnStatement
+         * @psalm-suppress MixedMethodCall
+         */
         $names = array_map(fn($name): string => $name->getUserName(), $names);
 
         $this->assertEquals(['Dave', 'Bob'], $names);
@@ -182,6 +190,7 @@ class RepositoryTest extends AbstractBaseTestCase
         $names = $projectRepo->findVirtualArrayUserNames();
 
         $this->assertNotNull($names[1]);
+        $this->assertInstanceOf(VirtualArrayEntity::class, $names[1]);
 
         $this->assertEquals('Dave', $names[1]['user_name']);
         $this->assertEquals(1, $names[1]['user_id']);
@@ -229,6 +238,7 @@ class RepositoryTest extends AbstractBaseTestCase
         $names = $projectRepo->findVirtualArrayUserNames();
 
         $this->assertNotNull($names[1]);
+        $this->assertInstanceOf(VirtualArrayEntity::class, $names[1]);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Field "some_other_field" not available');
@@ -246,6 +256,7 @@ class RepositoryTest extends AbstractBaseTestCase
         $names = $projectRepo->findVirtualArrayUserNames();
 
         $this->assertNotNull($names[1]);
+        $this->assertInstanceOf(VirtualArrayEntity::class, $names[1]);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to update virtual array entities');
@@ -264,6 +275,7 @@ class RepositoryTest extends AbstractBaseTestCase
         $names = $projectRepo->findVirtualArrayUserNames();
 
         $this->assertNotNull($names[1]);
+        $this->assertInstanceOf(VirtualArrayEntity::class, $names[1]);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Not possible to update virtual array entities');
