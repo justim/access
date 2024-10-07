@@ -29,6 +29,23 @@ $connection = new \PDO('sqlite::memory:');
 $db = new Database($connection);
 ```
 
+Upon creating a connection a driver is selected based on the
+`\PDO::ATTR_DRIVER_NAME` connection attribute. This driver has some information
+about how to generate some queries/use features. For example, `MySQL` uses a
+different function name for random than `SQLite`: `RAND()` vs `RANDOM()`.
+
+The driver is injected into the query generator state when generating the SQL
+and values, this is done with a new argument for the `getSql` method. This is a
+nullable argument to be backward compatible with previous versions. All calls
+inside Access will provide the right driver to this method; if you call this
+method manually, make sure to provide the right driver
+(`Database::getDriver()`).
+
+In a future major version this argument will be mandatory.
+
+Currently there are only drivers for MySQL and SQLite, with a very limited
+feature set.
+
 ## Starting point for
 
 -   Fetching and saving [entities](entities)
