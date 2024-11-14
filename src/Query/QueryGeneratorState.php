@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Driver\DriverInterface;
+
 /**
  * Query generator state class to track some numbers/values
  *
@@ -22,6 +24,11 @@ namespace Access\Query;
  */
 class QueryGeneratorState
 {
+    /**
+     * The driver to use for generating SQL
+     */
+    private DriverInterface $driver;
+
     /**
      * Tracked indexed values
      *
@@ -56,8 +63,12 @@ class QueryGeneratorState
      * @param string $conditionPrefix Prefix used for the condition index
      * @param string $subQueryConditionPrefix Prefix used for the subquery conditions index
      */
-    public function __construct(string $conditionPrefix, string $subQueryConditionPrefix)
-    {
+    public function __construct(
+        DriverInterface $driver,
+        string $conditionPrefix,
+        string $subQueryConditionPrefix,
+    ) {
+        $this->driver = $driver;
         $this->conditionPrefix = $conditionPrefix;
         $this->subQueryConditionPrefix = $subQueryConditionPrefix;
     }
@@ -115,5 +126,10 @@ class QueryGeneratorState
     public function incrementSubQueryIndex(): void
     {
         $this->subQueryIndex++;
+    }
+
+    public function getDriver(): DriverInterface
+    {
+        return $this->driver;
     }
 }

@@ -22,10 +22,8 @@ use Access\Query;
  *
  * @author Tim <me@justim.net>
  *
- * Skip code coverage because testing this is not possible with SQLite,
- * re-enable when we start testing this with a different db driver.
- * @codeCoverageIgnore
  */
+//The actual queries are not tested because SQLite has no support for locks
 class Lock
 {
     /**
@@ -97,7 +95,16 @@ class Lock
      */
     public function lock(): void
     {
-        if ($this->lockTablesQuery->getSql() === null) {
+        $driver = $this->db->getDriver();
+
+        if ($this->lockTablesQuery->getSql($driver) === null) {
+            return;
+        }
+
+        if (!$driver->hasLockSupport()) {
+            // no support for the actual query, but keep track of
+            // the state to keep the destructor logic in working
+            $this->locked = true;
             return;
         }
 
@@ -110,7 +117,16 @@ class Lock
      */
     public function unlock(): void
     {
+        $driver = $this->db->getDriver();
+
         if (!$this->locked) {
+            return;
+        }
+
+        if (!$driver->hasLockSupport()) {
+            // no support for the actual query, but keep track of
+            // the state to keep the destructor logic in working
+            $this->locked = false;
             return;
         }
 

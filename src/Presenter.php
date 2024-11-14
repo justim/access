@@ -69,6 +69,7 @@ class Presenter
      *
      * @param string $presenterKlass Class to present the entity with
      * @param Entity|null $entity Entity to present
+     * @return array<string, mixed>|null
      */
     public function presentEntity(string $presenterKlass, ?Entity $entity): ?array
     {
@@ -104,7 +105,7 @@ class Presenter
      *
      * @psalm-param Collection<TEntity> $collection
      * @param string $presenterKlass Class to present the entity with
-     * @return array<array-key, array>
+     * @return array<array-key, array<string, mixed>>
      * @psalm-return array<array-key, array<string, mixed>>
      */
     public function presentCollection(string $presenterKlass, Collection $collection): array
@@ -482,6 +483,7 @@ class Presenter
     {
         array_walk_recursive($presentation, function (mixed &$item) {
             if ($item instanceof CustomMarkerInterface) {
+                /** @psalm-suppress MixedAssignment */
                 $item = $item->fetch();
             }
         });

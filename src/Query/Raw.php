@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Driver\DriverInterface;
 use Access\Query;
 
 /**
@@ -48,7 +49,7 @@ class Raw extends Query
     /**
      * {@inheritdoc}
      */
-    public function getSql(): ?string
+    public function getSql(?DriverInterface $driver = null): ?string
     {
         return $this->sql;
     }
@@ -56,7 +57,7 @@ class Raw extends Query
     /**
      * {@inheritdoc}
      */
-    public function getValues(): array
+    public function getValues(?DriverInterface $driver = null): array
     {
         return $this->values;
     }

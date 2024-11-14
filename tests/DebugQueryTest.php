@@ -15,6 +15,7 @@ namespace Tests;
 
 use Access\Clause;
 use Access\DebugQuery;
+use Access\Driver\Sqlite;
 use Access\Query;
 
 use Tests\Fixtures\Entity\Project;
@@ -30,10 +31,16 @@ class DebugQueryTest extends AbstractBaseTestCase
 
         $debug = new DebugQuery($query);
 
-        $runnableSql = $debug->toRunnableQuery();
+        /**
+         * Allow an internal class for testing purposes
+         * @psalm-suppress InternalClass
+         */
+        $driver = new Sqlite();
+
+        $runnableSql = $debug->toRunnableQuery($driver);
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND (u.id IS NULL)',
+            'SELECT "u".* FROM "users" AS "u" WHERE "u"."deleted_at" IS NULL AND (u.id IS NULL)',
             $runnableSql,
         );
 
@@ -42,10 +49,10 @@ class DebugQueryTest extends AbstractBaseTestCase
 
         $debug = new DebugQuery($query);
 
-        $runnableSql = $debug->toRunnableQuery();
+        $runnableSql = $debug->toRunnableQuery($driver);
 
         $this->assertEquals(
-            'SELECT `p`.* FROM `projects` AS `p` WHERE (p.id IS NULL)',
+            'SELECT "p".* FROM "projects" AS "p" WHERE (p.id IS NULL)',
             $runnableSql,
         );
     }

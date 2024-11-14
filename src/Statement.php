@@ -76,7 +76,7 @@ final class Statement
         $this->profiler = $profiler;
 
         // cache the sql
-        $this->sql = $query->getSql();
+        $this->sql = $query->getSql($db->getDriver());
     }
 
     /**
@@ -103,7 +103,7 @@ final class Statement
 
         try {
             $profile->startExecute();
-            $statement->execute($this->query->getValues());
+            $statement->execute($this->query->getValues($this->db->getDriver()));
         } catch (\PDOException $e) {
             throw new Exception('Unable to execute query', 0, $e);
         } finally {

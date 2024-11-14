@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Database;
+use Access\Driver\DriverInterface;
 use Access\Query;
 
 /**
@@ -44,8 +46,10 @@ class RollbackToSavepoint extends Query
     /**
      * {@inheritdoc}
      */
-    public function getSql(): ?string
+    public function getSql(?DriverInterface $driver = null): ?string
     {
-        return sprintf('ROLLBACK TO SAVEPOINT %s', self::escapeIdentifier($this->identifier));
+        $driver = Database::getDriverOrDefault($driver);
+
+        return sprintf('ROLLBACK TO SAVEPOINT %s', $driver->escapeIdentifier($this->identifier));
     }
 }

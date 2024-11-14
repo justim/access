@@ -29,4 +29,9 @@ enum Direction: string
      * Order by descending
      */
     case Descending = 'DESC';
+
+    public function toDatabaseFormat(): string
+    {
+        return $this->value;
+    }
 }

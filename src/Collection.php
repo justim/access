@@ -382,8 +382,8 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      *
      * Comparison is made by ID
      *
-     * @param Entity|null $entity Entity to find
-     * @psalm-param TEntity|null $entity Entity to find
+     * @param Entity|null $needle Entity to find
+     * @psalm-param TEntity|null $needle Entity to find
      */
     public function contains(?Entity $needle): bool
     {
@@ -426,9 +426,8 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Create a new collection based on a clause
      *
-     * @psalm-param callable(mixed, mixed=):scalar $finder
-     * @param callable $finder Include entity when $finder returns `true`
-     * @return Collection<TEntity> Newly created, and filtered, collection
+     * @return Collection Newly created, and filtered/ordered, collection
+     * @psalm-return Collection<TEntity> Newly created, and filtered/ordered, collection
      */
     public function applyClause(ClauseInterface $clause): Collection
     {

@@ -60,7 +60,11 @@ class Unique extends Filter
                 return false;
             }
 
-            /** @var mixed[] $matchedValues */
+            /**
+             * Assigning a mixed value is very much on purpose, the `use` part seems to disrupt things
+             * @psalm-suppress MixedAssignment
+             * @var mixed[] $matchedValues
+             */
             $matchedValues[] = $value;
 
             return true;

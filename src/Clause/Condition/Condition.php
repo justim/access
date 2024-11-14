@@ -88,6 +88,14 @@ abstract class Condition implements ConditionInterface
     }
 
     /**
+     * Get the field to compare
+     */
+    public function getField(): Field
+    {
+        return $this->field;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function matchesEntity(?Entity $entity): bool
@@ -115,8 +123,12 @@ abstract class Condition implements ConditionInterface
         }
 
         /**
-         * SAFETY technically it is possible to have other values here, having a `default` is a good idea here
+         * SAFETY technically it is possible to have other values here,
+         * regardless, having a `default` is a good idea here
          * @psalm-suppress DocblockTypeContradiction
+         *
+         * SAFETY the parent class guarantees the type of the value
+         * @psalm-suppress MixedArgument
          */
         return match ($this->kind) {
             self::KIND_EQUALS => $value === $this->value,
@@ -128,6 +140,7 @@ abstract class Condition implements ConditionInterface
             self::KIND_IN => $this->contains($value, $this->value),
             self::KIND_NOT_IN => !$this->contains($value, $this->value),
             self::KIND_RAW, self::KIND_RELATION => false,
+            /** @phpstan-ignore match.unreachable */
             default => false,
         };
     }
@@ -159,12 +172,18 @@ abstract class Condition implements ConditionInterface
      */
     public function getConditionSql(QueryGeneratorState $state): string
     {
-        $escapedFieldName = Query::escapeIdentifier($this->field->getName());
+        $driver = $state->getDriver();
+
+        $escapedFieldName = $driver->escapeIdentifier($this->field->getName());
 
         /**
-         * SAFETY technically it is possible to have other values here, having a `default` is a good idea here
+         * SAFETY technically it is possible to have other values here,
+         * regardless, having a `default` is a good idea here
          * @psalm-suppress DocblockTypeContradiction
          * @psalm-suppress NoValue
+         *
+         * SAFETY the parent class guarantees the type of the value
+         * @psalm-suppress MixedArgument
          */
         $condition = match ($this->kind) {
             self::KIND_EQUALS => sprintf('%s = ?', $escapedFieldName),
@@ -179,8 +198,9 @@ abstract class Condition implements ConditionInterface
             self::KIND_RELATION => sprintf(
                 '%s = %s',
                 $escapedFieldName,
-                Query::escapeIdentifier($this->value),
+                $driver->escapeIdentifier($this->value),
             ),
+            /** @phpstan-ignore match.unreachable */
             default => throw new Exception(
                 sprintf('Invalid kind of condition: "%s"', $this->kind),
             ),
@@ -196,7 +216,7 @@ abstract class Condition implements ConditionInterface
             $subQuery = preg_replace(
                 '/:(([a-z][0-9]+)+)/',
                 ':' . $state->getSubQueryIndexPrefix() . '$1',
-                (string) $this->value->getSql(),
+                (string) $this->value->getSql($state->getDriver()),
             );
 
             /** @var string $condition */
@@ -231,7 +251,7 @@ abstract class Condition implements ConditionInterface
                 $condition = '1 = 2';
             }
         } elseif ($this->value instanceof Field) {
-            $condition = str_replace('?', Query::escapeIdentifier($this->value), $condition);
+            $condition = str_replace('?', $driver->escapeIdentifier($this->value), $condition);
         }
 
         return $condition;
@@ -253,6 +273,7 @@ abstract class Condition implements ConditionInterface
 
             // empty list will result in no emitted values, this links up with
             // the `1 = 2` from the query itself when there are not values
+            /** @var mixed $itemValue */
             foreach ($values as $itemValue) {
                 $state->addConditionValue($itemValue);
             }

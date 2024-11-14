@@ -20,7 +20,6 @@ use Access\Entity;
 /**
  * Hold a pool of entities
  *
- * @psalm-template TEntity of Entity
  * @author Tim <me@justim.net>
  */
 final class EntityPool
@@ -29,7 +28,7 @@ final class EntityPool
 
     /**
      * @var array<string, array<string, Collection>>
-     * @psalm-var array<class-string<TEntity>, array<string, Collection<TEntity>>>
+     * @psalm-var array<class-string<Entity>, array<string, Collection<Entity>>>
      */
     private array $entities = [];
 
@@ -46,6 +45,7 @@ final class EntityPool
     /**
      * Provide a collection to the entity pool
      *
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $entityKlass
      *
      * @param string $entityKlass Entity class name
@@ -64,11 +64,13 @@ final class EntityPool
     /**
      * Get a collection from the pool by ID
      *
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $entityKlass
+     * @psalm-return Collection<TEntity>
      *
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
-     * @param array $ids List of IDs
+     * @param int[] $ids List of IDs
      * @return Collection
      */
     public function getCollection(string $entityKlass, string $fieldName, array $ids): Collection
@@ -129,6 +131,7 @@ final class EntityPool
     /**
      * Get or create a new collection for entity klass
      *
+     * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $entityKlass
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
@@ -144,6 +147,7 @@ final class EntityPool
             $this->entities[$entityKlass][$fieldName] = $collection;
         }
 
+        /** @var Collection<TEntity> */
         return $this->entities[$entityKlass][$fieldName];
     }
 }

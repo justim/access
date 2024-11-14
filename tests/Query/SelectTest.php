@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Query;
 
 use Access\Clause\Condition\Relation;
+use Access\Clause\OrderBy\Ascending;
 use PHPUnit\Framework\TestCase;
 
 use Access\Exception;
@@ -167,6 +168,59 @@ class SelectTest extends TestCase
 
         $this->assertEquals(
             'SELECT `p`.* FROM `projects` AS `p` ORDER BY p.name ASC',
+            $query->getSql(),
+        );
+    }
+
+    public function testQueryOrderRandom(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->orderBy('RANDOM()');
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` ORDER BY RAND()',
+            $query->getSql(),
+        );
+    }
+
+    public function testQueryOrderMultiple(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->orderBy('p.name ASC');
+        $query->orderBy('id DESC');
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` ORDER BY p.name ASC, id DESC',
+            $query->getSql(),
+        );
+    }
+
+    public function testQueryOrderClauses(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->orderBy(new Ascending('p.name'));
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` ORDER BY `p`.`name` ASC',
+            $query->getSql(),
+        );
+    }
+
+    public function testQueryOrderVerbatim(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->orderBy('p.id');
+
+        $this->assertEquals('SELECT `p`.* FROM `projects` AS `p` ORDER BY p.id', $query->getSql());
+    }
+
+    public function testQueryOrderArray(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->orderBy(['p.name ASC', 'id DESC']);
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` ORDER BY p.name ASC, id DESC',
             $query->getSql(),
         );
     }

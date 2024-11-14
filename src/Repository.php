@@ -182,6 +182,7 @@ class Repository
      * @param int[] $ids
      * @param int $limit
      * @return Collection Collection with `Entity`s
+     * @psalm-return Collection<TEntity> Collection with `Entity`s
      */
     public function findByIdsAsCollection(array $ids, int $limit = null): Collection
     {
@@ -706,7 +707,7 @@ class Repository
      *
      * Delegates to insert when no id is available, update otherwise
      *
-     * @param Entity $model
+     * @param Entity $entity Entity to save
      */
     public function save(Entity $entity): void
     {

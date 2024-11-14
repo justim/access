@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access\Clause;
 
 use Access\Collection;
+use Access\Query\QueryGeneratorState;
 
 /**
  * Clause is for sorting
@@ -36,4 +37,20 @@ interface OrderByInterface extends ClauseInterface
      * @psalm-return callable(\Access\Entity, \Access\Entity): int
      */
     public function createSortComparer(): callable;
+
+    /**
+     * Create the SQL for condition
+     *
+     * @param QueryGeneratorState $state A bit of state for query generation
+     * @internal
+     */
+    public function getConditionSql(QueryGeneratorState $state): string;
+
+    /**
+     * Inject SQL values into indexed values
+     *
+     * @param QueryGeneratorState $state A bit of state for query generation
+     * @internal
+     */
+    public function injectConditionValues(QueryGeneratorState $state): void;
 }

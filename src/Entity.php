@@ -235,7 +235,7 @@ abstract class Entity implements IdentifiableInterface
     /**
      * Get the values behind this entity
      *
-     * @return array
+     * @return array<string, mixed>
      */
     final public function getValues(): array
     {
@@ -400,13 +400,14 @@ abstract class Entity implements IdentifiableInterface
      * The updated fields diff will be cleared and timestamps will be
      * filled
      *
-     * @param array $updatedFields
+     * @param array<string, mixed> $updatedFields
      */
     final public function markUpdated(array $updatedFields = null): void
     {
         $this->updatedFields = [];
 
         if ($updatedFields !== null) {
+            /** @var mixed $value */
             foreach ($updatedFields as $field => $value) {
                 if ($this->isBuiltinDatetimeField($field)) {
                     $this->values[$field] = $this->fromDatabaseFormatValue(
@@ -419,10 +420,7 @@ abstract class Entity implements IdentifiableInterface
                 }
 
                 if (!array_key_exists($field, $this->values)) {
-                    $this->values[(string) $field] = $this->fromDatabaseFormat(
-                        (string) $field,
-                        $value,
-                    );
+                    $this->values[$field] = $this->fromDatabaseFormat($field, $value);
                 }
             }
         }
@@ -435,6 +433,7 @@ abstract class Entity implements IdentifiableInterface
      */
     final public function hydrate(array $record): void
     {
+        /** @var mixed $value */
         foreach ($record as $field => $value) {
             // the ID has special treatment
             if ($field === 'id') {
@@ -706,7 +705,10 @@ abstract class Entity implements IdentifiableInterface
      */
     public function copy(): static
     {
-        /** @psalm-suppress UnsafeInstantiation */
+        /**
+         * @psalm-suppress UnsafeInstantiation
+         * @phpstan-ignore new.static
+         */
         $copy = new static();
 
         $record = $this->getValues();

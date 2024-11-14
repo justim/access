@@ -19,6 +19,13 @@ use Access\Clause\ConditionInterface;
 use Access\Clause\Field;
 use Access\Clause\Multiple;
 use Access\Clause\MultipleOr;
+use Access\Clause\OrderBy\Ascending;
+use Access\Clause\OrderBy\Descending;
+use Access\Clause\OrderBy\Direction;
+use Access\Clause\OrderBy\Random;
+use Access\Clause\OrderBy\Verbatim;
+use Access\Clause\OrderByInterface;
+use Access\Driver\DriverInterface;
 use Access\Entity;
 use Access\IdentifiableInterface;
 use Access\Query\QueryGeneratorState;
@@ -52,6 +59,8 @@ abstract class Query
     protected const PREFIX_SUBQUERY_VIRTUAL = 's';
     /** @var string */
     protected const PREFIX_SUBQUERY_CONDITION = 'z';
+    /** @var string */
+    protected const PREFIX_ORDER = 'o';
 
     /**
      * Unescaped table name
@@ -110,9 +119,9 @@ abstract class Query
     protected array $groupBy = [];
 
     /**
-     * @var string|null
+     * @var OrderByInterface[]
      */
-    protected ?string $orderBy = null;
+    protected array $orderBy = [];
 
     /**
      * Condition to exclude soft deleted items
@@ -160,20 +169,6 @@ abstract class Query
         }
 
         $this->alias = $alias;
-    }
-
-    /**
-     * Get the resolved table name
-     *
-     * Meaning, the table name, or its alias
-     *
-     * Note: is SQL escaped for safe usage
-     *
-     * @return string Resolved table name
-     */
-    public function getResolvedTableName(): string
-    {
-        return self::escapeIdentifier($this->getRawResolvedTableName());
     }
 
     /**
@@ -332,14 +327,47 @@ abstract class Query
     }
 
     /**
-     * Add a single ORDER BY part to query
+     * Add a single/multiple ORDER BY part(s) to query
      *
-     * @param string $orderBy Order by clause
+     * @param string|OrderByInterface|string[]|OrderByInterface $orderBy Order by clause
      * @return $this
      */
-    public function orderBy(string $orderBy): static
+    public function orderBy(string|OrderByInterface|array $orderBy): static
     {
-        $this->orderBy = $orderBy;
+        if (is_array($orderBy)) {
+            foreach ($orderBy as $order) {
+                $this->orderBy($order);
+            }
+
+            return $this;
+        }
+
+        if (is_string($orderBy)) {
+            if (str_contains($orderBy, ',')) {
+                return $this->orderBy(array_map('trim', explode(',', $orderBy)));
+            } elseif (preg_match('/^rand(om)?\(\)$/i', $orderBy)) {
+                $orderBy = new Random();
+            } elseif (preg_match('/^(.*) (asc|desc)$/i', $orderBy, $matches)) {
+                // can be anything, treat it as a raw field/expression
+                $field = new Raw($matches[1]);
+
+                $direction = match (strtolower($matches[2])) {
+                    'asc' => Direction::Ascending,
+                    'desc' => Direction::Descending,
+                    default => throw new Exception('Invalid direction'),
+                };
+
+                $orderBy = match ($direction) {
+                    Direction::Ascending => new Ascending($field),
+                    Direction::Descending => new Descending($field),
+                };
+            } else {
+                $field = new Raw($orderBy);
+                $orderBy = new Verbatim($field);
+            }
+        }
+
+        $this->orderBy[] = $orderBy;
 
         return $this;
     }
@@ -392,8 +420,10 @@ abstract class Query
      *
      * @return array<string, mixed> The values
      */
-    public function getValues(): array
+    public function getValues(?DriverInterface $driver = null): array
     {
+        $driver = Database::getDriverOrDefault($driver);
+
         /** @var array<string, mixed> $indexedValues */
         $indexedValues = [];
 
@@ -417,6 +447,7 @@ abstract class Query
             );
 
             $this->getConditionValues(
+                $driver,
                 $indexedValues,
                 $joinConditions,
                 self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
@@ -425,8 +456,9 @@ abstract class Query
 
         $where = $this->preprocessConditions($this->where, $this->softDeleteCondition);
 
-        $this->getConditionValues($indexedValues, $where, self::PREFIX_WHERE);
-        $this->getConditionValues($indexedValues, $this->having, self::PREFIX_HAVING);
+        $this->getConditionValues($driver, $indexedValues, $where, self::PREFIX_WHERE);
+        $this->getConditionValues($driver, $indexedValues, $this->having, self::PREFIX_HAVING);
+        $this->getConditionValues($driver, $indexedValues, $this->orderBy, self::PREFIX_ORDER);
 
         return $indexedValues;
     }
@@ -435,12 +467,16 @@ abstract class Query
      * Get the values used in a list of conditions
      *
      * @param array<string, mixed> $indexedValues (by ref) New condition values will added to this array
-     * @param ConditionInterface[] $definition Definition of conditions
+     * @param ConditionInterface[]|OrderByInterface[] $definition Definition of conditions
      * @param string $prefix Prefix used for the indexed values
      */
-    private function getConditionValues(&$indexedValues, array $definition, string $prefix): void
-    {
-        $state = new QueryGeneratorState($prefix, self::PREFIX_SUBQUERY_CONDITION);
+    private function getConditionValues(
+        DriverInterface $driver,
+        &$indexedValues,
+        array $definition,
+        string $prefix,
+    ): void {
+        $state = new QueryGeneratorState($driver, $prefix, self::PREFIX_SUBQUERY_CONDITION);
 
         foreach ($definition as $condition) {
             $condition->injectConditionValues($state);
@@ -452,14 +488,24 @@ abstract class Query
     /**
      * Convert a value in a database usable format
      *
+     * @psalm-template T
      * @param mixed $value Any value
+     * @psalm-param T $value Any value
      * @return mixed Database usable format
+     * @psalm-return (T is Collection ? int[] : (T is null ? null : (T is bool ? int : (T is array ? mixed[] : (T is BackedEnum ? string|int : (T is int ? int : string))))))  Database usable format
      * @internal
      */
     public static function toDatabaseFormat(mixed $value): mixed
     {
         if ($value instanceof IdentifiableInterface) {
-            return self::toDatabaseFormat($value->getId());
+            /** @psalm-suppress MixedAssignment */
+            $id = $value->getId();
+
+            if (is_int($id)) {
+                return $id;
+            }
+
+            return self::toDatabaseFormat($id);
         }
 
         if ($value instanceof Collection) {
@@ -470,8 +516,12 @@ abstract class Query
             return $value->format(Entity::DATETIME_FORMAT);
         }
 
-        if ($value === true || $value === false) {
+        if (is_bool($value)) {
             return (int) $value;
+        }
+
+        if (is_int($value)) {
+            return $value;
         }
 
         if ($value instanceof BackedEnum) {
@@ -487,7 +537,11 @@ abstract class Query
             );
         }
 
-        return $value;
+        if ($value === null) {
+            return null;
+        }
+
+        return (string) $value;
     }
 
     /**
@@ -495,7 +549,7 @@ abstract class Query
      *
      * @return string - `null` when no query is needed
      */
-    abstract public function getSql(): ?string;
+    abstract public function getSql(?DriverInterface $driver = null): ?string;
 
     /**
      * Get SQL for alias
@@ -505,12 +559,12 @@ abstract class Query
      *
      * @return string
      */
-    protected function getAliasSql(): string
+    protected function getAliasSql(DriverInterface $driver): string
     {
         $sqlAlias = '';
 
         if ($this->alias !== null) {
-            $escaptedAlias = self::escapeIdentifier($this->alias);
+            $escaptedAlias = $driver->escapeIdentifier($this->alias);
             $sqlAlias = " AS {$escaptedAlias}";
         }
 
@@ -525,14 +579,14 @@ abstract class Query
      *
      * @return string
      */
-    protected function getJoinSql(): string
+    protected function getJoinSql(DriverInterface $driver): string
     {
         $i = 0;
 
-        $joins = array_map(function ($join) use (&$i) {
+        $joins = array_map(function ($join) use ($driver, &$i) {
             /** @var int $i */
-            $escapedJoinTableName = $this->escapeIdentifier($join['tableName']);
-            $escapedAlias = self::escapeIdentifier($join['alias']);
+            $escapedJoinTableName = $driver->escapeIdentifier($join['tableName']);
+            $escapedAlias = $driver->escapeIdentifier($join['alias']);
             $sql = '';
 
             switch ($join['type']) {
@@ -550,6 +604,7 @@ abstract class Query
             );
 
             $onSql = $this->getConditionSql(
+                $driver,
                 'ON',
                 $joinConditions,
                 self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
@@ -575,11 +630,11 @@ abstract class Query
      *
      * @return string
      */
-    protected function getWhereSql(): string
+    protected function getWhereSql(DriverInterface $driver): string
     {
         $where = $this->preprocessConditions($this->where, $this->softDeleteCondition);
 
-        return $this->getConditionSql('WHERE', $where, self::PREFIX_WHERE);
+        return $this->getConditionSql($driver, 'WHERE', $where, self::PREFIX_WHERE);
     }
 
     /**
@@ -590,9 +645,9 @@ abstract class Query
      *
      * @return string
      */
-    protected function getHavingSql(): string
+    protected function getHavingSql(DriverInterface $driver): string
     {
-        return $this->getConditionSql('HAVING', $this->having, self::PREFIX_HAVING);
+        return $this->getConditionSql($driver, 'HAVING', $this->having, self::PREFIX_HAVING);
     }
 
     /**
@@ -602,24 +657,29 @@ abstract class Query
      * EX: ''
      *
      * @param string $what Type of condition (WHERE/HAVING/ON)
-     * @param ConditionInterface[] $definition Definition of the condition
+     * @param ConditionInterface[]|OrderByInterface[] $definition Definition of the condition
      * @param string $prefix Prefix for the placeholders
      * @return string
      */
-    private function getConditionSql(string $what, array $definition, string $prefix): string
-    {
+    private function getConditionSql(
+        DriverInterface $driver,
+        string $what,
+        array $definition,
+        string $prefix,
+        string $combinator = ' AND ',
+    ): string {
         if (empty($definition)) {
             return '';
         }
 
         $conditions = [];
-        $state = new QueryGeneratorState($prefix, self::PREFIX_SUBQUERY_CONDITION);
+        $state = new QueryGeneratorState($driver, $prefix, self::PREFIX_SUBQUERY_CONDITION);
 
         foreach ($definition as $definitionPart) {
             $conditions[] = $definitionPart->getConditionSql($state);
         }
 
-        $condition = implode(' AND ', $conditions);
+        $condition = implode($combinator, $conditions);
         $sqlCondition = " {$what} {$condition}";
 
         return $this->replaceQuestionMarks($sqlCondition, $prefix);
@@ -633,7 +693,7 @@ abstract class Query
      *
      * @return string
      */
-    protected function getGroupBySql()
+    protected function getGroupBySql(): string
     {
         if (empty($this->groupBy)) {
             return '';
@@ -650,17 +710,15 @@ abstract class Query
      *
      * @return string
      */
-    protected function getOrderBySql(): string
+    protected function getOrderBySql(DriverInterface $driver): string
     {
-        /**
-         * All cases for which `empty` returns falsey should default to an empty string
-         * @psalm-suppress RiskyTruthyFalsyComparison
-         */
-        if (empty($this->orderBy)) {
-            return '';
-        }
-
-        return ' ORDER BY ' . $this->orderBy;
+        return $this->getConditionSql(
+            $driver,
+            'ORDER BY',
+            $this->orderBy,
+            self::PREFIX_ORDER,
+            ', ',
+        );
     }
 
     /**
@@ -691,24 +749,6 @@ abstract class Query
     }
 
     /**
-     * Escape identifier
-     *
-     * MySQL only
-     *
-     * @param string|Field $identifier Identifier to escape
-     * @return string
-     * @internal
-     */
-    public static function escapeIdentifier(string|Field $identifier): string
-    {
-        if ($identifier instanceof Field) {
-            $identifier = $identifier->getName();
-        }
-
-        return str_replace('.', '`.`', sprintf('`%s`', str_replace('`', '``', $identifier)));
-    }
-
-    /**
      * Replace `?` with numbered placeholders
      *
      * @param string $sql SQL that needs its `?`'s replaces
@@ -731,7 +771,7 @@ abstract class Query
     /**
      * Process condition input
      *
-     * @param array|string|ConditionInterface $condition List of clauses or a single one
+     * @param array<mixed>|string|ConditionInterface $condition List of clauses or a single one
      * @param mixed $value Value of the single condition
      * @param bool $valueWasProvided Was the value provided
      * @return ConditionInterface[]
@@ -742,7 +782,10 @@ abstract class Query
         bool $valueWasProvided,
     ): array {
         if (!is_array($condition)) {
-            /** @psalm-suppress DocblockTypeContradiction */
+            /**
+             * @psalm-suppress DocblockTypeContradiction
+             * @phpstan-ignore booleanAnd.alwaysFalse
+             */
             if (!is_string($condition) && !$condition instanceof ConditionInterface) {
                 throw new Exception('Condition should be a string or `ConditionInterface`');
             }

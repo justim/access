@@ -64,6 +64,7 @@ abstract class EntityPresenter
      * @psalm-template TEntityPresenterEntity of Entity
      * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
+     * @psalm-return PresentationMarker<TEntityPresenter, TEntityPresenterEntity>|null
      *
      * @param string $presenterKlass Class to present the entity with
      * @param int|null $id ID of the entity
@@ -95,23 +96,25 @@ abstract class EntityPresenter
      * @psalm-template TEntityPresenterEntity of Entity
      * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
+     * @psalm-return PresentationMarker<TEntityPresenter, TEntityPresenterEntity>|array{}
      *
      * @param string $presenterKlass Class to present the collection with
      * @param int[] $ids Primary IDs of entities associated with presenter
-     * @param ClauseInterface|null $relationClause Optional clause to manipulate resulting entities
+     * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
      * @return EntityMarkerInterface|array|null List of presentation markers
      */
     protected function presentMultiple(
         string $presenterKlass,
         array $ids,
         ?ClauseInterface $clause = null,
-    ): EntityMarkerInterface|array|null {
+    ): EntityMarkerInterface|array {
         Database::assertValidPresenterClass($presenterKlass);
 
         if (empty($ids)) {
             return [];
         }
 
+        /** @psalm-var PresentationMarker<TEntityPresenter, TEntityPresenterEntity> */
         return new PresentationMarker($presenterKlass, 'id', $ids, true, $clause);
     }
 
@@ -133,6 +136,7 @@ abstract class EntityPresenter
      * @psalm-template TEntityPresenterEntity of Entity
      * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
+     * @psalm-return PresentationMarker<TEntityPresenter, TEntityPresenterEntity>|null
      *
      * @param string $presenterKlass Class to present the entity with
      * @param string $fieldName Name of referenced field
@@ -152,6 +156,7 @@ abstract class EntityPresenter
             return null;
         }
 
+        /** @psalm-var PresentationMarker<TEntityPresenter, TEntityPresenterEntity> */
         return new PresentationMarker($presenterKlass, $fieldName, $id, false, $clause);
     }
 
@@ -178,11 +183,12 @@ abstract class EntityPresenter
      * @psalm-template TEntityPresenterEntity of Entity
      * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $targetPresenterKlass
+     * @psalm-return FutureMarker<TEntityParam>|null
      *
      * @param string $relationEntityKlass Entity class name
-     * @param string $fromFieldName Name of referenced field for source
+     * @param string $sourceFieldName Name of referenced field for source
      * @param int|null $id ID of the entity
-     * @param string $toFieldName Name of referenced field for target
+     * @param string $targetFieldName Name of referenced field for target
      * @param string $targetPresenterKlass Class to present the entity with
      * @param ClauseInterface|null $relationClause Optional clause to manipulate resulting entities (applied to relation entities)
      * @return FutureMarker|null Marker with presenter info
@@ -232,25 +238,27 @@ abstract class EntityPresenter
      * @psalm-template TEntityPresenterEntity of Entity
      * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
+     * @psalm-return PresentationMarker<TEntityPresenter, TEntityPresenterEntity>|array{}
      *
      * @param string $presenterKlass Class to present the entity with
      * @param string $fieldName Name of referenced field
      * @param int|int[]|null $id ID of the entity
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
-     * @return PresentationMarker|array|null Marker with presenter info (or empty array on empty ID)
+     * @return PresentationMarker|array Marker with presenter info (or empty array on empty ID)
      */
     protected function presentMultipleInversedRefs(
         string $presenterKlass,
         string $fieldName,
         int|array|null $id,
         ?ClauseInterface $clause = null,
-    ) {
+    ): PresentationMarker|array {
         Database::assertValidPresenterClass($presenterKlass);
 
         if ($id === null) {
             return [];
         }
 
+        /** @psalm-var PresentationMarker<TEntityPresenter, TEntityPresenterEntity> */
         return new PresentationMarker($presenterKlass, $fieldName, $id, true, $clause);
     }
 
@@ -277,15 +285,16 @@ abstract class EntityPresenter
      * @psalm-template TEntityPresenterEntity of Entity
      * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $targetPresenterKlass
+     * @psalm-return FutureMarker<TEntityParam>|array{}
      *
      * @param string $relationEntityKlass Entity class name
-     * @param string $fromFieldName Name of referenced field for source
+     * @param string $sourceFieldName Name of referenced field for source
      * @param int|int[]|null $id ID of the entity
-     * @param string $toFieldName Name of referenced field for target
+     * @param string $targetFieldName Name of referenced field for target
      * @param string $targetPresenterKlass Class to present the entity with
      * @param ClauseInterface|null $relationClause Optional clause to manipulate resulting entities (applied to relation entities)
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities (applied to result entities)
-     * @return FutureMarker|array|null Marker with presenter info (or empty array on empty ID)
+     * @return FutureMarker|array Marker with presenter info (or empty array on empty ID)
      */
     protected function presentMultipleThroughInversedRefs(
         string $relationEntityKlass,
@@ -295,7 +304,7 @@ abstract class EntityPresenter
         string $targetPresenterKlass,
         ?ClauseInterface $relationClause = null,
         ?ClauseInterface $clause = null,
-    ) {
+    ): FutureMarker|array {
         Database::assertValidEntityClass($relationEntityKlass);
         Database::assertValidPresenterClass($targetPresenterKlass);
 
@@ -337,6 +346,7 @@ abstract class EntityPresenter
      *
      * @psalm-template TEntityParam of Entity
      * @psalm-param class-string<TEntityParam> $entityKlass
+     * @psalm-return FutureMarker<TEntityParam>|null
      *
      * @param string $entityKlass Entity class name
      * @param int|null $id ID of the entity
@@ -372,19 +382,20 @@ abstract class EntityPresenter
      *
      * @psalm-template TEntityParam of Entity
      * @psalm-param class-string<TEntityParam> $entityKlass
+     * @psalm-return FutureMarker<TEntityParam>|array{}
      *
      * @param string $entityKlass Entity class name
      * @param int|int[]|null $ids IDs of the entities
      * @param \Closure $callback On resolved callback
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
-     * @return FutureMarker|array|null Marker with future presentation info
+     * @return FutureMarker|array Marker with future presentation info
      */
     protected function presentFutureMultiple(
         string $entityKlass,
         int|array|null $ids,
         \Closure $callback,
         ?ClauseInterface $clause = null,
-    ) {
+    ): FutureMarker|array {
         return $this->presentFutureMultipleInversedRefs(
             $entityKlass,
             'id',
@@ -412,6 +423,7 @@ abstract class EntityPresenter
      *
      * @psalm-template TEntityParam of Entity
      * @psalm-param class-string<TEntityParam> $entityKlass
+     * @psalm-return FutureMarker<TEntityParam>|null
      *
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
@@ -454,13 +466,14 @@ abstract class EntityPresenter
      *
      * @psalm-template TEntityParam of Entity
      * @psalm-param class-string<TEntityParam> $entityKlass
+     * @psalm-return FutureMarker<TEntityParam>|array{}
      *
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
      * @param int|int[]|null $id ID of the entity
      * @param \Closure $callback On resolved callback
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
-     * @return FutureMarker|array|null Marker with future presentation info (or empty array on empty ID)
+     * @return FutureMarker|array Marker with future presentation info (or empty array on empty ID)
      */
     protected function presentFutureMultipleInversedRefs(
         string $entityKlass,
@@ -468,7 +481,7 @@ abstract class EntityPresenter
         int|array|null $id,
         \Closure $callback,
         ?ClauseInterface $clause = null,
-    ) {
+    ): FutureMarker|array {
         Database::assertValidEntityClass($entityKlass);
 
         if ($id === null) {

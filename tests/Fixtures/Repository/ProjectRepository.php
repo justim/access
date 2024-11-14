@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Repository;
 
+use Access\Batch;
 use Tests\Fixtures\Entity\Project;
 
 use Access\Collection;
@@ -247,6 +248,9 @@ class ProjectRepository extends Repository
         );
     }
 
+    /**
+     * @psalm-return \Generator<mixed, Batch<Project>>
+     */
     public function findBatchedAll(): \Generator
     {
         $query = new Select(Project::class, 'p');

@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Access\Query;
 
 use Access\Clause\Field;
+use Access\Database;
+use Access\Driver\DriverInterface;
 use Access\Query;
 
 /**
@@ -35,8 +37,10 @@ class Update extends Query
     /**
      * {@inheritdoc}
      */
-    public function getSql(): ?string
+    public function getSql(?DriverInterface $driver = null): ?string
     {
+        $driver = Database::getDriverOrDefault($driver);
+
         $parts = [];
 
         $i = 0;
@@ -45,11 +49,13 @@ class Update extends Query
             if ($value instanceof Field) {
                 // use the name of the field directly
                 $parts[] =
-                    self::escapeIdentifier($q) . ' = ' . self::escapeIdentifier($value->getName());
+                    $driver->escapeIdentifier($q) .
+                    ' = ' .
+                    $driver->escapeIdentifier($value->getName());
             } else {
                 $placeholder = self::PREFIX_PARAM . (string) $i;
 
-                $parts[] = self::escapeIdentifier($q) . ' = :' . $placeholder;
+                $parts[] = $driver->escapeIdentifier($q) . ' = :' . $placeholder;
 
                 $i++;
             }
@@ -62,11 +68,11 @@ class Update extends Query
             return null;
         }
 
-        $sqlUpdate = 'UPDATE ' . self::escapeIdentifier($this->tableName);
-        $sqlAlias = $this->getAliasSql();
-        $sqlJoins = $this->getJoinSql();
+        $sqlUpdate = 'UPDATE ' . $driver->escapeIdentifier($this->tableName);
+        $sqlAlias = $this->getAliasSql($driver);
+        $sqlJoins = $this->getJoinSql($driver);
         $sqlFields = ' SET ' . $fields;
-        $sqlWhere = $this->getWhereSql();
+        $sqlWhere = $this->getWhereSql($driver);
         $sqlLimit = $this->getLimitSql();
 
         return $sqlUpdate . $sqlAlias . $sqlJoins . $sqlFields . $sqlWhere . $sqlLimit;
