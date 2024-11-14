@@ -16,9 +16,6 @@ namespace Access;
 use Access\Clause\ConditionInterface;
 use Access\Clause\FilterInterface;
 use Access\Clause\OrderByInterface;
-use Access\Collection;
-use Access\Database;
-use Access\Entity;
 use Access\Presenter\CustomMarkerInterface;
 use Access\Presenter\EntityPool;
 use Access\Presenter\EntityPresenter;
@@ -33,9 +30,6 @@ use Access\Presenter\PresentationMarker;
  */
 class Presenter
 {
-    /**
-     * @var Database $db
-     */
     private Database $db;
 
     /**
@@ -50,11 +44,6 @@ class Presenter
      */
     private array $dependencies = [];
 
-    /**
-     * Create a presenter
-     *
-     * @param Database $db
-     */
     public function __construct(Database $db)
     {
         $this->db = $db;
@@ -65,8 +54,6 @@ class Presenter
 
     /**
      * Add a dependency to be available for the entity presenters
-     *
-     * @param object $dependency
      */
     public function addDependency(object $dependency): void
     {
@@ -74,7 +61,7 @@ class Presenter
     }
 
     /**
-     * Present a entity in array form from entity
+     * Present an entity in array form from entity
      *
      * @psalm-template TEntityPresenterEntity of Entity
      * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
@@ -118,7 +105,6 @@ class Presenter
      *
      * @psalm-param Collection<TEntity> $collection
      * @param string $presenterKlass Class to present the entity with
-     * @param Collection $collection
      * @return array<array-key, array<string, mixed>>
      * @psalm-return array<array-key, array<string, mixed>>
      */
@@ -136,7 +122,7 @@ class Presenter
     }
 
     /**
-     * Given a array presentation, find and resolve all markers
+     * Given an array presentation, find and resolve all markers
      *
      * @psalm-template T of array<array-key, array<string, mixed>>|array<string, mixed>
      * @param array $presentation Array presentation of some data
@@ -170,7 +156,7 @@ class Presenter
         }
 
         /**
-         * @var array<array-key, array<string, mxied>>|array<string, mixed> $presentation
+         * @var array<array-key, array<string, mixed>>|array<string, mixed> $presentation
          * @psalm-var T $presentation
          */
         return $presentation;
@@ -182,7 +168,7 @@ class Presenter
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $entityKlass
      * @param string $entityKlass Entity class name
-     * @param Collection $collection
+     * @psalm-param Collection<TEntity> $collection
      */
     public function provideCollection(string $entityKlass, Collection $collection): void
     {
@@ -386,7 +372,6 @@ class Presenter
      * @param PresentationMarker $marker Presentation marker to resolve
      * @param Collection $collection Collection that contains the entit(y|ies) linked to marker
      * @param EntityPresenter $presenter Presenter to convert marker to array
-     * @return array|null
      */
     private function resolvePresentationMarker(
         PresentationMarker $marker,
@@ -408,7 +393,6 @@ class Presenter
      *
      * @param FutureMarker $marker Future marker to resolve
      * @param Collection $collection Collection that contains the entit(y|ies) linked to marker
-     * @return mixed
      */
     private function resolveFutureMarker(FutureMarker $marker, Collection $collection): mixed
     {
@@ -427,7 +411,6 @@ class Presenter
      * @param Collection $collection Collection that contains the entit(y|ies) linked to marker
      * @param callable $callbackSingle Called when the marker is single
      * @param callable $callbackMultiple Called when the marker is multiple
-     * @return mixed
      */
     private function resolveMarker(
         EntityMarkerInterface $marker,
@@ -515,7 +498,6 @@ class Presenter
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      *
      * @param string $presenterKlass Class to present the entity/collection
-     * @return EntityPresenter
      */
     private function createEntityPresenter(string $presenterKlass): EntityPresenter
     {
