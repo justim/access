@@ -30,7 +30,7 @@ class Raw extends Condition
      * @param string $condition Raw condition
      * @param mixed $value Value for the raw condition
      */
-    public function __construct(string $condition, $value = null)
+    public function __construct(string $condition, mixed $value = null)
     {
         parent::__construct($condition, self::KIND_RAW, $value);
     }

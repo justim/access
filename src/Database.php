@@ -91,8 +91,8 @@ class Database
      */
     public function __construct(
         \PDO $connection,
-        Profiler $profiler = null,
-        ClockInterface $clock = null,
+        ?Profiler $profiler = null,
+        ?ClockInterface $clock = null,
     ) {
         $this->statementPool = new StatementPool($this);
         $this->profiler = $profiler ?? new Profiler();
@@ -110,8 +110,8 @@ class Database
      */
     public static function create(
         string $connectionString,
-        Profiler $profiler = null,
-        ClockInterface $clock = null,
+        ?Profiler $profiler = null,
+        ?ClockInterface $clock = null,
     ): self {
         try {
             $connection = new \PDO($connectionString);
@@ -286,7 +286,7 @@ class Database
      * @param ?int $limit A a limit to the query
      * @return \Generator - yields Entity
      */
-    public function findBy(string $klass, $fields, int $limit = null): \Generator
+    public function findBy(string $klass, $fields, ?int $limit = null): \Generator
     {
         yield from $this->getRepository($klass)->findBy($fields, $limit);
     }
@@ -304,7 +304,7 @@ class Database
      * @param ?int $limit A a limit to the query
      * @return \Generator - yields Entity
      */
-    public function findByIds(string $klass, array $ids, int $limit = null): \Generator
+    public function findByIds(string $klass, array $ids, ?int $limit = null): \Generator
     {
         yield from $this->getRepository($klass)->findByIds($ids, $limit);
     }
@@ -644,7 +644,7 @@ class Database
      * @psalm-param iterable<TEntity>|null $iterable List of entities
      * @psalm-return ($iterable is null ? Collection : Collection<TEntity>)
      */
-    public function createCollection(iterable $iterable = null): Collection
+    public function createCollection(?iterable $iterable = null): Collection
     {
         return new Collection($this, $iterable);
     }

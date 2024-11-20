@@ -145,7 +145,7 @@ abstract class Query
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
      */
-    protected function __construct(string $tableName, string $alias = null)
+    protected function __construct(string $tableName, ?string $alias = null)
     {
         $this->tableName = $tableName;
 

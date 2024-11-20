@@ -303,7 +303,7 @@ abstract class Entity implements IdentifiableInterface
      *
      * @return array<string, mixed>
      */
-    final public function getInsertValues(ClockInterface $clock = null): array
+    final public function getInsertValues(?ClockInterface $clock = null): array
     {
         $clock ??= new InternalClock();
 
@@ -355,7 +355,7 @@ abstract class Entity implements IdentifiableInterface
      *
      * @return array<string, mixed>
      */
-    final public function getUpdateValues(ClockInterface $clock = null): array
+    final public function getUpdateValues(?ClockInterface $clock = null): array
     {
         $clock ??= new InternalClock();
 
@@ -400,9 +400,9 @@ abstract class Entity implements IdentifiableInterface
      * The updated fields diff will be cleared and timestamps will be
      * filled
      *
-     * @param array<string, mixed> $updatedFields
+     * @param array<string, mixed>|null $updatedFields
      */
-    final public function markUpdated(array $updatedFields = null): void
+    final public function markUpdated(?array $updatedFields = null): void
     {
         $this->updatedFields = [];
 

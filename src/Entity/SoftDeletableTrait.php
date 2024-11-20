@@ -39,7 +39,7 @@ trait SoftDeletableTrait
     /**
      * Set deleted_at for entity
      */
-    public function setDeletedAt(\DateTimeImmutable $now = null): void
+    public function setDeletedAt(?\DateTimeImmutable $now = null): void
     {
         $this->set(Entity::DELETED_AT_FIELD, $now ?? new \DateTimeImmutable());
     }

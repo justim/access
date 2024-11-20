@@ -39,7 +39,7 @@ class Select extends Query
      * @param string $alias Name of the alias for given table name
      * @param array<string, string|Select> $virtualFields List of virtual fields, 'name' => 'SQL'
      */
-    public function __construct(string $tableName, string $alias = null, array $virtualFields = [])
+    public function __construct(string $tableName, ?string $alias = null, array $virtualFields = [])
     {
         parent::__construct($tableName, $alias);
 

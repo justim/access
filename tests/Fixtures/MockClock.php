@@ -26,7 +26,7 @@ class MockClock implements ClockInterface
     /**
      * Create a mock clock with a give datetime
      */
-    public function __construct(DateTimeImmutable $now = null)
+    public function __construct(?DateTimeImmutable $now = null)
     {
         $this->now = $now ?? new DateTimeImmutable();
     }

@@ -83,7 +83,7 @@ abstract class AbstractBaseTestCase extends TestCase
         return self::createTables($db);
     }
 
-    public static function createDatabaseWithMockClock(ClockInterface $clock = null): Database
+    public static function createDatabaseWithMockClock(?ClockInterface $clock = null): Database
     {
         $clock = $clock ?? new MockClock();
         $db = Database::create('sqlite::memory:', null, $clock);

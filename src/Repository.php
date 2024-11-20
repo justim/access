@@ -117,7 +117,7 @@ class Repository
      * @param ?int $limit A a limit to the query
      * @return \Generator - yields Entity
      */
-    public function findBy(array $fields, int $limit = null): \Generator
+    public function findBy(array $fields, ?int $limit = null): \Generator
     {
         $query = new Query\Select($this->klass);
 
@@ -148,7 +148,7 @@ class Repository
      * @return Collection Collection with `Entity`s
      * @psalm-return Collection<TEntity> Collection with `Entity`s
      */
-    public function findByAsCollection(array $fields, int $limit = null): Collection
+    public function findByAsCollection(array $fields, ?int $limit = null): Collection
     {
         $iterator = $this->findBy($fields, $limit);
 
@@ -167,7 +167,7 @@ class Repository
      * @param int $limit
      * @return \Generator - yields Entity
      */
-    public function findByIds(array $ids, int $limit = null): \Generator
+    public function findByIds(array $ids, ?int $limit = null): \Generator
     {
         $fields = [
             'id' => $ids,
@@ -184,7 +184,7 @@ class Repository
      * @return Collection Collection with `Entity`s
      * @psalm-return Collection<TEntity> Collection with `Entity`s
      */
-    public function findByIdsAsCollection(array $ids, int $limit = null): Collection
+    public function findByIdsAsCollection(array $ids, ?int $limit = null): Collection
     {
         $iterator = $this->findByIds($ids, $limit);
 
@@ -278,7 +278,7 @@ class Repository
      * @param Query\Select $query Select query to be executed
      * @param int|null $batchSize Size of the batches
      */
-    public function selectBatched(Query\Select $query, int $batchSize = null): \Generator
+    public function selectBatched(Query\Select $query, ?int $batchSize = null): \Generator
     {
         /** @var Batch<TEntity> $batch */
         $batch = new Batch($this->db);
@@ -384,7 +384,7 @@ class Repository
      */
     public function selectBatchedCurrentIdsCursor(
         Query\Select $query,
-        int $pageSize = null,
+        ?int $pageSize = null,
     ): \Generator {
         $cursor = new CurrentIdsCursor([], $pageSize);
         $entities = $this->selectCurrentIdsCursor($query, $cursor);
@@ -610,7 +610,7 @@ class Repository
     public function selectVirtualField(
         Query\Select $query,
         string $virtualFieldName,
-        string $virtualType = null,
+        ?string $virtualType = null,
     ): \Generator {
         $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
@@ -642,7 +642,7 @@ class Repository
     public function selectOneVirtualField(
         Query\Select $query,
         string $virtualFieldName,
-        string $virtualType = null,
+        ?string $virtualType = null,
     ) {
         $query->limit(1);
 

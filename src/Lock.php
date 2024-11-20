@@ -69,7 +69,7 @@ class Lock
      * @param string $klass Entity class name
      * @param string $alias Lock the table by its alias
      */
-    public function read(string $klass, string $alias = null): void
+    public function read(string $klass, ?string $alias = null): void
     {
         $this->lockTablesQuery->read($klass, $alias);
     }
@@ -83,7 +83,7 @@ class Lock
      * @param string $klass Entity class name
      * @param string $alias Lock the table by its alias
      */
-    public function write(string $klass, string $alias = null): void
+    public function write(string $klass, ?string $alias = null): void
     {
         $this->db->assertValidEntityClass($klass);
 

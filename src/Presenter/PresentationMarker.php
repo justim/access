@@ -69,7 +69,7 @@ final class PresentationMarker implements EntityMarkerInterface
         string $fieldName,
         int|array $refIds,
         bool $multiple,
-        ClauseInterface $clause = null,
+        ?ClauseInterface $clause = null,
     ) {
         $this->presenterKlass = $presenterKlass;
         $this->fieldName = $fieldName;

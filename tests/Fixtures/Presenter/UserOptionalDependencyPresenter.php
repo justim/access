@@ -25,7 +25,7 @@ class UserOptionalDependencyPresenter extends EntityPresenter
 {
     private ?User $user = null;
 
-    public function __construct(User $user = null)
+    public function __construct(?User $user = null)
     {
         $this->user = $user;
     }

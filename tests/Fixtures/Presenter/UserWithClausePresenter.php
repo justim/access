@@ -26,7 +26,7 @@ class UserWithClausePresenter extends EntityPresenter
 {
     private ?ClauseInterface $clause = null;
 
-    public function __construct(ClauseInterface $clause = null)
+    public function __construct(?ClauseInterface $clause = null)
     {
         $this->clause = $clause;
     }

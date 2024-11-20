@@ -29,7 +29,7 @@ class Update extends Query
      * @param string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
      */
-    public function __construct(string $tableName, string $alias = null)
+    public function __construct(string $tableName, ?string $alias = null)
     {
         parent::__construct($tableName, $alias);
     }
