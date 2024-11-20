@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="vendor/autoload.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd" cacheDirectory=".phpunit.cache">
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    bootstrap="vendor/autoload.php"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+    cacheDirectory=".phpunit.cache"
+>
     <coverage>
         <report>
             <clover outputFile="build/logs/clover.xml"/>
@@ -15,7 +20,11 @@
 
     <logging/>
 
-    <source>
+    <source
+        restrictWarnings="true"
+        restrictNotices="true"
+        restrictDeprecations="true"
+    >
         <include>
             <directory suffix=".php">src</directory>
         </include>

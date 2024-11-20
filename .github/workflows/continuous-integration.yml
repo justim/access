@@ -64,7 +64,7 @@ jobs:
                   dependency-versions: ${{ matrix.dependencies }}
 
             - name: Run test suite
-              run: composer run-script test
+              run: composer run-script test -- --display-deprecations --display-notices --display-warnings
 
             - name: Upload code coverage
               env:
