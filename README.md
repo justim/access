@@ -1,5 +1,5 @@
 # Access
-![Tests status](https://github.com/justim/access/workflows/tests/badge.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/github/justim/access/badge.svg?branch=master)](https://coveralls.io/github/justim/access?branch=master)
+[![Continuous Integration](https://github.com/justim/access/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/justim/access/actions/workflows/continuous-integration.yml) [![Coverage Status](https://coveralls.io/repos/github/justim/access/badge.svg?branch=master)](https://coveralls.io/github/justim/access?branch=master)
 
 > A simple MySQL wrapper optimized for bigger data sets
 
