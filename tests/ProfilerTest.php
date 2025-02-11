@@ -51,6 +51,7 @@ class ProfilerTest extends AbstractBaseTestCase
         $export = $profiler->export();
 
         $lastProfile = array_pop($export['queries']);
+        $this->assertIsArray($lastProfile);
         $this->assertEquals(1, $lastProfile['numberOfResults']);
 
         iterator_to_array($projectRepo->findAll(), false);
@@ -58,6 +59,7 @@ class ProfilerTest extends AbstractBaseTestCase
         $export = $profiler->export();
 
         $lastProfile = array_pop($export['queries']);
+        $this->assertIsArray($lastProfile);
         $this->assertEquals(2, $lastProfile['numberOfResults']);
     }
 

@@ -45,11 +45,13 @@ class GroupedCollectionIterator implements \Iterator
      *
      * Iterator implementation
      *
-     * @return Collection<TEntity>
+     * @return Collection<TEntity>|null
      */
-    public function current(): Collection
+    public function current(): Collection|null
     {
-        return current($this->groups);
+        // `Iterator::current` expects `null`, but `current` produces `false` when the array is empty
+        // Convert them to `null` to avoid type errors
+        return current($this->groups) ?: null;
     }
 
     /**
@@ -58,7 +60,7 @@ class GroupedCollectionIterator implements \Iterator
      * Iterator implementation
      *
      * @return mixed
-     * @psalm-return array-key
+     * @psalm-return array-key|null
      */
     public function key(): mixed
     {

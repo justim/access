@@ -219,6 +219,12 @@ abstract class Condition implements ConditionInterface
                 (string) $this->value->getSql($state->getDriver()),
             );
 
+            /**
+             * The preg replacement does not fail without our regex, so we can safely
+             * "cast" the variable
+             */
+            assert(is_string($subQuery));
+
             /** @var string $condition */
             $condition = preg_replace(
                 ['/(!)?= ?\?/', '/(NOT)? IN ?\(\?\)/i'],
