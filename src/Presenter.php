@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Clause\ClauseInterface;
 use Access\Clause\ConditionInterface;
 use Access\Clause\FilterInterface;
 use Access\Clause\OrderByInterface;
@@ -182,11 +183,14 @@ class Presenter
      * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      * @param string $presenterKlass Class to present the entity with
-     * @param int $id ID of the entity
+     * @param int|int[] $id ID(s) of the entity
      */
-    public function mark(string $presenterKlass, int $id): PresentationMarker
-    {
-        return new PresentationMarker($presenterKlass, 'id', $id, false);
+    public function mark(
+        string $presenterKlass,
+        int|array $id,
+        ?ClauseInterface $clause = null,
+    ): PresentationMarker {
+        return new PresentationMarker($presenterKlass, 'id', $id, is_array($id), $clause);
     }
 
     /**

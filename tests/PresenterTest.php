@@ -15,6 +15,8 @@ namespace Tests;
 
 use Access\Presenter;
 use Access\Clause;
+use Access\Clause\Condition\Equals;
+use Access\Clause\OrderBy\Descending;
 use Access\Collection;
 use Access\Database;
 use Access\Exception;
@@ -1181,6 +1183,92 @@ class PresenterTest extends AbstractBaseTestCase
 
         $presentation = [
             'someUser' => $presenter->mark(PlainUserPresenter::class, $userOne->getId()),
+        ];
+
+        $result = $presenter->processPresentation($presentation);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testPresenterManualMarkMultiple(): void
+    {
+        [$db, $userOne, , , $userTwo] = $this->createAndSetupEntities(self::OPTION_EXTRA_USER);
+
+        $expected = [
+            'someUsers' => [
+                [
+                    'id' => $userOne->getId(),
+                ],
+                [
+                    'id' => $userTwo->getId(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+
+        $presentation = [
+            'someUsers' => $presenter->mark(PlainUserPresenter::class, [
+                $userOne->getId(),
+                $userTwo->getId(),
+            ]),
+        ];
+
+        $result = $presenter->processPresentation($presentation);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testPresenterManualMarkMultipleWithOrderClause(): void
+    {
+        [$db, $userOne, , , $userTwo] = $this->createAndSetupEntities(self::OPTION_EXTRA_USER);
+
+        $expected = [
+            'someUsers' => [
+                [
+                    'id' => $userTwo->getId(),
+                ],
+                [
+                    'id' => $userOne->getId(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+
+        $presentation = [
+            'someUsers' => $presenter->mark(
+                PlainUserPresenter::class,
+                [$userOne->getId(), $userTwo->getId()],
+                new Descending('id'),
+            ),
+        ];
+
+        $result = $presenter->processPresentation($presentation);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testPresenterManualMarkMultipleWithConditionClause(): void
+    {
+        [$db, $userOne, , , $userTwo] = $this->createAndSetupEntities(self::OPTION_EXTRA_USER);
+
+        $expected = [
+            'someUsers' => [
+                [
+                    'id' => $userTwo->getId(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+
+        $presentation = [
+            'someUsers' => $presenter->mark(
+                PlainUserPresenter::class,
+                [$userOne->getId(), $userTwo->getId()],
+                new Equals('id', $userTwo->getId()),
+            ),
         ];
 
         $result = $presenter->processPresentation($presentation);
