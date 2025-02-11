@@ -96,7 +96,7 @@ final class Statement
             $profile->startPrepare();
             $statement = $this->statementPool->prepare($this->sql);
         } catch (\PDOException $e) {
-            throw new Exception('Unable to prepare query', 0, $e);
+            throw new Exception('Unable to prepare query: ' . $e->getMessage(), 0, $e);
         } finally {
             $profile->endPrepare();
         }
@@ -105,7 +105,7 @@ final class Statement
             $profile->startExecute();
             $statement->execute($this->query->getValues($this->db->getDriver()));
         } catch (\PDOException $e) {
-            throw new Exception('Unable to execute query', 0, $e);
+            throw new Exception('Unable to execute query: ' . $e->getMessage(), 0, $e);
         } finally {
             $profile->endExecute();
         }
@@ -121,7 +121,7 @@ final class Statement
                     yield $row;
                 }
             } catch (\PDOException $e) {
-                throw new Exception('Unable to fetch', 0, $e);
+                throw new Exception('Unable to fetch: ' . $e->getMessage(), 0, $e);
             } finally {
                 $profile->endHydrate();
                 $profile->setNumberOfResults($numberOfResults);
