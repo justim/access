@@ -50,7 +50,7 @@ class ProjectPresenter extends EntityPresenter
             'ownerFuture' => $this->presentFuture(
                 User::class,
                 $project->getOwnerId(),
-                fn(User $user) => $this->present(UserPresenter::class, $user->getId()),
+                fn(User $user) => $this->present(UserPresenter::class, $user),
             ),
         ];
     }

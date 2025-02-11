@@ -183,13 +183,16 @@ class Presenter
      * @psalm-template TEntityPresenter of EntityPresenter<TEntityPresenterEntity>
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      * @param string $presenterKlass Class to present the entity with
-     * @param int|int[] $id ID(s) of the entity
+     * @param int|int[]|Entity|Collection $id ID(s) of the entity
      */
     public function mark(
         string $presenterKlass,
-        int|array $id,
+        int|array|Entity|Collection $id,
         ?ClauseInterface $clause = null,
     ): PresentationMarker {
+        $id = $id instanceof Collection ? $id->getIds() : $id;
+        $id = $id instanceof Entity ? $id->getId() : $id;
+
         return new PresentationMarker($presenterKlass, 'id', $id, is_array($id), $clause);
     }
 
