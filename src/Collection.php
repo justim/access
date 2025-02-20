@@ -269,17 +269,22 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
-     * Sort collection
+     * Sort collection in place
      *
      * NOTE: uses `usort` with $comparer as compare function
+     * NOTE: no new collection is created
      *
      * @psalm-param callable(TEntity, TEntity): int $comparer
      * @param callable $comparer Function to sort/compare with
      * @return $this
      */
-    public function sort(callable $comparer): static
+    public function sort(callable|OrderByInterface $comparer): static
     {
-        usort($this->entities, $comparer);
+        if ($comparer instanceof OrderByInterface) {
+            $comparer->sortCollection($this);
+        } else {
+            usort($this->entities, $comparer);
+        }
 
         return $this;
     }
