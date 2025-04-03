@@ -58,7 +58,7 @@ class Profiler
      */
     public function getTotalDuration(): float
     {
-        $duration = 0;
+        $duration = 0.0;
 
         foreach ($this->queryProfiles as $queryProfile) {
             $duration += $queryProfile->getTotalDuration();
@@ -74,7 +74,7 @@ class Profiler
      */
     public function getTotalDurationWithHydrate(): float
     {
-        $duration = 0;
+        $duration = 0.0;
 
         foreach ($this->queryProfiles as $queryProfile) {
             $duration += $queryProfile->getTotalDurationWithHydrate();
