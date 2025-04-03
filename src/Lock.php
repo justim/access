@@ -91,6 +91,27 @@ class Lock
     }
 
     /**
+     * Merge two locks together
+     *
+     * All tables from the second lock will be added to the first one. Duplicates
+     * are skipped.
+     */
+    public function merge(Lock $lock): void
+    {
+        $this->lockTablesQuery->merge($lock->lockTablesQuery);
+    }
+
+    /**
+     * Is the other lock fully contained in this lock?
+     *
+     * Are all tables from the other lock also in this lock with the same type?
+     */
+    public function contains(Lock $lock): bool
+    {
+        return $this->lockTablesQuery->contains($lock->lockTablesQuery);
+    }
+
+    /**
      * Lock previously set tables
      */
     public function lock(): void
@@ -110,6 +131,14 @@ class Lock
 
         $this->db->query($this->lockTablesQuery);
         $this->locked = true;
+    }
+
+    /**
+     * Is the lock active?
+     */
+    public function isLocked(): bool
+    {
+        return $this->locked;
     }
 
     /**

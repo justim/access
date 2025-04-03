@@ -92,4 +92,43 @@ class LockTest extends AbstractBaseTestCase
 
         $this->assertTrue(true);
     }
+
+    public function testLockContains(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        $lock1 = $db->createLock();
+        $lock1->read(User::class, 'u');
+        $lock1->write(Project::class);
+
+        $this->assertTrue($lock1->contains($lock1));
+        $this->assertTrue($lock1->contains($db->createLock()));
+
+        $lock2 = $db->createLock();
+        $lock2->read(User::class, 'u');
+
+        $this->assertTrue($lock1->contains($lock2));
+        $this->assertFalse($lock2->contains($lock1));
+    }
+
+    public function testLockContainerAfterMerge(): void
+    {
+        $db = self::createDatabaseWithDummyData();
+
+        $lock1 = $db->createLock();
+        $lock1->read(User::class, 'u');
+
+        $this->assertTrue($lock1->contains($lock1));
+
+        $lock2 = $db->createLock();
+        $lock2->write(Project::class);
+
+        $this->assertFalse($lock1->contains($lock2));
+        $this->assertFalse($lock2->contains($lock1));
+
+        $lock1->merge($lock2);
+
+        $this->assertTrue($lock1->contains($lock2));
+        $this->assertFalse($lock2->contains($lock1));
+    }
 }

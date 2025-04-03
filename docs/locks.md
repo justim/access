@@ -53,3 +53,47 @@ Failing to unlock the tables after will result in an exception, this happens
 when the `$lock` instance goes out of scope. Make sure to keep it around for as
 long as you need your lock.
 :::
+
+## Combining locks
+
+Centralizing lock information can be tricky in some cases, sometimes another
+method needs to be called that also requests access to some tables. By merging
+locks you can colocate the lock creation by the method that needs them.
+
+```php
+// create a lock like normal
+$lock = $db->createLock();
+$lock->read(User::class, 'u');
+
+// merge the lock from some other service
+$lock->merge($someService->createLockForSomeMethod());
+
+// lock like normal
+$lock->lock();
+
+// call the method, with a lock in place
+$someService->someMethod();
+```
+
+To be sure inside the `someMethod` method that the locks are actually in place,
+it's possible to check for lock requirements.
+
+```php
+// request the lock as part of the argument contract
+public function someMethod(Lock $lock): void
+{
+    // must be locked
+    if (!$lock->isLocked()) {
+        throw new Exception('Must be locked');
+    }
+
+    // the needed tables are locked
+    if (!$lock->contains($this->createLockForSomeMethod())) {
+        throw new Exception('Missing tables');
+    }
+
+    // ..
+}
+```
+
+This way it's no possibe to call `someMethod` without the proper lock in place.

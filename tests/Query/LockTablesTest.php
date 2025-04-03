@@ -73,4 +73,43 @@ class LockTablesTest extends AbstractBaseTestCase
 
         $this->assertEquals('UNLOCK TABLES', $query->getSql());
     }
+
+    public function testLockTablesQueryEmpty(): void
+    {
+        $query = new Query\LockTables();
+
+        $this->assertNull($query->getSql());
+    }
+
+    public function testMergeLockTablesQuery(): void
+    {
+        $query = new Query\LockTables();
+        $query->read(User::class, 'u');
+
+        $this->assertEquals('LOCK TABLES `users` AS `u` READ', $query->getSql());
+
+        $query2 = new Query\LockTables();
+        $query2->write(Project::class);
+
+        $query->merge($query2);
+
+        $this->assertEquals('LOCK TABLES `users` AS `u` READ, `projects` WRITE', $query->getSql());
+    }
+
+    public function testMergeLockWithDuplicatesTablesQuery(): void
+    {
+        $query = new Query\LockTables();
+        $query->read(User::class, 'u');
+        $query->write(Project::class);
+
+        $this->assertEquals('LOCK TABLES `users` AS `u` READ, `projects` WRITE', $query->getSql());
+
+        $query2 = new Query\LockTables();
+        $query2->read(User::class, 'u');
+        $query2->write(Project::class);
+
+        $query->merge($query2);
+
+        $this->assertEquals('LOCK TABLES `users` AS `u` READ, `projects` WRITE', $query->getSql());
+    }
 }

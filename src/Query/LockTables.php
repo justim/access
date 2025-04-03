@@ -88,6 +88,39 @@ class LockTables extends Query
     }
 
     /**
+     * Merge two locks together
+     *
+     * All tables from the second lock will be added to the first one. Duplicates
+     * are skipped.
+     */
+    public function merge(self $otherLock): void
+    {
+        foreach ($otherLock->locks as [$type, $klass, $alias]) {
+            if (in_array([$type, $klass, $alias], $this->locks, true)) {
+                continue;
+            }
+
+            $this->add($type, $klass, $alias);
+        }
+    }
+
+    /**
+     * Is the other lock tbal fully contained in this lock?
+     *
+     * Are all tables from the other lock also in this lock with the same type?
+     */
+    public function contains(self $otherLock): bool
+    {
+        foreach ($otherLock->locks as [$type, $klass, $alias]) {
+            if (!in_array([$type, $klass, $alias], $this->locks, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getSql(?DriverInterface $driver = null): ?string
