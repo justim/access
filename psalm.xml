@@ -33,6 +33,12 @@
 
         <!-- overly zealous -->
         <RiskyTruthyFalsyComparison errorLevel="suppress"/>
+
+        <!-- overly zealous -->
+        <ClassMustBeFinal errorLevel="suppress"/>
+
+        <!-- does not exist in php 8.1 -->
+        <MissingOverrideAttribute errorLevel="suppress"/>
     </issueHandlers>
 
     <plugins>
