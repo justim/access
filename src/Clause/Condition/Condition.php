@@ -242,7 +242,11 @@ abstract class Condition implements ConditionInterface
                 ],
                 $condition,
             );
-        } elseif (is_array($this->value) || $this->value instanceof Collection) {
+        } elseif (
+            is_array($this->value) ||
+            $this->value instanceof Collection ||
+            $this->value instanceof \ArrayIterator
+        ) {
             if (count($this->value) > 0) {
                 $condition = str_replace(
                     '?',
@@ -274,7 +278,11 @@ abstract class Condition implements ConditionInterface
             $state->addSubQueryValues($this->value);
         } elseif ($this->value === null) {
             // sql is converted to `IS NULL`
-        } elseif (is_array($this->value) || $this->value instanceof Collection) {
+        } elseif (
+            is_array($this->value) ||
+            $this->value instanceof Collection ||
+            $this->value instanceof \ArrayIterator
+        ) {
             $values = Query::toDatabaseFormat($this->value);
 
             // empty list will result in no emitted values, this links up with

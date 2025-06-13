@@ -492,7 +492,7 @@ abstract class Query
      * @param mixed $value Any value
      * @psalm-param T $value Any value
      * @return mixed Database usable format
-     * @psalm-return (T is Collection ? int[] : (T is null ? null : (T is bool ? int : (T is array ? mixed[] : (T is BackedEnum ? string|int : (T is int ? int : string))))))  Database usable format
+     * @psalm-return (T is Collection ? int[] : (T is null ? null : (T is bool ? int : (T is array ? mixed[] : (T is \ArrayIterator ? mixed[] : (T is BackedEnum ? string|int : (T is int ? int : string)))))))  Database usable format
      * @internal
      */
     public static function toDatabaseFormat(mixed $value): mixed
@@ -526,6 +526,12 @@ abstract class Query
 
         if ($value instanceof BackedEnum) {
             return $value->value;
+        }
+
+        if ($value instanceof \ArrayIterator) {
+            // convert to array
+            /** @var mixed[] $value */
+            $value = iterator_to_array($value);
         }
 
         if (is_array($value)) {
