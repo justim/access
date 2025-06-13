@@ -30,6 +30,11 @@ class QueryGeneratorState
     private DriverInterface $driver;
 
     /**
+     * Context for the query generator state
+     */
+    private QueryGeneratorStateContext $context;
+
+    /**
      * Tracked indexed values
      *
      * @var array $indexedValues
@@ -65,10 +70,12 @@ class QueryGeneratorState
      */
     public function __construct(
         DriverInterface $driver,
+        QueryGeneratorStateContext $context,
         string $conditionPrefix,
         string $subQueryConditionPrefix,
     ) {
         $this->driver = $driver;
+        $this->context = $context;
         $this->conditionPrefix = $conditionPrefix;
         $this->subQueryConditionPrefix = $subQueryConditionPrefix;
     }
@@ -128,8 +135,19 @@ class QueryGeneratorState
         $this->subQueryIndex++;
     }
 
+    /**
+     * Get the driver for this state
+     */
     public function getDriver(): DriverInterface
     {
         return $this->driver;
+    }
+
+    /**
+     * Get the context for this state
+     */
+    public function getContext(): QueryGeneratorStateContext
+    {
+        return $this->context;
     }
 }

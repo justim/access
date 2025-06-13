@@ -18,6 +18,7 @@ module.exports = {
                 'queries',
                 'collections',
                 'presenters',
+                'clauses',
                 'transactions',
                 'locks',
                 'profiler',

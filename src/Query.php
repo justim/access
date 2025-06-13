@@ -31,6 +31,7 @@ use Access\IdentifiableInterface;
 use Access\Query\QueryGeneratorState;
 use Access\Query\Cursor\Cursor;
 use Access\Query\IncludeSoftDeletedFilter;
+use Access\Query\QueryGeneratorStateContext;
 use BackedEnum;
 
 /**
@@ -448,6 +449,7 @@ abstract class Query
 
             $this->getConditionValues(
                 $driver,
+                QueryGeneratorStateContext::Condition,
                 $indexedValues,
                 $joinConditions,
                 self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
@@ -456,9 +458,29 @@ abstract class Query
 
         $where = $this->preprocessConditions($this->where, $this->softDeleteCondition);
 
-        $this->getConditionValues($driver, $indexedValues, $where, self::PREFIX_WHERE);
-        $this->getConditionValues($driver, $indexedValues, $this->having, self::PREFIX_HAVING);
-        $this->getConditionValues($driver, $indexedValues, $this->orderBy, self::PREFIX_ORDER);
+        $this->getConditionValues(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            $indexedValues,
+            $where,
+            self::PREFIX_WHERE,
+        );
+
+        $this->getConditionValues(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            $indexedValues,
+            $this->having,
+            self::PREFIX_HAVING,
+        );
+
+        $this->getConditionValues(
+            $driver,
+            QueryGeneratorStateContext::OrderBy,
+            $indexedValues,
+            $this->orderBy,
+            self::PREFIX_ORDER,
+        );
 
         return $indexedValues;
     }
@@ -472,11 +494,17 @@ abstract class Query
      */
     private function getConditionValues(
         DriverInterface $driver,
+        QueryGeneratorStateContext $context,
         &$indexedValues,
         array $definition,
         string $prefix,
     ): void {
-        $state = new QueryGeneratorState($driver, $prefix, self::PREFIX_SUBQUERY_CONDITION);
+        $state = new QueryGeneratorState(
+            $driver,
+            $context,
+            $prefix,
+            self::PREFIX_SUBQUERY_CONDITION,
+        );
 
         foreach ($definition as $condition) {
             $condition->injectConditionValues($state);
@@ -611,6 +639,7 @@ abstract class Query
 
             $onSql = $this->getConditionSql(
                 $driver,
+                QueryGeneratorStateContext::Condition,
                 'ON',
                 $joinConditions,
                 self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
@@ -640,7 +669,13 @@ abstract class Query
     {
         $where = $this->preprocessConditions($this->where, $this->softDeleteCondition);
 
-        return $this->getConditionSql($driver, 'WHERE', $where, self::PREFIX_WHERE);
+        return $this->getConditionSql(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            'WHERE',
+            $where,
+            self::PREFIX_WHERE,
+        );
     }
 
     /**
@@ -653,7 +688,13 @@ abstract class Query
      */
     protected function getHavingSql(DriverInterface $driver): string
     {
-        return $this->getConditionSql($driver, 'HAVING', $this->having, self::PREFIX_HAVING);
+        return $this->getConditionSql(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            'HAVING',
+            $this->having,
+            self::PREFIX_HAVING,
+        );
     }
 
     /**
@@ -669,6 +710,7 @@ abstract class Query
      */
     private function getConditionSql(
         DriverInterface $driver,
+        QueryGeneratorStateContext $context,
         string $what,
         array $definition,
         string $prefix,
@@ -679,10 +721,22 @@ abstract class Query
         }
 
         $conditions = [];
-        $state = new QueryGeneratorState($driver, $prefix, self::PREFIX_SUBQUERY_CONDITION);
+        $state = new QueryGeneratorState(
+            $driver,
+            $context,
+            $prefix,
+            self::PREFIX_SUBQUERY_CONDITION,
+        );
 
         foreach ($definition as $definitionPart) {
             $conditions[] = $definitionPart->getConditionSql($state);
+        }
+
+        $conditions = array_filter($conditions, fn($condition) => !empty($condition));
+
+        if (count($conditions) === 0) {
+            // no conditions, return empty string
+            return '';
         }
 
         $condition = implode($combinator, $conditions);
@@ -720,6 +774,7 @@ abstract class Query
     {
         return $this->getConditionSql(
             $driver,
+            QueryGeneratorStateContext::OrderBy,
             'ORDER BY',
             $this->orderBy,
             self::PREFIX_ORDER,

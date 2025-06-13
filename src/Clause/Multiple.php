@@ -207,17 +207,38 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface,
     {
         $conditionParts = [];
 
+        // without any clauses, we can't determine if this is a multiple condition.
+        // to be on the safe side, we assume it is a multiple condition
+        $isMultipleCondition = count($this->clauses) === 0;
+
         foreach ($this->clauses as $clause) {
-            if ($clause instanceof ConditionInterface) {
+            if (
+                $state->getContext() === QueryGeneratorStateContext::Condition &&
+                $clause instanceof ConditionInterface
+            ) {
+                $isMultipleCondition = true;
+                $conditionParts[] = $clause->getConditionSql($state);
+            } elseif (
+                $state->getContext() === QueryGeneratorStateContext::OrderBy &&
+                $clause instanceof OrderByInterface
+            ) {
                 $conditionParts[] = $clause->getConditionSql($state);
             }
         }
 
         if (empty($conditionParts)) {
-            // empty conditions make no sense...
-            // droppping the whole condition is risky because you may
-            // over-select a whole bunch of records, better is to under-select.
-            return '1 = 2';
+            if ($state->getContext()->allowEmptyMultiple()) {
+                return '';
+            }
+
+            if ($isMultipleCondition) {
+                // empty conditions make no sense...
+                // droppping the whole condition is risky because you may
+                // over-select a whole bunch of records, better is to under-select.
+                return '1 = 2';
+            }
+
+            return '';
         }
 
         $combinedConditions = implode($combineWith, $conditionParts);
@@ -237,7 +258,15 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface,
     public function injectConditionValues(QueryGeneratorState $state): void
     {
         foreach ($this->clauses as $clause) {
-            if ($clause instanceof ConditionInterface) {
+            if (
+                $state->getContext() === QueryGeneratorStateContext::Condition &&
+                $clause instanceof ConditionInterface
+            ) {
+                $clause->injectConditionValues($state);
+            } elseif (
+                $state->getContext() === QueryGeneratorStateContext::OrderBy &&
+                $clause instanceof OrderByInterface
+            ) {
                 $clause->injectConditionValues($state);
             }
         }
