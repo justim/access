@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Presenter;
 
+use Access\Clause\ClauseInterface;
 use Access\Collection;
 use Access\Database;
 use Access\Entity;
@@ -73,8 +74,12 @@ final class EntityPool
      * @param int[] $ids List of IDs
      * @return Collection
      */
-    public function getCollection(string $entityKlass, string $fieldName, array $ids): Collection
-    {
+    public function getCollection(
+        string $entityKlass,
+        string $fieldName,
+        array $ids,
+        ?ClauseInterface $clause = null,
+    ): Collection {
         $currentCollection = $this->getOrCreateCurrentCollection($entityKlass, $fieldName);
 
         $currentIds = $currentCollection->map(
@@ -87,9 +92,13 @@ final class EntityPool
         if (!empty($newIds)) {
             $repo = $this->db->getRepository($entityKlass);
 
-            $newCollection = $repo->findByAsCollection([
-                $fieldName => $newIds,
-            ]);
+            $newCollection = $repo->findByAsCollection(
+                [
+                    $fieldName => $newIds,
+                ],
+                null,
+                $clause,
+            );
 
             $currentCollection->merge($newCollection);
         }

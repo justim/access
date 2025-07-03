@@ -13,13 +13,16 @@ declare(strict_types=1);
 
 namespace Access\Clause\Condition;
 
+use Access\Clause\ClauseInterface;
 use Access\Clause\ConditionInterface;
 use Access\Clause\Field;
 use Access\Collection;
+use Access\Database;
 use Access\Entity;
 use Access\Exception;
 use Access\Query;
 use Access\Query\QueryGeneratorState;
+use Access\Query\QueryGeneratorStateContext;
 use Access\Query\Select;
 
 /**
@@ -93,6 +96,45 @@ abstract class Condition implements ConditionInterface
     public function getField(): Field
     {
         return $this->field;
+    }
+
+    /**
+     * Is this condition equal to another clause
+     *
+     * @param ClauseInterface $clause Clause to compare with
+     * @return bool Are the clauses equal
+     */
+    public function equals(ClauseInterface $clause): bool
+    {
+        if ($this::class !== $clause::class) {
+            return false;
+        }
+
+        /** @var static $clause */
+
+        $driver = Database::getDriverOrDefault(null);
+
+        $stateOne = new QueryGeneratorState(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            'a',
+            'b',
+        );
+
+        $sqlOne = $this->getConditionSql($stateOne);
+        $this->injectConditionValues($stateOne);
+
+        $stateTwo = new QueryGeneratorState(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            'a',
+            'b',
+        );
+
+        $sqlTwo = $clause->getConditionSql($stateTwo);
+        $clause->injectConditionValues($stateTwo);
+
+        return $sqlOne === $sqlTwo && $stateOne->equals($stateTwo);
     }
 
     /**

@@ -150,4 +150,17 @@ class QueryGeneratorState
     {
         return $this->context;
     }
+
+    /**
+     * Indicate whether this state is equal to another
+     */
+    public function equals(QueryGeneratorState $other): bool
+    {
+        return $this->context === $other->context &&
+            $this->conditionPrefix === $other->conditionPrefix &&
+            $this->subQueryConditionPrefix === $other->subQueryConditionPrefix &&
+            $this->conditionIndex === $other->conditionIndex &&
+            $this->subQueryIndex === $other->subQueryIndex &&
+            $this->indexedValues === $other->indexedValues;
+    }
 }

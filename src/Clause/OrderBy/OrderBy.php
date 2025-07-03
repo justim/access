@@ -13,13 +13,16 @@ declare(strict_types=1);
 
 namespace Access\Clause\OrderBy;
 
+use Access\Clause\ClauseInterface;
 use Access\Clause\Condition\Raw;
 use Access\Clause\Field;
 use Access\Clause\OrderByInterface;
 use Access\Collection;
+use Access\Database;
 use Access\Entity;
 use Access\Query;
 use Access\Query\QueryGeneratorState;
+use Access\Query\QueryGeneratorStateContext;
 
 /**
  * Sort clause
@@ -67,6 +70,33 @@ abstract class OrderBy implements OrderByInterface
         }
 
         $this->direction = $direction;
+    }
+
+    /**
+     * Is this order by clause equal to another clause
+     *
+     * @param ClauseInterface $clause Clause to compare with
+     * @return bool Are the clauses equal
+     */
+    public function equals(ClauseInterface $clause): bool
+    {
+        if ($this::class !== $clause::class) {
+            return false;
+        }
+
+        /** @var static $clause */
+
+        $driver = Database::getDriverOrDefault(null);
+
+        $stateOne = new QueryGeneratorState($driver, QueryGeneratorStateContext::OrderBy, 'a', 'b');
+        $sqlOne = $this->getConditionSql($stateOne);
+        $this->injectConditionValues($stateOne);
+
+        $stateTwo = new QueryGeneratorState($driver, QueryGeneratorStateContext::OrderBy, 'a', 'b');
+        $sqlTwo = $clause->getConditionSql($stateTwo);
+        $clause->injectConditionValues($stateTwo);
+
+        return $sqlOne === $sqlTwo && $stateOne->equals($stateTwo);
     }
 
     public function getField(): Field|Raw

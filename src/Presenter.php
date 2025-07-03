@@ -200,11 +200,11 @@ class Presenter
      * Collect all markers left by present calls
      *
      * @return array<string, array>
-     * @psalm-return array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>, custom: mixed[]}
+     * @psalm-return array{presenters: array<class-string, array<string, array{ids: int[], clause: ?ClauseInterface}>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, array{ids: int[], clause: ?ClauseInterface}>>, custom: mixed[]}
      */
     private function collectMarkers(array $presentation): array
     {
-        /** @psalm-var array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>, custom: mixed[]} $markers */
+        /** @psalm-var array{presenters: array<class-string, array<string, array{ids: int[], clause: ?ClauseInterface}>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, array{ids: int[], clause: ?ClauseInterface}>>, custom: mixed[]} $markers */
         $markers = [
             'presenters' => [],
             'futures' => [],
@@ -213,7 +213,7 @@ class Presenter
         ];
 
         array_walk_recursive($presentation, function (mixed $item) use (&$markers) {
-            /** @psalm-var array{presenters: array<class-string, array<string, int[]>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, int[]>>, custom: mixed[]} $markers */
+            /** @psalm-var array{presenters: array<class-string, array<string, array{ids: int[], clause: ?ClauseInterface}>>, futures: array<class-string, array<string, int[]>>, entities: array<class-string, array<string, array{ids: int[], clause: ?ClauseInterface}>>, custom: mixed[]} $markers */
 
             if ($item instanceof CustomMarkerInterface) {
                 $markers['custom'][] = $item;
@@ -226,11 +226,25 @@ class Presenter
             $entityKlass = $item->getEntityKlass();
 
             if (!isset($markers['entities'][$entityKlass][$item->getFieldName()])) {
-                $markers['entities'][$entityKlass][$item->getFieldName()] = [];
+                $markers['entities'][$entityKlass][$item->getFieldName()] = [
+                    'ids' => [],
+                    'clause' => $item->getClause(),
+                ];
+            }
+
+            $currentClause = $markers['entities'][$entityKlass][$item->getFieldName()]['clause'];
+            $newClause = $item->getClause();
+
+            if (
+                ($currentClause !== null &&
+                    ($newClause !== null && !$newClause->equals($currentClause))) ||
+                $currentClause === null
+            ) {
+                $markers['entities'][$entityKlass][$item->getFieldName()]['clause'] = null;
             }
 
             array_push(
-                $markers['entities'][$entityKlass][$item->getFieldName()],
+                $markers['entities'][$entityKlass][$item->getFieldName()]['ids'],
                 ...$item->getRefIds(),
             );
 
@@ -247,11 +261,26 @@ class Presenter
                 $presenterKlass = $item->getPresenterKlass();
 
                 if (!isset($markers['presenters'][$presenterKlass][$item->getFieldName()])) {
-                    $markers['presenters'][$presenterKlass][$item->getFieldName()] = [];
+                    $markers['presenters'][$presenterKlass][$item->getFieldName()] = [
+                        'ids' => [],
+                        'clause' => $item->getClause(),
+                    ];
+                }
+
+                $currentClause =
+                    $markers['presenters'][$presenterKlass][$item->getFieldName()]['clause'];
+                $newClause = $item->getClause();
+
+                if (
+                    ($currentClause !== null &&
+                        ($newClause !== null && !$newClause->equals($currentClause))) ||
+                    $currentClause === null
+                ) {
+                    $markers['presenters'][$presenterKlass][$item->getFieldName()]['clause'] = null;
                 }
 
                 array_push(
-                    $markers['presenters'][$presenterKlass][$item->getFieldName()],
+                    $markers['presenters'][$presenterKlass][$item->getFieldName()]['ids'],
                     ...$item->getRefIds(),
                 );
             }
@@ -269,8 +298,13 @@ class Presenter
     private function resolveMarkers(array &$presentation, array $markers): void
     {
         foreach ($markers['entities'] as $entityKlass => $info) {
-            foreach ($info as $fieldName => $ids) {
-                $this->entityPool->getCollection($entityKlass, $fieldName, $ids);
+            foreach ($info as $fieldName => $refInfo) {
+                $this->entityPool->getCollection(
+                    $entityKlass,
+                    $fieldName,
+                    $refInfo['ids'],
+                    $refInfo['clause'],
+                );
             }
         }
 
@@ -317,9 +351,14 @@ class Presenter
     ): void {
         /** @psalm-var class-string<EntityPresenter> $presenterKlass */
         foreach ($markers as $presenterKlass => $info) {
-            foreach ($info as $fieldName => $ids) {
+            foreach ($info as $fieldName => $refInfo) {
                 $entityKlass = $presenterKlass::getEntityKlass();
-                $collection = $this->entityPool->getCollection($entityKlass, $fieldName, $ids);
+                $collection = $this->entityPool->getCollection(
+                    $entityKlass,
+                    $fieldName,
+                    $refInfo['ids'],
+                    $refInfo['clause'],
+                );
                 $presenter = $this->createEntityPresenter($presenterKlass);
 
                 array_walk_recursive($presentation, function (mixed &$item) use (

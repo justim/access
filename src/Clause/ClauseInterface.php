@@ -20,4 +20,11 @@ namespace Access\Clause;
  */
 interface ClauseInterface
 {
+    /**
+     * Is another clause equal to this one
+     *
+     * @param ClauseInterface $clause Clause to compare with
+     * @return bool Are the clauses equal
+     */
+    public function equals(ClauseInterface $clause): bool;
 }

@@ -16,8 +16,10 @@ namespace Access\Clause;
 use Access\Clause\ClauseInterface;
 use Access\Clause\ConditionInterface;
 use Access\Collection;
+use Access\Database;
 use Access\Entity;
 use Access\Query\QueryGeneratorState;
+use Access\Query\QueryGeneratorStateContext;
 
 /**
  * Multiple clauses to mixed and/or match
@@ -51,6 +53,46 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface,
     public function __construct(ClauseInterface ...$clauses)
     {
         $this->clauses = $clauses;
+    }
+
+    /**
+     * Is this multiple clause equal to another clause
+     *
+     * @param ClauseInterface $clause Clause to compare with
+     * @return bool Are the clauses equal
+     */
+    public function equals(ClauseInterface $clause): bool
+    {
+        if ($this::class !== $clause::class) {
+            return false;
+        }
+
+        /** @var static $clause */
+
+        // dummy driver to generate the SQL
+        $driver = Database::getDriverOrDefault(null);
+
+        $stateOne = new QueryGeneratorState(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            'a',
+            'b',
+        );
+
+        $sqlOne = $this->getConditionSql($stateOne);
+        $this->injectConditionValues($stateOne);
+
+        $stateTwo = new QueryGeneratorState(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            'a',
+            'b',
+        );
+
+        $sqlTwo = $clause->getConditionSql($stateTwo);
+        $clause->injectConditionValues($stateTwo);
+
+        return $sqlOne === $sqlTwo && $stateOne->equals($stateTwo);
     }
 
     /**
@@ -239,6 +281,12 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface,
             }
 
             return '';
+        }
+
+        if ($state->getContext() === QueryGeneratorStateContext::OrderBy) {
+            // we are in the order context, just combine them with a comma,
+            // without wrapping them in parentheses.
+            return implode(', ', $conditionParts);
         }
 
         $combinedConditions = implode($combineWith, $conditionParts);
