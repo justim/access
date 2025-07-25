@@ -16,8 +16,10 @@ namespace Access\Clause;
 use Access\Clause\ClauseInterface;
 use Access\Clause\ConditionInterface;
 use Access\Collection;
+use Access\Database;
 use Access\Entity;
 use Access\Query\QueryGeneratorState;
+use Access\Query\QueryGeneratorStateContext;
 
 /**
  * Multiple clauses to mixed and/or match
@@ -51,6 +53,46 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface,
     public function __construct(ClauseInterface ...$clauses)
     {
         $this->clauses = $clauses;
+    }
+
+    /**
+     * Is this multiple clause equal to another clause
+     *
+     * @param ClauseInterface $clause Clause to compare with
+     * @return bool Are the clauses equal
+     */
+    public function equals(ClauseInterface $clause): bool
+    {
+        if ($this::class !== $clause::class) {
+            return false;
+        }
+
+        /** @var static $clause */
+
+        // dummy driver to generate the SQL
+        $driver = Database::getDriverOrDefault(null);
+
+        $stateOne = new QueryGeneratorState(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            'a',
+            'b',
+        );
+
+        $sqlOne = $this->getConditionSql($stateOne);
+        $this->injectConditionValues($stateOne);
+
+        $stateTwo = new QueryGeneratorState(
+            $driver,
+            QueryGeneratorStateContext::Condition,
+            'a',
+            'b',
+        );
+
+        $sqlTwo = $clause->getConditionSql($stateTwo);
+        $clause->injectConditionValues($stateTwo);
+
+        return $sqlOne === $sqlTwo && $stateOne->equals($stateTwo);
     }
 
     /**
@@ -207,17 +249,44 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface,
     {
         $conditionParts = [];
 
+        // without any clauses, we can't determine if this is a multiple condition.
+        // to be on the safe side, we assume it is a multiple condition
+        $isMultipleCondition = count($this->clauses) === 0;
+
         foreach ($this->clauses as $clause) {
-            if ($clause instanceof ConditionInterface) {
+            if (
+                $state->getContext() === QueryGeneratorStateContext::Condition &&
+                $clause instanceof ConditionInterface
+            ) {
+                $isMultipleCondition = true;
+                $conditionParts[] = $clause->getConditionSql($state);
+            } elseif (
+                $state->getContext() === QueryGeneratorStateContext::OrderBy &&
+                $clause instanceof OrderByInterface
+            ) {
                 $conditionParts[] = $clause->getConditionSql($state);
             }
         }
 
         if (empty($conditionParts)) {
-            // empty conditions make no sense...
-            // droppping the whole condition is risky because you may
-            // over-select a whole bunch of records, better is to under-select.
-            return '1 = 2';
+            if ($state->getContext()->allowEmptyMultiple()) {
+                return '';
+            }
+
+            if ($isMultipleCondition) {
+                // empty conditions make no sense...
+                // droppping the whole condition is risky because you may
+                // over-select a whole bunch of records, better is to under-select.
+                return '1 = 2';
+            }
+
+            return '';
+        }
+
+        if ($state->getContext() === QueryGeneratorStateContext::OrderBy) {
+            // we are in the order context, just combine them with a comma,
+            // without wrapping them in parentheses.
+            return implode(', ', $conditionParts);
         }
 
         $combinedConditions = implode($combineWith, $conditionParts);
@@ -237,7 +306,15 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface,
     public function injectConditionValues(QueryGeneratorState $state): void
     {
         foreach ($this->clauses as $clause) {
-            if ($clause instanceof ConditionInterface) {
+            if (
+                $state->getContext() === QueryGeneratorStateContext::Condition &&
+                $clause instanceof ConditionInterface
+            ) {
+                $clause->injectConditionValues($state);
+            } elseif (
+                $state->getContext() === QueryGeneratorStateContext::OrderBy &&
+                $clause instanceof OrderByInterface
+            ) {
                 $clause->injectConditionValues($state);
             }
         }

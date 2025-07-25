@@ -821,26 +821,18 @@ class PresenterTest extends AbstractBaseTestCase
 
     public function testMulitpleEmptyClause(): void
     {
-        [$db, $userOne, $projectOne, $projectTwo] = $this->createAndSetupEntities();
+        [$db, $userOne] = $this->createAndSetupEntities();
 
         $expected = [
             'id' => $userOne->getId(),
-            'projects' => [
-                [
-                    'id' => $projectOne->getId(),
-                    'name' => $projectOne->getName(),
-                ],
-                [
-                    'id' => $projectTwo->getId(),
-                    'name' => $projectTwo->getName(),
-                ],
-            ],
+            'projects' => [],
         ];
 
         $presenter = new Presenter($db);
         $presenter->addDependency(new Clause\Multiple());
         $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
 
+        // no projects, an empty multiple condition can't match anything
         $this->assertEquals($expected, $result);
     }
 
@@ -1005,8 +997,8 @@ class PresenterTest extends AbstractBaseTestCase
 
         $user = $this->createUser($db, 'Name');
 
-        $p1 = $this->createProject($db, $user, 'Same name');
         $this->createProject($db, $user, 'Same name');
+        $p1 = $this->createProject($db, $user, 'Same name');
         $p3 = $this->createProject($db, $user, 'Other name');
 
         $expected = [
@@ -1024,7 +1016,10 @@ class PresenterTest extends AbstractBaseTestCase
         ];
 
         $presenter = new Presenter($db);
+
         $presenter->addDependency(
+            // the clauses are first applied to the query,
+            // and then they are applied to the resulting colleciton
             new Clause\Multiple(
                 new Clause\Filter\Unique('id'),
                 new Clause\Filter\Unique('name'),

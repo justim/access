@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Clause\Filter;
 
+use Access\Clause\ClauseInterface;
 use Access\Clause\Filter\Filter;
 use Access\Entity;
 
@@ -28,6 +29,23 @@ class Unique extends Filter
     public function __construct(string $fieldName)
     {
         $this->fieldName = $fieldName;
+    }
+
+    /**
+     * Is this filter equal to another clause
+     *
+     * @param ClauseInterface $clause Clause to compare with
+     * @return bool Are the clauses equal
+     */
+    public function equals(ClauseInterface $clause): bool
+    {
+        if ($this::class !== $clause::class) {
+            return false;
+        }
+
+        /** @var static $clause */
+
+        return $this->fieldName === $clause->fieldName;
     }
 
     /**

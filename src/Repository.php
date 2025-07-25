@@ -14,9 +14,12 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Batch;
+use Access\Clause\ClauseInterface;
 use Access\Clause\Condition\Equals;
 use Access\Clause\Condition\In;
 use Access\Clause\Condition\Raw;
+use Access\Clause\ConditionInterface;
+use Access\Clause\OrderByInterface;
 use Access\Collection;
 use Access\Database;
 use Access\Entity;
@@ -117,8 +120,11 @@ class Repository
      * @param ?int $limit A a limit to the query
      * @return \Generator - yields Entity
      */
-    public function findBy(array $fields, ?int $limit = null): \Generator
-    {
+    public function findBy(
+        array $fields,
+        ?int $limit = null,
+        ?ClauseInterface $clause = null,
+    ): \Generator {
         $query = new Query\Select($this->klass);
 
         /** @var mixed $value */
@@ -137,6 +143,14 @@ class Repository
             $query->limit($limit);
         }
 
+        if ($clause instanceof ConditionInterface) {
+            $query->where($clause);
+        }
+
+        if ($clause instanceof OrderByInterface) {
+            $query->orderBy($clause);
+        }
+
         yield from $this->select($query);
     }
 
@@ -148,9 +162,12 @@ class Repository
      * @return Collection Collection with `Entity`s
      * @psalm-return Collection<TEntity> Collection with `Entity`s
      */
-    public function findByAsCollection(array $fields, ?int $limit = null): Collection
-    {
-        $iterator = $this->findBy($fields, $limit);
+    public function findByAsCollection(
+        array $fields,
+        ?int $limit = null,
+        ?ClauseInterface $clause = null,
+    ): Collection {
+        $iterator = $this->findBy($fields, $limit, $clause);
 
         /** @var Collection<TEntity> $collection */
         $collection = new Collection($this->db, $iterator);

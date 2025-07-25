@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Query;
 
 use Access\Clause\Condition\Relation;
+use Access\Clause\Multiple;
 use Access\Clause\OrderBy\Ascending;
 use PHPUnit\Framework\TestCase;
 
@@ -490,6 +491,39 @@ class SelectTest extends TestCase
 
         $this->assertEquals(
             'SELECT `u`.* FROM `users` AS `u` INNER JOIN `users` AS `u2` ON (u.id = u2.id)',
+            $query->getSql(),
+        );
+
+        $this->assertEquals([], $query->getValues());
+    }
+
+    public function testMultipleOrderBy(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->orderBy(new Multiple(new Ascending('name'), new Ascending('id')));
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` ORDER BY `name` ASC, `id` ASC',
+            $query->getSql(),
+        );
+
+        $this->assertEquals([], $query->getValues());
+    }
+
+    public function testExtraMultipleOrderBy(): void
+    {
+        $query = new Select(Project::class, 'p');
+        $query->orderBy('id DESC');
+        $query->orderBy(
+            new Multiple(
+                new Ascending('name'),
+                new Multiple(new Ascending('name'), new Ascending('id')),
+            ),
+        );
+        $query->orderBy('id DESC');
+
+        $this->assertEquals(
+            'SELECT `p`.* FROM `projects` AS `p` ORDER BY id DESC, `name` ASC, `name` ASC, `id` ASC, id DESC',
             $query->getSql(),
         );
 

@@ -387,6 +387,8 @@ class UserWithOrderedPublishedProjectsPresenter extends EntityPresenter
 }
 ```
 
+More information about [clauses can be found here](clauses).
+
 ## `Presenter` instance
 
 ### Dependency injection
