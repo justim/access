@@ -274,7 +274,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
      * NOTE: uses `usort` with $comparer as compare function
      * NOTE: no new collection is created
      *
-     * @psalm-param callable(TEntity, TEntity): int $comparer
+     * @psalm-param OrderByInterface|callable(TEntity, TEntity): int $comparer
      * @param callable $comparer Function to sort/compare with
      * @return $this
      */
