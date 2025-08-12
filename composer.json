@@ -25,7 +25,11 @@
     "autoload-dev": {
         "psr-4": {
             "Benchmarks\\": "benchmarks",
-            "Tests\\": "tests"
+            "Tests\\Base\\": "tests/base",
+            "Tests\\Fixtures\\": "tests/fixtures",
+            "Tests\\Mysql\\": "tests/mysql",
+            "Tests\\Sqlite\\": "tests/sqlite",
+            "Tests\\Unit\\": "tests/unit"
         }
     },
     "scripts": {

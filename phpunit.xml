@@ -13,10 +13,27 @@
     </coverage>
 
     <testsuites>
-        <testsuite name="Access">
-            <directory>tests/</directory>
+        <testsuite name="mysql">
+            <directory>tests/mysql</directory>
+        </testsuite>
+
+        <testsuite name="sqlite">
+            <directory>tests/sqlite</directory>
+        </testsuite>
+
+        <testsuite name="unit">
+            <directory>tests/unit</directory>
         </testsuite>
     </testsuites>
+
+    <php>
+        <!-- database credentials for mysql test -->
+        <env name="MYSQL_DATABASE_HOST" value="127.0.0.1"/>
+        <env name="MYSQL_DATABASE_PORT" value="3306"/>
+        <env name="MYSQL_DATABASE_USER" value="root"/>
+        <env name="MYSQL_DATABASE_PASSWORD" value="mysql"/>
+        <env name="MYSQL_DATABASE_NAME" value="access_test_db"/>
+    </php>
 
     <logging/>
 

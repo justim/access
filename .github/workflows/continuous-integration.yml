@@ -44,10 +44,37 @@ jobs:
             matrix:
                 php: ['8.1', '8.2', '8.3', '8.4']
                 dependencies: ['lowest', 'highest']
+                testsuite: ['unit', 'mysql', 'sqlite']
 
         name: Tests
 
+        services:
+            mysql:
+                # only setup service in mysql testsuite
+                image: ${{ matrix.testsuite == 'mysql' && 'mysql:8.0.31' || '' }}
+                ports:
+                    - '3306:3306'
+                env:
+                    MYSQL_ROOT_PASSWORD: mysql
+                    MYSQL_DATABASE: access_test_db
+                    MYSQL_ROOT_HOST: '%'
+                options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
         steps:
+            - name: Setup MySQL `sql_mode`
+              if: ${{ matrix.testsuite == 'mysql' }}
+              # default sql mode minus ONLY_FULL_GROUP_BY
+              run: mysql -h 127.0.0.1 --port 3306 -u root -pmysql -e "SET GLOBAL sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'"
+
+            - name: Setup MySQL credentials
+              if: ${{ matrix.testsuite == 'mysql' }}
+              run: |
+                  echo "MYSQL_DATABASE_HOST=127.0.0.1" >> $GITHUB_ENV
+                  echo "MYSQL_DATABASE_PORT=3306" >> $GITHUB_ENV
+                  echo "MYSQL_DATABASE_USER=root" >> $GITHUB_ENV
+                  echo "MYSQL_DATABASE_PASSWORD=mysql" >> $GITHUB_ENV
+                  echo "MYSQL_DATABASE_NAME=access_test_db" >> $GITHUB_ENV
+
             - uses: actions/checkout@v4
 
             - name: Install PHP
@@ -64,7 +91,7 @@ jobs:
                   dependency-versions: ${{ matrix.dependencies }}
 
             - name: Run test suite
-              run: composer run-script test -- --display-deprecations --display-notices --display-warnings
+              run: composer run-script test -- --display-deprecations --display-notices --display-warnings --testsuite ${{ matrix.testsuite }}
 
             - name: Upload code coverage
               env:
