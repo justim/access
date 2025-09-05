@@ -142,11 +142,15 @@ abstract class Query
     /**
      * Create a query
      *
-     * @param string $tableName Name of the table (or name of entity class)
+     * @param Table|string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
      */
-    protected function __construct(string $tableName, ?string $alias = null)
+    protected function __construct(Table|string $tableName, ?string $alias = null)
     {
+        if ($tableName instanceof Table) {
+            $tableName = $tableName->getName();
+        }
+
         $this->tableName = $tableName;
 
         if (is_subclass_of($tableName, Entity::class)) {

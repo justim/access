@@ -17,6 +17,7 @@ use Access\Clause\Field;
 use Access\Database;
 use Access\Driver\DriverInterface;
 use Access\Query;
+use Access\Schema\Table;
 
 /**
  * Create a INSERT query for given table
@@ -26,10 +27,10 @@ use Access\Query;
 class Insert extends Query
 {
     /**
-     * @param string $tableName Name of the table (or name of entity class)
+     * @param Table|string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
      */
-    public function __construct(string $tableName, ?string $alias = null)
+    public function __construct(Table|string $tableName, ?string $alias = null)
     {
         parent::__construct($tableName, $alias);
     }

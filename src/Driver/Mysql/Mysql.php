@@ -15,16 +15,24 @@ namespace Access\Driver\Mysql;
 
 use Access\Clause\Field;
 use Access\Driver\Driver;
+use Access\Driver\Mysql\MysqlSqlTypeDefinitionBuilder;
+use Access\Driver\SqlTypeDefinitionBuilderInterface;
+use Access\Schema\Index;
 
 /**
  * MySQL specific driver
  *
  * @author Tim <me@justim.net>
  * @internal
+ * @psalm-suppress MissingConstructor
+ * @psalm-suppress PropertyNotSetInConstructor
+ * @psalm-suppress RedundantPropertyInitializationCheck
  */
 class Mysql extends Driver
 {
     public const NAME = 'mysql';
+
+    private SqlTypeDefinitionBuilderInterface $sqlTypeDefinition;
 
     /**
      * Escape identifier
@@ -66,5 +74,27 @@ class Mysql extends Driver
     public function hasLockSupport(): bool
     {
         return true;
+    }
+
+    public function getSqlTypeDefinitionBuilder(): SqlTypeDefinitionBuilderInterface
+    {
+        return $this->sqlTypeDefinition ??= new MysqlSqlTypeDefinitionBuilder($this);
+    }
+
+    public function getSqlIndexDefinition(Index $index): string
+    {
+        $fields = array_map(
+            fn(Field|string $field): string => $this->escapeIdentifier(
+                $field instanceof Field ? $field->getName() : $field,
+            ),
+            $index->getFields(),
+        );
+
+        return sprintf(
+            '%sINDEX %s (%s)',
+            $index->isUnique() ? 'UNIQUE ' : '',
+            $this->escapeIdentifier($index->getName()),
+            implode(', ', $fields),
+        );
     }
 }

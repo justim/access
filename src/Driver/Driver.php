@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\Driver;
 
+use Access\Schema\Field;
+
 /**
  * Base driver
  *
@@ -21,6 +23,14 @@ namespace Access\Driver;
  */
 abstract class Driver implements DriverInterface
 {
+    /**
+     * Get the SQL definition for a field
+     */
+    public function getSqlFieldDefinition(Field $field): string
+    {
+        return $this->getSqlTypeDefinitionBuilder()->fromField($field);
+    }
+
     /**
      * Get a debug string value for a value
      *
