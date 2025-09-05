@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Entity;
 
 use Access\Entity;
-
+use Access\Schema\Field;
+use Access\Schema\Table;
+use Access\Schema\Type;
 use Tests\Fixtures\UserStatus;
 
 /**
@@ -34,6 +36,21 @@ class MissingEnumNameEntity extends Entity
                 'type' => self::FIELD_TYPE_ENUM,
             ],
         ];
+    }
+
+    public static function getTableSchema(): Table
+    {
+        $table = new Table('users');
+
+        /**
+         * We be testin'
+         * @psalm-suppress ArgumentTypeCoercion
+         * @psalm-suppress UndefinedClass
+         */
+        $status = new Field('status', new Type\Enum(''));
+        $table->addField($status);
+
+        return $table;
     }
 
     public function setStatus(UserStatus $status): void

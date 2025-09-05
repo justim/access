@@ -15,6 +15,7 @@ namespace Access\EntityProvider;
 
 use Access\Entity;
 use Access\Cascade;
+use BackedEnum;
 
 /**
  * Provide empty entity shells for virtual array use
@@ -25,7 +26,7 @@ use Access\Cascade;
  * @psalm-type FieldOptions = array{
  *  default?: mixed,
  *  type?: Entity::FIELD_TYPE_*,
- *  enumName?: class-string,
+ *  enumName?: class-string<BackedEnum>,
  *  virtual?: bool,
  *  excludeInCopy?: bool,
  *  target?: class-string<Entity>,

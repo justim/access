@@ -15,6 +15,8 @@ namespace Tests\Fixtures\Entity;
 
 use Access\Entity;
 use Access\Entity\CreatableTrait;
+use Access\Schema\Field;
+use Access\Schema\Table;
 
 /**
  * SAFETY Return types are not known, they are stored in an array config
@@ -35,6 +37,21 @@ class LogMessage extends Entity
         return [
             'message' => [],
         ];
+    }
+
+    public static function getParentTableSchema(): Table
+    {
+        return parent::getTableSchema();
+    }
+
+    public static function getTableSchema(): Table
+    {
+        $table = new Table('log_messages', hasCreatedAt: true);
+
+        $message = new Field('message');
+        $table->addField($message);
+
+        return $table;
     }
 
     public function setMessage(string $message): void

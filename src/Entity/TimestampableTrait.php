@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Entity;
 
-use Access\Entity;
+use Access\Schema\Table;
 
 /**
  * Helper methods to work with the timestamps
@@ -43,6 +43,6 @@ trait TimestampableTrait
      */
     public function getUpdatedAt(): \DateTimeImmutable
     {
-        return $this->get(Entity::UPDATED_AT_FIELD);
+        return $this->get(Table::UPDATED_AT_FIELD);
     }
 }

@@ -17,6 +17,9 @@ use Access\Cascade;
 use Tests\Fixtures\Repository\ProjectRepository;
 
 use Access\Entity;
+use Access\Schema\Field;
+use Access\Schema\Table;
+use Access\Schema\Type;
 
 /**
  * SAFETY Return types are not known, they are stored in an array config
@@ -58,6 +61,36 @@ class Project extends Entity
         ];
     }
 
+    public static function getParentTableSchema(): Table
+    {
+        return parent::getTableSchema();
+    }
+
+    public static function getTableSchema(): Table
+    {
+        $table = new Table('projects', hasCreatedAt: true, hasUpdatedAt: true);
+
+        $status = new Field('status');
+        $status->setDefault(fn() => 'IN_PROGRESS');
+        $table->addField($status);
+
+        $name = new Field('name');
+        $table->addField($name);
+
+        $ownerId = new Field('owner_id', new Type\Reference(User::class, Cascade::deleteSame()));
+        $table->addField($ownerId);
+
+        $publishedAt = new Field('published_at', new Type\Date(), fn() => null);
+        $publishedAt->setIncludeInCopy(false);
+        $table->addField($publishedAt);
+
+        $userName = new Field('user_name');
+        $userName->markAsVirtual();
+        $table->addField($userName);
+
+        return $table;
+    }
+
     public static function timestamps(): bool
     {
         return true;
@@ -96,12 +129,12 @@ class Project extends Entity
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->get(Entity::CREATED_AT_FIELD);
+        return $this->get(Table::CREATED_AT_FIELD);
     }
 
     public function getUpdatedAt(): \DateTimeImmutable
     {
-        return $this->get(Entity::UPDATED_AT_FIELD);
+        return $this->get(Table::UPDATED_AT_FIELD);
     }
 
     public function getPublishedAt(): ?\DateTimeImmutable

@@ -116,6 +116,16 @@ class Table
     }
 
     /**
+     * Get the names of all (defined) fields in the table
+     *
+     * @return string[]
+     */
+    public function getFieldNames(): array
+    {
+        return array_map(fn(Field $field): string => $field->getName(), $this->fields);
+    }
+
+    /**
      * Does the table have a field with the given name?
      */
     public function hasField(string $name): bool
@@ -158,5 +168,30 @@ class Table
     public function hasDeletedAt(): bool
     {
         return $this->hasDeletedAt;
+    }
+
+    /**
+     * Is the given field a built-in date time field
+     *
+     * Checks if the feature for those fields is enabled and the predetermined names
+     *
+     * @param string $field The field name
+     * @return bool Is a built-in date time field
+     */
+    public function isBuiltinDatetimeField(string $field): bool
+    {
+        if ($this->hasCreatedAt() && $field === self::CREATED_AT_FIELD) {
+            return true;
+        }
+
+        if ($this->hasUpdatedAt() && $field === self::UPDATED_AT_FIELD) {
+            return true;
+        }
+
+        if ($this->hasDeletedAt() && $field === self::DELETED_AT_FIELD) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -19,6 +19,9 @@ use Tests\Fixtures\Repository\UserRepository;
 use Access\Entity;
 use Access\Entity\SoftDeletableTrait;
 use Access\Entity\TimestampableTrait;
+use Access\Schema\Field;
+use Access\Schema\Table;
+use Access\Schema\Type;
 use Tests\Fixtures\UserStatus;
 
 /**
@@ -60,6 +63,8 @@ class User extends Entity
             ],
             'profile_image_id' => [
                 'type' => self::FIELD_TYPE_INT,
+                'target' => ProfileImage::class,
+                'cascade' => Cascade::deleteSame(),
             ],
             'status' => [
                 'type' => self::FIELD_TYPE_ENUM,
@@ -73,6 +78,35 @@ class User extends Entity
                 'virtual' => true,
             ],
         ];
+    }
+
+    public static function getParentTableSchema(): Table
+    {
+        return parent::getTableSchema();
+    }
+
+    public static function getTableSchema(): Table
+    {
+        $table = new Table('users', hasCreatedAt: true, hasUpdatedAt: true, hasDeletedAt: true);
+
+        $table->field('role', default: 'USER');
+
+        $table->field(
+            'profile_image_id',
+            new Type\Reference(ProfileImage::class, Cascade::deleteSame()),
+        );
+
+        $table->field('status', new Type\Enum(UserStatus::class), UserStatus::ACTIVE);
+
+        $table->field('email');
+
+        $table->field('name');
+
+        $totalProjects = new Field('total_projects', new Type\Integer());
+        $totalProjects->markAsVirtual();
+        $table->addField($totalProjects);
+
+        return $table;
     }
 
     public function setEmail(string $email): void

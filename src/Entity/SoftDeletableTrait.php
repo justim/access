@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Entity;
 
-use Access\Entity;
+use Access\Schema\Table;
 
 /**
  * Soft deletable functionality for entity
@@ -41,7 +41,7 @@ trait SoftDeletableTrait
      */
     public function setDeletedAt(?\DateTimeImmutable $now = null): void
     {
-        $this->set(Entity::DELETED_AT_FIELD, $now ?? new \DateTimeImmutable());
+        $this->set(Table::DELETED_AT_FIELD, $now ?? new \DateTimeImmutable());
     }
 
     /**
@@ -49,6 +49,6 @@ trait SoftDeletableTrait
      */
     public function getDeletedAt(): ?\DateTimeImmutable
     {
-        return $this->get(Entity::DELETED_AT_FIELD);
+        return $this->get(Table::DELETED_AT_FIELD);
     }
 }
