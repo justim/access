@@ -18,6 +18,8 @@ use Psr\Clock\ClockInterface;
 
 interface DatabaseBuilderInterface
 {
+    public static function createEmptyDatabase(): Database;
+
     public static function createDatabase(): Database;
 
     public static function createDatabaseWithDummyData(): Database;
