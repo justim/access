@@ -11,19 +11,20 @@
 
 declare(strict_types=1);
 
-namespace Access\Driver;
+namespace Access\Driver\Sqlite;
 
 use Access\Clause\Field;
+use Access\Driver\Driver;
 
 /**
- * MySQL specific driver
+ * SQLite specific driver
  *
  * @author Tim <me@justim.net>
  * @internal
  */
-class Mysql implements DriverInterface
+class Sqlite extends Driver
 {
-    public const NAME = 'mysql';
+    public const NAME = 'sqlite';
 
     /**
      * Escape identifier
@@ -38,32 +39,32 @@ class Mysql implements DriverInterface
             $identifier = $identifier->getName();
         }
 
-        return str_replace('.', '`.`', sprintf('`%s`', str_replace('`', '``', $identifier)));
+        return str_replace('.', '"."', sprintf('"%s"', str_replace('"', '""', $identifier)));
     }
 
     /**
-     * Get a debug string value for a value in MySQL dialect
+     * Get a debug string value for a value in SQLite dialect
      *
      * Useful for the debug query, should not be used otherwise, use prepared statements
      */
     public function getDebugStringValue(mixed $value): string
     {
-        return sprintf('"%s"', addslashes((string) $value));
+        return sprintf("'%s'", addslashes((string) $value));
     }
 
     /**
-     * Get the function name for random in MySQL dialect
+     * Get the function name for random in SQLite dialect
      */
     public function getFunctionNameRandom(): string
     {
-        return 'RAND()';
+        return 'RANDOM()';
     }
 
     /**
-     * Has the MySQL driver support for LOCK/UNLOCK TABLES?
+     * Has the SQLite driver support for LOCK/UNLOCK TABLES?
      */
     public function hasLockSupport(): bool
     {
-        return true;
+        return false;
     }
 }

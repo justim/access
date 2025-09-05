@@ -15,7 +15,7 @@ namespace Tests\Unit;
 
 use Access\Clause;
 use Access\DebugQuery;
-use Access\Driver\Sqlite;
+use Access\Driver\Sqlite\Sqlite;
 use Access\Query;
 use PHPUnit\Framework\TestCase;
 
