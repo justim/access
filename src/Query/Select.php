@@ -16,6 +16,7 @@ namespace Access\Query;
 use Access\Database;
 use Access\Driver\DriverInterface;
 use Access\Query;
+use Access\Schema\Table;
 
 /**
  * Create a SELECT query for given table with optional virtual fields
@@ -35,12 +36,15 @@ class Select extends Query
     private ?string $select = null;
 
     /**
-     * @param string $tableName Name of the table (or name of entity class)
+     * @param Table|string $tableName Name of the table (or name of entity class)
      * @param string $alias Name of the alias for given table name
      * @param array<string, string|Select> $virtualFields List of virtual fields, 'name' => 'SQL'
      */
-    public function __construct(string $tableName, ?string $alias = null, array $virtualFields = [])
-    {
+    public function __construct(
+        Table|string $tableName,
+        ?string $alias = null,
+        array $virtualFields = [],
+    ) {
         parent::__construct($tableName, $alias);
 
         $this->virtualFields = $virtualFields;

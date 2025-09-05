@@ -15,16 +15,25 @@ namespace Access\Driver\Sqlite;
 
 use Access\Clause\Field;
 use Access\Driver\Driver;
+use Access\Driver\SqlTypeDefinitionBuilderInterface;
+use Access\Driver\Sqlite\SqliteSqlTypeDefinitionBuilder;
+use Access\Exception\NotSupportedException;
+use Access\Schema\Index;
 
 /**
  * SQLite specific driver
  *
  * @author Tim <me@justim.net>
  * @internal
+ * @psalm-suppress MissingConstructor
+ * @psalm-suppress PropertyNotSetInConstructor
+ * @psalm-suppress RedundantPropertyInitializationCheck
  */
 class Sqlite extends Driver
 {
     public const NAME = 'sqlite';
+
+    private SqlTypeDefinitionBuilderInterface $sqlTypeDefinition;
 
     /**
      * Escape identifier
@@ -66,5 +75,15 @@ class Sqlite extends Driver
     public function hasLockSupport(): bool
     {
         return false;
+    }
+
+    public function getSqlTypeDefinitionBuilder(): SqlTypeDefinitionBuilderInterface
+    {
+        return $this->sqlTypeDefinition ??= new SqliteSqlTypeDefinitionBuilder($this);
+    }
+
+    public function getSqlIndexDefinition(Index $index): string
+    {
+        throw new NotSupportedException('Creating indexes for SQLite not yet possible');
     }
 }

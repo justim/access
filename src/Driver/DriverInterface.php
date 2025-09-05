@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Access\Driver;
 
 use Access\Clause;
+use Access\Schema;
+use Access\Schema\Index;
 
 /**
  * Driver specific interface
@@ -63,4 +65,19 @@ interface DriverInterface
      * Has the driver support for LOCK/UNLOCK TABLES?
      */
     public function hasLockSupport(): bool;
+
+    /**
+     * Get the builder to create SQL type definitions
+     */
+    public function getSqlTypeDefinitionBuilder(): SqlTypeDefinitionBuilderInterface;
+
+    /**
+     * Get the SQL definition for a field
+     */
+    public function getSqlFieldDefinition(Schema\Field $field): string;
+
+    /**
+     * Get the SQL definition for an index
+     */
+    public function getSqlIndexDefinition(Index $index): string;
 }
