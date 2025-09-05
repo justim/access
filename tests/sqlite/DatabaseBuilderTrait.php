@@ -75,9 +75,16 @@ trait DatabaseBuilderTrait
         return $db;
     }
 
-    public static function createDatabase(): Database
+    public static function createEmptyDatabase(): Database
     {
         $db = Database::create('sqlite::memory:');
+
+        return $db;
+    }
+
+    public static function createDatabase(): Database
+    {
+        $db = self::createEmptyDatabase();
 
         return self::createTables($db);
     }
@@ -88,18 +95,6 @@ trait DatabaseBuilderTrait
         $db = Database::create('sqlite::memory:', null, $clock);
 
         return self::createTables($db);
-    }
-
-    public static function nukeDatabase(Database $db): void
-    {
-        $dropProjectsQuery = new Raw('DROP TABLE `projects`');
-        $db->query($dropProjectsQuery);
-
-        $dropUsersQuery = new Raw('DROP TABLE `users`');
-        $db->query($dropUsersQuery);
-
-        $dropProfileImagesQuery = new Raw('DROP TABLE `profile_images`');
-        $db->query($dropProfileImagesQuery);
     }
 
     /**

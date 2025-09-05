@@ -27,16 +27,6 @@ trait DatabaseBuilderTrait
 {
     private static function createTables(Database $db): Database
     {
-        $name = sprintf('access_test_%s', bin2hex(random_bytes(8)));
-
-        if (!empty($_ENV['MYSQL_DATABASE_NAME'])) {
-            $name = $_ENV['MYSQL_DATABASE_NAME'];
-        }
-
-        $db->query(new Raw("DROP DATABASE IF EXISTS `$name`"));
-        $db->query(new Raw("CREATE DATABASE IF NOT EXISTS `$name`"));
-        $db->query(new Raw("USE `$name`"));
-
         $createProfileImagesQuery = new Raw('CREATE TABLE `profile_images` (
             `id` INT AUTO_INCREMENT,
             `created_at` DATETIME,
@@ -88,6 +78,19 @@ trait DatabaseBuilderTrait
         return $db;
     }
 
+    private static function initializeDatabase(Database $db): void
+    {
+        $name = sprintf('access_test_%s', bin2hex(random_bytes(8)));
+
+        if (!empty($_ENV['MYSQL_DATABASE_NAME'])) {
+            $name = $_ENV['MYSQL_DATABASE_NAME'];
+        }
+
+        $db->query(new Raw("DROP DATABASE IF EXISTS `$name`"));
+        $db->query(new Raw("CREATE DATABASE IF NOT EXISTS `$name`"));
+        $db->query(new Raw("USE `$name`"));
+    }
+
     private static function createPdo(): PDO
     {
         $host = $_ENV['MYSQL_DATABASE_HOST'];
@@ -98,10 +101,22 @@ trait DatabaseBuilderTrait
         return new PDO(sprintf('mysql:host=%s;port=%s', $host, $port), $user, $password);
     }
 
+    public static function createEmptyDatabase(): Database
+    {
+        $pdo = self::createPdo();
+        $db = new Database($pdo);
+
+        self::initializeDatabase($db);
+
+        return $db;
+    }
+
     public static function createDatabase(): Database
     {
         $pdo = self::createPdo();
         $db = new Database($pdo);
+
+        self::initializeDatabase($db);
 
         return self::createTables($db);
     }
@@ -113,6 +128,8 @@ trait DatabaseBuilderTrait
         $clock = $clock ?? new MockClock();
 
         $db = new Database($pdo, null, $clock);
+
+        self::initializeDatabase($db);
 
         return self::createTables($db);
     }
