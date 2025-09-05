@@ -329,6 +329,8 @@ abstract class Query
     /**
      * Add a single/multiple ORDER BY part(s) to query
      *
+     * Overrides previous set order by
+     *
      * @param string|OrderByInterface|string[]|OrderByInterface $orderBy Order by clause
      * @return $this
      */
