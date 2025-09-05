@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Entity;
 
-use Access\Entity;
+use Access\Schema\Table;
 
 /**
  * Helper methods to work with the create_at field
@@ -39,6 +39,6 @@ trait CreatableTrait
      */
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->get(Entity::CREATED_AT_FIELD);
+        return $this->get(Table::CREATED_AT_FIELD);
     }
 }

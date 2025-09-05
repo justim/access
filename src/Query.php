@@ -29,6 +29,8 @@ use Access\Driver\DriverInterface;
 use Access\Query\Cursor\Cursor;
 use Access\Query\IncludeSoftDeletedFilter;
 use Access\Query\QueryGeneratorState;
+use Access\Schema\Table;
+use Access\Schema\Type;
 use BackedEnum;
 
 /**
@@ -161,7 +163,7 @@ abstract class Query
                  */
                 $tableIdentifier = $alias ?: $this->tableName;
                 $this->softDeleteCondition = new IsNull(
-                    sprintf('%s.%s', $tableIdentifier, Entity::DELETED_AT_FIELD),
+                    sprintf('%s.%s', $tableIdentifier, Table::DELETED_AT_FIELD),
                 );
             }
         }
@@ -246,7 +248,7 @@ abstract class Query
             if ($tableName::isSoftDeletable()) {
                 $tableIdentifier = $alias ?: $tableName::tableName();
                 $softDeleteCondition = new IsNull(
-                    sprintf('%s.%s', $tableIdentifier, Entity::DELETED_AT_FIELD),
+                    sprintf('%s.%s', $tableIdentifier, Table::DELETED_AT_FIELD),
                 );
             }
 
@@ -517,7 +519,7 @@ abstract class Query
         }
 
         if ($value instanceof \DateTimeInterface) {
-            return $value->format(Entity::DATETIME_FORMAT);
+            return $value->format(Type\DateTime::DATABASE_FORMAT);
         }
 
         if (is_bool($value)) {

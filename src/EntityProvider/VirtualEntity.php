@@ -15,6 +15,8 @@ namespace Access\EntityProvider;
 
 use Access\Cascade;
 use Access\Entity;
+use Access\Schema\Table;
+use BackedEnum;
 
 /**
  * Base entity class to fetch a virtual entity
@@ -24,7 +26,7 @@ use Access\Entity;
  * @psalm-type FieldOptions = array{
  *  default?: mixed,
  *  type?: Entity::FIELD_TYPE_*,
- *  enumName?: class-string,
+ *  enumName?: class-string<BackedEnum>,
  *  virtual?: bool,
  *  excludeInCopy?: bool,
  *  target?: class-string<Entity>,
@@ -67,7 +69,7 @@ abstract class VirtualEntity extends Entity
     /**
      * Return a empty table definition
      *
-     * Method is never executed due to overload of `getResolvedFields` method
+     * Method is never executed due to overload of `getResolvedTableSchema` method
      * @codeCoverageIgnore
      *
      * @return array<string, mixed>
@@ -79,13 +81,10 @@ abstract class VirtualEntity extends Entity
     }
 
     /**
-     * Resolved table definition with virtual field info
-     *
-     * @return array<string, mixed>
-     * @psalm-return array<string, FieldOptions>
+     * Return the resolved table schema based on virtual fields
      */
-    protected function getResolvedFields(): array
+    protected function getResolvedTableSchema(): Table
     {
-        return $this->fields;
+        return static::getGeneratedTableSchema($this->fields);
     }
 }

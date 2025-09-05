@@ -166,7 +166,7 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     {
         $this->db->assertValidEntityClass($klass);
 
-        $validFieldNames = array_keys($klass::fields());
+        $validFieldNames = $klass::getTableSchema()->getFieldNames();
 
         if (!in_array($fieldName, $validFieldNames, true)) {
             throw new Exception('Unknown field name for inversed refs');

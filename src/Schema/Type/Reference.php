@@ -26,7 +26,7 @@ class Reference extends Integer
     /**
      * Entity that is referenced
      *
-     * @psalm-var class-string<T>|Table
+     * @psalm-var class-string<T>|string|Table
      */
     private string|Table $table;
 
@@ -35,16 +35,22 @@ class Reference extends Integer
     /**
      * Create a field with a name
      *
-     * @param class-string<T>|Table $table
+     * @param class-string<T>|string|Table $table
      */
     public function __construct(Table|string $table, ?Cascade $cascade = null)
     {
-        if (is_string($table)) {
-            Database::assertValidEntityClass($table);
-        }
-
         $this->table = $table;
         $this->cascade = $cascade;
+    }
+
+    /**
+     * Get the target entity or table
+     *
+     * @psalm-return class-string<T>|string|Table
+     */
+    public function getTarget(): Table|string
+    {
+        return $this->table;
     }
 
     /**
@@ -52,7 +58,15 @@ class Reference extends Integer
      */
     public function getTableName(): string
     {
-        return is_string($this->table) ? $this->table::tableName() : $this->table->getName();
+        if ($this->table instanceof Table) {
+            return $this->table->getName();
+        }
+
+        if (is_subclass_of($this->table, Entity::class)) {
+            return $this->table::tableName();
+        }
+
+        return $this->table;
     }
 
     public function getCascade(): ?Cascade

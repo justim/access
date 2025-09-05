@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Entity;
 
 use Access\Entity;
+use Access\Schema\Table;
 
 /**
  * Missing public soft delete
@@ -38,5 +39,12 @@ class MissingPublicSoftDeleteEntity extends Entity
     protected function setDeletedAt(\DateTimeInterface $deletedAt): void
     {
         $this->set('deleted_at', $deletedAt);
+    }
+
+    public static function getTableSchema(): Table
+    {
+        $table = new Table('missing_public_soft_delete');
+
+        return $table;
     }
 }

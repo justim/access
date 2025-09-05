@@ -17,7 +17,9 @@ use Access\IdentifiableInterface;
 use Access\Repository;
 use BackedEnum;
 use Psr\Clock\ClockInterface;
-use ValueError;
+use Access\Schema\Field;
+use Access\Schema\Table;
+use Access\Schema\Type;
 
 /**
  * Entity functionality
@@ -27,7 +29,7 @@ use ValueError;
  * @psalm-type FieldOptions = array{
  *  default?: mixed,
  *  type?: self::FIELD_TYPE_*,
- *  enumName?: class-string,
+ *  enumName?: class-string<BackedEnum>,
  *  virtual?: bool,
  *  excludeInCopy?: bool,
  *  target?: class-string<Entity>,
@@ -108,6 +110,73 @@ abstract class Entity implements IdentifiableInterface
         return false;
     }
 
+    public static function getTableSchema(): Table
+    {
+        return static::getGeneratedTableSchema();
+    }
+
+    /**
+     * Generate a table schema from the (legacy) field definitions
+     * @param array<string, FieldOptions>|null $fields
+     */
+    protected static function getGeneratedTableSchema(?array $fields = null): Table
+    {
+        // a best effort implementation to create a table schema,
+        // should probably not be used to actually create a table.
+
+        $table = new Table(
+            static::tableName(),
+            hasCreatedAt: static::timestamps() || static::creatable(),
+            hasUpdatedAt: static::timestamps(),
+            hasDeletedAt: static::isSoftDeletable(),
+        );
+
+        $fields ??= static::fields();
+
+        foreach ($fields as $name => $field) {
+            $type = null;
+
+            if (isset($field['cascade']) && isset($field['target'])) {
+                $type = new Type\Reference($field['target'], $field['cascade']);
+            } elseif (isset($field['type'])) {
+                if ($field['type'] === self::FIELD_TYPE_ENUM && isset($field['enumName'])) {
+                    $type = new Type\Enum($field['enumName']);
+                } else {
+                    $type = match ($field['type']) {
+                        self::FIELD_TYPE_INT => new Type\Integer(),
+                        self::FIELD_TYPE_BOOL => new Type\Boolean(),
+                        self::FIELD_TYPE_DATETIME => new Type\DateTime(),
+                        self::FIELD_TYPE_DATE => new Type\Date(),
+                        self::FIELD_TYPE_JSON => new Type\Json(),
+                        default => null,
+                    };
+                }
+            }
+
+            /** @var array{string, ?Type, mixed} $initArgs */
+            $initArgs = [$name, $type];
+
+            if (array_key_exists('default', $field)) {
+                /** @psalm-suppress MixedAssignement */
+                $initArgs[2] = $field['default'];
+            }
+
+            $schemaField = new Field(...$initArgs);
+
+            if (isset($field['virtual']) && $field['virtual'] === true) {
+                $schemaField->markAsVirtual();
+            }
+
+            if (isset($field['excludeInCopy']) && $field['excludeInCopy'] === true) {
+                $schemaField->setIncludeInCopy(false);
+            }
+
+            $table->addField($schemaField);
+        }
+
+        return $table;
+    }
+
     /**
      * Get the repository class for entity
      *
@@ -122,28 +191,33 @@ abstract class Entity implements IdentifiableInterface
 
     /**
      * Name of created at field
+     * @deprecated use Table::CREATED_AT_FIELD
      */
-    public const CREATED_AT_FIELD = 'created_at';
+    public const CREATED_AT_FIELD = Table::CREATED_AT_FIELD;
 
     /**
      * Name of updated at field
+     * @deprecated use Table::UPDATED_AT_FIELD
      */
-    public const UPDATED_AT_FIELD = 'updated_at';
+    public const UPDATED_AT_FIELD = Table::UPDATED_AT_FIELD;
 
     /**
      * Name of deleted at field
+     * @deprecated use Table::DELETED_AT_FIELD
      */
-    public const DELETED_AT_FIELD = 'deleted_at';
+    public const DELETED_AT_FIELD = Table::DELETED_AT_FIELD;
 
     /**
      * Date time format
+     * @deprecated use Type\DateTime::DATABASE_FORMAT
      */
-    public const DATETIME_FORMAT = 'Y-m-d H:i:s';
+    public const DATETIME_FORMAT = Type\DateTime::DATABASE_FORMAT;
 
     /**
      * Date format
+     * @deprecated use Type\Date::DATABASE_FORMAT
      */
-    public const DATE_FORMAT = 'Y-m-d';
+    public const DATE_FORMAT = Type\Date::DATABASE_FORMAT;
 
     /**
      * ID of the entity
@@ -307,44 +381,37 @@ abstract class Entity implements IdentifiableInterface
     {
         $clock ??= new InternalClock();
 
+        $table = $this->getResolvedTableSchema();
+        $fields = $table->getFields();
         $values = [];
-        $fields = $this->getResolvedFields();
 
-        foreach ($fields as $field => $options) {
-            if (isset($options['virtual']) && $options['virtual'] === true) {
+        foreach ($fields as $field) {
+            if ($field->getIsVirtual()) {
                 continue;
-            } elseif (array_key_exists($field, $this->values)) {
+            } elseif (array_key_exists($field->getName(), $this->values)) {
                 /** @var mixed $value */
-                $value = $this->values[$field];
-            } elseif (array_key_exists('default', $options)) {
-                if (is_callable($options['default'])) {
-                    $value = call_user_func($options['default'], $this);
-                } else {
-                    $value = $options['default'];
-                }
+                $value = $this->values[$field->getName()];
+            } elseif ($field->hasDefault()) {
+                $value = $field->getDefaultValue($this);
             } else {
                 continue;
             }
 
-            $values[$field] = $this->toDatabaseFormat($field, $value);
+            $values[$field->getName()] = $field->toDatabaseFormatValue($value);
         }
 
-        if (static::timestamps() || static::creatable()) {
-            $values[self::CREATED_AT_FIELD] = $this->toDatabaseFormatValue(
-                self::FIELD_TYPE_DATETIME,
-                $clock->now(),
-            );
+        $dateTimeType = new Type\DateTime();
+
+        if ($table->hasCreatedAt()) {
+            $values[Table::CREATED_AT_FIELD] = $dateTimeType->toDatabaseFormatValue($clock->now());
         }
 
-        if (static::timestamps()) {
-            $values[self::UPDATED_AT_FIELD] = $this->toDatabaseFormatValue(
-                self::FIELD_TYPE_DATETIME,
-                $clock->now(),
-            );
+        if ($table->hasUpdatedAt()) {
+            $values[Table::UPDATED_AT_FIELD] = $dateTimeType->toDatabaseFormatValue($clock->now());
         }
 
-        if (static::isSoftDeletable() && !isset($values[self::DELETED_AT_FIELD])) {
-            $values[self::DELETED_AT_FIELD] = null;
+        if ($table->hasDeletedAt() && !isset($this->values[Table::DELETED_AT_FIELD])) {
+            $values[Table::DELETED_AT_FIELD] = null;
         }
 
         return $values;
@@ -361,34 +428,35 @@ abstract class Entity implements IdentifiableInterface
 
         /** @var array<string, mixed> $values */
         $values = [];
-        $fields = $this->getResolvedFields();
 
-        foreach ($this->updatedFields as $field => $value) {
-            if ($field === self::DELETED_AT_FIELD) {
-                $values[self::DELETED_AT_FIELD] = $this->toDatabaseFormatValue(
-                    self::FIELD_TYPE_DATETIME,
-                    $value,
-                );
+        $table = $this->getResolvedTableSchema();
+
+        $dateTimeType = new Type\DateTime();
+
+        foreach ($this->updatedFields as $fieldName => $value) {
+            if ($fieldName === Table::DELETED_AT_FIELD) {
+                $values[Table::DELETED_AT_FIELD] = $dateTimeType->toDatabaseFormatValue($value);
 
                 continue;
             }
 
-            if (isset($fields[$field])) {
-                $options = $fields[$field];
-
-                if (isset($options['virtual']) && $options['virtual'] === true) {
-                    continue;
-                }
+            $field = $table->getField($fieldName);
+            if ($field !== null && $field->getIsVirtual()) {
+                continue;
             }
 
-            $values[$field] = $this->toDatabaseFormat($field, $value);
+            if ($field === null) {
+                // field not in schema, just use raw value
+                $values[$fieldName] = $value;
+
+                continue;
+            }
+
+            $values[$fieldName] = $field->toDatabaseFormatValue($value);
         }
 
-        if (!empty($values) && static::timestamps()) {
-            $values[self::UPDATED_AT_FIELD] = $this->toDatabaseFormatValue(
-                self::FIELD_TYPE_DATETIME,
-                $clock->now(),
-            );
+        if (!empty($values) && $table->hasUpdatedAt()) {
+            $values[Table::UPDATED_AT_FIELD] = $dateTimeType->toDatabaseFormatValue($clock->now());
         }
 
         return $values;
@@ -407,20 +475,30 @@ abstract class Entity implements IdentifiableInterface
         $this->updatedFields = [];
 
         if ($updatedFields !== null) {
+            $table = $this->getResolvedTableSchema();
+            $datetimeType = new Type\DateTime();
+
             /** @var mixed $value */
-            foreach ($updatedFields as $field => $value) {
-                if ($this->isBuiltinDatetimeField($field)) {
-                    $this->values[$field] = $this->fromDatabaseFormatValue(
-                        $field,
-                        self::FIELD_TYPE_DATETIME,
-                        $value,
-                    );
+            foreach ($updatedFields as $fieldName => $value) {
+                if ($table->isBuiltinDatetimeField($fieldName)) {
+                    if ($value === null) {
+                        $this->values[$fieldName] = null;
+                    } else {
+                        $this->values[$fieldName] = $datetimeType->fromDatabaseFormatValue($value);
+                    }
 
                     continue;
                 }
 
-                if (!array_key_exists($field, $this->values)) {
-                    $this->values[$field] = $this->fromDatabaseFormat($field, $value);
+                if (!array_key_exists($fieldName, $this->values)) {
+                    $field = $table->getField($fieldName);
+
+                    if ($field === null) {
+                        // field not in schema, just use raw value
+                        $this->values[$fieldName] = $value;
+                    } else {
+                        $this->values[$fieldName] = $field->fromDatabaseFormatValue($value);
+                    }
                 }
             }
         }
@@ -433,24 +511,34 @@ abstract class Entity implements IdentifiableInterface
      */
     final public function hydrate(array $record): void
     {
+        $table = $this->getResolvedTableSchema();
+        $datetimeType = new Type\DateTime();
+
         /** @var mixed $value */
-        foreach ($record as $field => $value) {
+        foreach ($record as $fieldName => $value) {
             // the ID has special treatment
-            if ($field === 'id') {
+            if ($fieldName === 'id') {
                 continue;
             }
 
-            if ($this->isBuiltinDatetimeField($field)) {
-                $this->values[$field] = $this->fromDatabaseFormatValue(
-                    $field,
-                    self::FIELD_TYPE_DATETIME,
-                    $value,
-                );
+            if ($table->isBuiltinDatetimeField($fieldName)) {
+                if ($value === null) {
+                    $this->values[$fieldName] = null;
+                } else {
+                    $this->values[$fieldName] = $datetimeType->fromDatabaseFormatValue($value);
+                }
 
                 continue;
             }
 
-            $this->values[$field] = $this->fromDatabaseFormat($field, $value);
+            $field = $table->getField($fieldName);
+
+            if ($field === null) {
+                // field not in schema, just use raw value
+                $this->values[$fieldName] = $value;
+            } else {
+                $this->values[$fieldName] = $field->fromDatabaseFormatValue($value);
+            }
         }
 
         if (isset($record['id'])) {
@@ -461,241 +549,15 @@ abstract class Entity implements IdentifiableInterface
     }
 
     /**
-     * Get a value for a field in the database format
+     * Get the (resolved) table schema
      *
-     * @param string $field
-     * @param mixed $value
-     * @return mixed
+     * Defaults to `self::getTableSchema`
+     *
+     * @return Table
      */
-    private function toDatabaseFormat(string $field, mixed $value): mixed
+    protected function getResolvedTableSchema(): Table
     {
-        $fields = $this->getResolvedFields();
-
-        if (isset($fields[$field])) {
-            $options = $fields[$field];
-
-            if (!isset($options['type'])) {
-                return $value;
-            }
-
-            $value = $this->toDatabaseFormatValue($options['type'], $value);
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get a value for a type in the database format
-     *
-     * @param string $type
-     * @param mixed $value
-     * @return mixed
-     */
-    private function toDatabaseFormatValue(string $type, mixed $value): mixed
-    {
-        if ($value === null) {
-            return $value;
-        }
-
-        switch ($type) {
-            case self::FIELD_TYPE_BOOL:
-                return intval($value);
-
-            case self::FIELD_TYPE_DATETIME:
-                /** @var \DateTimeInterface $value */
-                return $this->fromMutable($value)
-                    ->setTimezone(new \DateTimeZone('UTC'))
-                    ->format(self::DATETIME_FORMAT);
-
-            case self::FIELD_TYPE_DATE:
-                /** @var \DateTimeInterface $value */
-                return $this->fromMutable($value)
-                    ->setTimezone(new \DateTimeZone('UTC'))
-                    ->format(self::DATE_FORMAT);
-
-            case self::FIELD_TYPE_JSON:
-                return json_encode($value);
-
-            case self::FIELD_TYPE_ENUM:
-                if ($value instanceof BackedEnum) {
-                    return $value->value;
-                }
-
-                return $value;
-
-            default:
-                return $value;
-        }
-    }
-
-    /**
-     * Get a value for a field as a PHP value
-     *
-     * @param string $field
-     * @param mixed $value
-     * @return mixed
-     */
-    private function fromDatabaseFormat(string $field, mixed $value): mixed
-    {
-        $fields = $this->getResolvedFields();
-
-        if (isset($fields[$field])) {
-            $options = $fields[$field];
-
-            if (!isset($options['type'])) {
-                return $value;
-            }
-
-            $value = $this->fromDatabaseFormatValue(
-                $field,
-                $options['type'],
-                $value,
-                $options['enumName'] ?? null,
-            );
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get a value for a type as a PHP value
-     *
-     * @param string $field
-     * @param string $type
-     * @param mixed $value
-     * @param class-string|null $enumName
-     * @return mixed
-     */
-    private function fromDatabaseFormatValue(
-        string $field,
-        string $type,
-        mixed $value,
-        ?string $enumName = null,
-    ): mixed {
-        if ($value === null) {
-            return $value;
-        }
-
-        switch ($type) {
-            case self::FIELD_TYPE_INT:
-                return intval($value);
-
-            case self::FIELD_TYPE_BOOL:
-                return boolval($value);
-
-            case self::FIELD_TYPE_DATETIME:
-                if ($value instanceof \DateTimeInterface) {
-                    return $this->fromMutable($value);
-                }
-
-                if (!is_string($value)) {
-                    throw new Exception('Invalid datetime value');
-                }
-
-                return \DateTimeImmutable::createFromFormat(
-                    self::DATETIME_FORMAT,
-                    $value,
-                    new \DateTimeZone('UTC'),
-                );
-
-            case self::FIELD_TYPE_DATE:
-                if (!is_string($value)) {
-                    throw new Exception('Invalid date value');
-                }
-
-                return \DateTimeImmutable::createFromFormat(
-                    self::DATE_FORMAT,
-                    $value,
-                    new \DateTimeZone('UTC'),
-                );
-
-            case self::FIELD_TYPE_JSON:
-                if (!is_string($value)) {
-                    throw new Exception('Invalid json value');
-                }
-
-                return json_decode($value, true);
-
-            case self::FIELD_TYPE_ENUM:
-                if (empty($enumName)) {
-                    throw new Exception(sprintf('Missing enum name for field "%s"', $field));
-                }
-
-                if (!is_subclass_of($enumName, BackedEnum::class)) {
-                    throw new Exception(
-                        sprintf('Invalid enum name for field "%s": %s', $field, $enumName),
-                    );
-                }
-
-                if (!is_int($value) && !is_string($value)) {
-                    throw new Exception('Invalid backing value for enum');
-                }
-
-                try {
-                    return $enumName::from($value);
-                } catch (ValueError $e) {
-                    throw new Exception('Invalid enum value', $e->getCode(), $e);
-                }
-
-            default:
-                return $value;
-        }
-    }
-
-    /**
-     * Is the given field a built-in date time field
-     *
-     * Checks if the feature for those fields is enabled and the predetermined names
-     *
-     * @param string $field The field name
-     * @return bool Is a built-in date time field
-     */
-    private function isBuiltinDatetimeField(string $field): bool
-    {
-        if (static::creatable() && $field === self::CREATED_AT_FIELD) {
-            return true;
-        }
-
-        if (
-            static::timestamps() &&
-            ($field === self::CREATED_AT_FIELD || $field === self::UPDATED_AT_FIELD)
-        ) {
-            return true;
-        }
-
-        if (static::isSoftDeletable() && $field === self::DELETED_AT_FIELD) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Make mutable date immutable, if needed
-     *
-     * @param \DateTimeInterface $date
-     * @return \DateTimeImmutable
-     */
-    private function fromMutable(\DateTimeInterface $date): \DateTimeImmutable
-    {
-        if ($date instanceof \DateTimeImmutable) {
-            return $date;
-        }
-
-        return new \DateTimeImmutable($date->format('Y-m-d H:i:s.u'), $date->getTimezone());
-    }
-
-    /**
-     * Get the (resolved) field definitions
-     *
-     * Defaults to `self::fields`
-     *
-     * @return array<string, mixed>
-     * @psalm-return array<string, FieldOptions>
-     */
-    protected function getResolvedFields(): array
-    {
-        return static::fields();
+        return static::getTableSchema();
     }
 
     /**
@@ -713,15 +575,15 @@ abstract class Entity implements IdentifiableInterface
 
         $record = $this->getValues();
 
-        unset($record[self::CREATED_AT_FIELD]);
-        unset($record[self::UPDATED_AT_FIELD]);
-        unset($record[self::DELETED_AT_FIELD]);
+        unset($record[Table::CREATED_AT_FIELD]);
+        unset($record[Table::UPDATED_AT_FIELD]);
+        unset($record[Table::DELETED_AT_FIELD]);
 
-        $fields = $this->getResolvedFields();
+        $fields = $this->getResolvedTableSchema()->getFields();
 
-        foreach ($fields as $field => $options) {
-            if (isset($options['excludeInCopy']) && $options['excludeInCopy']) {
-                unset($record[$field]);
+        foreach ($fields as $field) {
+            if (!$field->getIncludeInCopy()) {
+                unset($record[$field->getName()]);
             }
         }
 

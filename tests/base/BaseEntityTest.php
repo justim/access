@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests\Base;
 
 use Access\Exception;
+use Access\Schema\Exception\InvalidFieldDefinitionException;
 use PHPUnit\Framework\TestCase;
 use Tests\Fixtures\Entity\InvalidEnumNameEntity;
 use Tests\Fixtures\Entity\MissingEnumNameEntity;
@@ -185,18 +186,20 @@ abstract class BaseEntityTest extends TestCase implements DatabaseBuilderInterfa
         $entity = new MissingEnumNameEntity();
         $entity->setStatus(UserStatus::ACTIVE);
 
+        $this->expectException(InvalidFieldDefinitionException::class);
+        $this->expectExceptionMessage('Missing enum name');
+
         $db->save($entity);
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Missing enum name for field "status"');
-
-        // hydrating fails
-        $db->findOne(MissingEnumNameEntity::class, $entity->getId());
     }
 
     public function testInvalidEnumName(): void
     {
         $db = static::createDatabase();
+
+        $this->expectException(InvalidFieldDefinitionException::class);
+        $this->expectExceptionMessage(
+            'Invalid enum name: Tests\Fixtures\Entity\InvalidEnumNameEntity',
+        );
 
         $entity = new InvalidEnumNameEntity();
         $entity->setStatus(UserStatus::ACTIVE);
@@ -205,7 +208,7 @@ abstract class BaseEntityTest extends TestCase implements DatabaseBuilderInterfa
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage(
-            'Invalid enum name for field "status": Tests\Fixtures\Entity\InvalidEnumNameEntity',
+            'Invalid enum name: Tests\Fixtures\Entity\InvalidEnumNameEntity',
         );
 
         // hydrating fails

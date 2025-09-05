@@ -19,9 +19,10 @@ use Access\Clause\Condition\NotIn;
 use Access\Database;
 use Access\DeleteKind;
 use Access\Entity;
+use Access\Exception\NotSupportedException;
 use Access\Query;
+use Access\Schema\Type;
 use Access\Statement;
-use Exception;
 
 /**
  * Resolve the order of cascading delete operations
@@ -269,30 +270,36 @@ class CascadeDeleteResolver
 
     private function deleteFields(Entity $entity, DeleteKind $kind): void
     {
-        $fields = $entity::fields();
+        $fields = $entity::getTableSchema()->getFields();
         $values = $entity->getValues();
 
-        foreach ($fields as $fieldName => $relation) {
-            // skip fields that are not set (or `null`)
-            if (!isset($values[$fieldName])) {
+        foreach ($fields as $field) {
+            $type = $field->getType();
+
+            // only fields marked as a reference
+            if (!$type instanceof Type\Reference) {
                 continue;
             }
 
-            /** @var Cascade|null $cascade */
-            $cascade = $relation['cascade'] ?? null;
+            // skip fields that are not set (or `null`)
+            if (!isset($values[$field->getName()])) {
+                continue;
+            }
+
+            $cascade = $type->getCascade();
 
             if ($cascade === null) {
                 continue;
             }
 
-            if (!isset($relation['target'])) {
-                continue;
+            $target = $type->getTarget();
+
+            if (!is_string($target) || !is_subclass_of($target, Entity::class)) {
+                throw new NotSupportedException('Cascading delete only works for entity relations');
             }
 
-            $target = $relation['target'];
-
             if ($cascade->shouldCascadeDelete($kind, $target)) {
-                $r = $this->find($target, 'id', $values[$fieldName], $kind);
+                $r = $this->find($target, 'id', $values[$field->getName()], $kind);
 
                 $this->resolveRelation($r, $kind, $target, $cascade);
             }

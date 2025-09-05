@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Entity;
 
 use Access\Entity;
+use Access\Schema\Table;
 
 /**
  * Missing public soft delete
@@ -33,5 +34,12 @@ class MissingSetDeletedEntity extends Entity
     public static function fields(): array
     {
         return [];
+    }
+
+    public static function getTableSchema(): Table
+    {
+        $table = new Table('missing_set_deleted');
+
+        return $table;
     }
 }

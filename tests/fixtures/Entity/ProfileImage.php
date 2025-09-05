@@ -15,6 +15,7 @@ namespace Tests\Fixtures\Entity;
 
 use Access\Entity;
 use Access\Entity\TimestampableTrait;
+use Access\Schema\Table;
 
 /**
  * SAFETY Return types are not known, they are stored in an array config
@@ -33,5 +34,17 @@ class ProfileImage extends Entity
     public static function fields(): array
     {
         return [];
+    }
+
+    public static function getParentTableSchema(): Table
+    {
+        return parent::getTableSchema();
+    }
+
+    public static function getTableSchema(): Table
+    {
+        $table = new Table('profile_images', hasCreatedAt: true, hasUpdatedAt: true);
+
+        return $table;
     }
 }

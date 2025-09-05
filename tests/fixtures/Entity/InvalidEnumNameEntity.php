@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Entity;
 
 use Access\Entity;
-
+use Access\Schema\Field;
+use Access\Schema\Table;
+use Access\Schema\Type;
 use Tests\Fixtures\UserStatus;
 
 /**
@@ -27,14 +29,30 @@ class InvalidEnumNameEntity extends Entity
         return 'users';
     }
 
+    /**
+     * We testing here, just let us be...
+     * @psalm-suppress InvalidReturnType
+     */
     public static function fields(): array
     {
+        /** @psalm-suppress InvalidReturnStatement */
         return [
             'status' => [
                 'type' => self::FIELD_TYPE_ENUM,
                 'enumName' => InvalidEnumNameEntity::class,
             ],
         ];
+    }
+
+    public static function getTableSchema(): Table
+    {
+        $table = new Table('users');
+
+        /** @psalm-suppress InvalidArgument */
+        $status = new Field('status', new Type\Enum(InvalidEnumNameEntity::class));
+        $table->addField($status);
+
+        return $table;
     }
 
     public function setStatus(UserStatus $status): void
