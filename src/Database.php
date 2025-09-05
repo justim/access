@@ -15,20 +15,10 @@ namespace Access;
 
 use Access\Cascade\CascadeDeleteResolver;
 use Access\Driver\DriverInterface;
-use Access\Driver\Mysql;
-use Access\Driver\Sqlite;
-use Access\Entity;
-use Access\Exception;
-use Access\Lock;
-use Access\Presenter;
+use Access\Driver\Mysql\Mysql;
+use Access\Driver\Sqlite\Sqlite;
 use Access\Presenter\EntityPresenter;
-use Access\Profiler;
-use Access\Query;
 use Access\Query\IncludeSoftDeletedFilter;
-use Access\Repository;
-use Access\Statement;
-use Access\StatementPool;
-use Access\Transaction;
 use DateTimeImmutable;
 use Psr\Clock\ClockInterface;
 

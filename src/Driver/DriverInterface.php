@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Driver;
 
-use Access\Clause\Field;
+use Access\Clause;
 
 /**
  * Driver specific interface
@@ -26,16 +26,31 @@ interface DriverInterface
     /**
      * Escape identifier
      *
-     * @param string|Field $identifier Identifier to escape
+     * @param string|Clause\Field $identifier Identifier to escape
      * @return string
      * @internal
      */
-    public function escapeIdentifier(string|Field $identifier): string;
+    public function escapeIdentifier(string|Clause\Field $identifier): string;
 
     /**
      * Get a debug string value for a value
      *
+     * After processing by query
+     *
      * Useful for the debug query, should not be used otherwise, use prepared statements
+     *
+     * @return string Save'ish converted SQL value
+     */
+    public function getDebugSqlValue(mixed $value): string;
+
+    /**
+     * Get a debug string value for a value
+     *
+     * After processing by query
+     *
+     * Useful for the debug query, should not be used otherwise, use prepared statements
+     *
+     * @return string Save'ish converted SQL value
      */
     public function getDebugStringValue(mixed $value): string;
 
