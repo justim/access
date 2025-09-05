@@ -20,6 +20,7 @@ module.exports = {
                 'presenters',
                 'transactions',
                 'locks',
+                'migrations',
                 'profiler',
             ],
         },
