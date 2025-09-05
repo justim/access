@@ -16,6 +16,10 @@ namespace Access\Driver\Mysql;
 use Access\Clause\Field;
 use Access\Driver\Driver;
 use Access\Driver\Mysql\MysqlSqlTypeDefinitionBuilder;
+use Access\Driver\Mysql\Query\AlterTableBuilder;
+use Access\Driver\Mysql\Query\CreateTableBuilder;
+use Access\Driver\Query\AlterTableBuilderInterface;
+use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Driver\SqlTypeDefinitionBuilderInterface;
 use Access\Schema\Index;
 
@@ -33,6 +37,8 @@ class Mysql extends Driver
     public const NAME = 'mysql';
 
     private SqlTypeDefinitionBuilderInterface $sqlTypeDefinition;
+    private CreateTableBuilder $createTableBuilder;
+    private AlterTableBuilder $alterTableBuilder;
 
     /**
      * Escape identifier
@@ -96,5 +102,15 @@ class Mysql extends Driver
             $this->escapeIdentifier($index->getName()),
             implode(', ', $fields),
         );
+    }
+
+    public function getCreateTableBuilder(): CreateTableBuilderInterface
+    {
+        return $this->createTableBuilder ??= new CreateTableBuilder($this);
+    }
+
+    public function getAlterTableBuilder(): AlterTableBuilderInterface
+    {
+        return $this->alterTableBuilder ??= new AlterTableBuilder($this);
     }
 }

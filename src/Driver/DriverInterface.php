@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Access\Driver;
 
 use Access\Clause;
+use Access\Driver\Query\AlterTableBuilderInterface;
+use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Schema;
 use Access\Schema\Index;
 
@@ -80,4 +82,14 @@ interface DriverInterface
      * Get the SQL definition for an index
      */
     public function getSqlIndexDefinition(Index $index): string;
+
+    /**
+     * Get the builder to create tables
+     */
+    public function getCreateTableBuilder(): CreateTableBuilderInterface;
+
+    /**
+     * Get the builder to alter tables
+     */
+    public function getAlterTableBuilder(): AlterTableBuilderInterface;
 }

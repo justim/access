@@ -26,11 +26,9 @@ use Access\Clause\OrderBy\Random;
 use Access\Clause\OrderBy\Verbatim;
 use Access\Clause\OrderByInterface;
 use Access\Driver\DriverInterface;
-use Access\Entity;
-use Access\IdentifiableInterface;
-use Access\Query\QueryGeneratorState;
 use Access\Query\Cursor\Cursor;
 use Access\Query\IncludeSoftDeletedFilter;
+use Access\Query\QueryGeneratorState;
 use BackedEnum;
 
 /**

@@ -16,7 +16,6 @@ namespace Access\Query;
 use Access\Database;
 use Access\Driver\DriverInterface;
 use Access\Exception\NotSupportedException;
-use Access\Query\Select;
 
 /**
  * Create a UNION query for given SELECT queries
