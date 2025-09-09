@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Clause\Condition\Raw;
 use Access\Clause\Field;
 use Access\Database;
 use Access\Driver\DriverInterface;
@@ -53,12 +54,17 @@ class Insert extends Query
         $sqlFields = ' (' . implode(', ', $sqlFields) . ')';
 
         // filter out `Field` instances and use name directly
-        $sqlValues = array_map(
-            fn(mixed $value): string => $value instanceof Field
-                ? $driver->escapeIdentifier($value->getName())
-                : '?',
-            $this->values,
-        );
+        $sqlValues = array_map(function (mixed $value) use ($driver): string {
+            if ($value instanceof Field) {
+                return $driver->escapeIdentifier($value->getName());
+            }
+
+            if ($value instanceof Raw) {
+                return $value->getCondition();
+            }
+
+            return '?';
+        }, $this->values);
 
         $sqlValues = ' VALUES (' . implode(', ', $sqlValues) . ')';
 

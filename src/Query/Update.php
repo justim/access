@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query;
 
+use Access\Clause\Condition\Raw;
 use Access\Clause\Field;
 use Access\Database;
 use Access\Driver\DriverInterface;
@@ -53,6 +54,9 @@ class Update extends Query
                     $driver->escapeIdentifier($q) .
                     ' = ' .
                     $driver->escapeIdentifier($value->getName());
+            } elseif ($value instanceof Raw) {
+                // use the raw part directly
+                $parts[] = $driver->escapeIdentifier($q) . ' = ' . $value->getCondition();
             } else {
                 $placeholder = self::PREFIX_PARAM . (string) $i;
 
