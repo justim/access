@@ -34,4 +34,12 @@ class Raw extends Condition
     {
         parent::__construct($condition, self::KIND_RAW, $value);
     }
+
+    /**
+     * Return the condition as string
+     */
+    public function getCondition(): string
+    {
+        return $this->getField()->getName();
+    }
 }

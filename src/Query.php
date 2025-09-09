@@ -436,14 +436,18 @@ abstract class Query
         $i = 0;
         /** @var mixed $value */
         foreach ($this->values as $value) {
-            // this is not a value, but a direct reference to a field, no need for an indexed value
-            if (!$value instanceof Field) {
-                $index = self::PREFIX_PARAM . $i;
-
-                /** @psalm-suppress MixedAssignment */
-                $indexedValues[$index] = $this->toDatabaseFormat($value);
-                $i++;
+            // this is not a value, no need for an indexed value
+            // - direct reference to a field
+            // - raw expression
+            if ($value instanceof Field || $value instanceof Raw) {
+                continue;
             }
+
+            $index = self::PREFIX_PARAM . $i;
+
+            /** @psalm-suppress MixedAssignment */
+            $indexedValues[$index] = $this->toDatabaseFormat($value);
+            $i++;
         }
 
         foreach ($this->joins as $i => $join) {
