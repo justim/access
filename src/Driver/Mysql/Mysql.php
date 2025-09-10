@@ -21,6 +21,7 @@ use Access\Driver\Mysql\Query\CreateTableBuilder;
 use Access\Driver\Query\AlterTableBuilderInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Driver\SqlTypeDefinitionBuilderInterface;
+use Access\Exception\TableDoesNotExistException;
 use Access\Schema\Index;
 
 /**
@@ -35,6 +36,9 @@ use Access\Schema\Index;
 class Mysql extends Driver
 {
     public const NAME = 'mysql';
+
+    private const ERROR_CODE_NO_SUCH_TABLE = 1146;
+    private const ERROR_CODE_BAD_TABLE_ERROR = 1051;
 
     private SqlTypeDefinitionBuilderInterface $sqlTypeDefinition;
     private CreateTableBuilder $createTableBuilder;
@@ -64,6 +68,33 @@ class Mysql extends Driver
     public function getDebugStringValue(mixed $value): string
     {
         return sprintf('"%s"', addslashes((string) $value));
+    }
+
+    /**
+     * Convert a PDOException to a more specific Exception
+     */
+    public function convertPdoException(\PDOException $e): ?\Exception
+    {
+        $message = $e->getMessage();
+
+        if ($e->errorInfo !== null) {
+            [, $code] = $e->errorInfo;
+        } else {
+            $code = $e->getCode();
+        }
+
+        switch ($code) {
+            case self::ERROR_CODE_NO_SUCH_TABLE:
+            case self::ERROR_CODE_BAD_TABLE_ERROR:
+                return new TableDoesNotExistException(
+                    sprintf('Table does not exists: %s', $message),
+                    0,
+                    $e,
+                );
+
+            default:
+                return null;
+        }
     }
 
     /**

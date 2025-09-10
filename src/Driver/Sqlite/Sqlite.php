@@ -22,6 +22,7 @@ use Access\Driver\Sqlite\Query\AlterTableBuilder;
 use Access\Driver\Sqlite\Query\CreateTableBuilder;
 use Access\Driver\Sqlite\SqliteSqlTypeDefinitionBuilder;
 use Access\Exception\NotSupportedException;
+use Access\Exception\TableDoesNotExistException;
 use Access\Schema\Index;
 
 /**
@@ -65,6 +66,24 @@ class Sqlite extends Driver
     public function getDebugStringValue(mixed $value): string
     {
         return sprintf("'%s'", addslashes((string) $value));
+    }
+
+    /**
+     * Convert a PDOException to a more specific Exception
+     */
+    public function convertPdoException(\PDOException $e): ?\Exception
+    {
+        $message = $e->getMessage();
+
+        if (strpos($message, 'no such table') !== false) {
+            return new TableDoesNotExistException(
+                sprintf('Table does not exists: %s', $message),
+                0,
+                $e,
+            );
+        }
+
+        return null;
     }
 
     /**

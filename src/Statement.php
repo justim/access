@@ -96,6 +96,12 @@ final class Statement
             $profile->startPrepare();
             $statement = $this->statementPool->prepare($this->sql);
         } catch (\PDOException $e) {
+            $specificException = $this->db->getDriver()->convertPdoException($e);
+
+            if ($specificException !== null) {
+                throw $specificException;
+            }
+
             throw new Exception('Unable to prepare query: ' . $e->getMessage(), 0, $e);
         } finally {
             $profile->endPrepare();
@@ -105,6 +111,12 @@ final class Statement
             $profile->startExecute();
             $statement->execute($this->query->getValues($this->db->getDriver()));
         } catch (\PDOException $e) {
+            $specificException = $this->db->getDriver()->convertPdoException($e);
+
+            if ($specificException !== null) {
+                throw $specificException;
+            }
+
             throw new Exception('Unable to execute query: ' . $e->getMessage(), 0, $e);
         } finally {
             $profile->endExecute();
@@ -121,6 +133,12 @@ final class Statement
                     yield $row;
                 }
             } catch (\PDOException $e) {
+                $specificException = $this->db->getDriver()->convertPdoException($e);
+
+                if ($specificException !== null) {
+                    throw $specificException;
+                }
+
                 throw new Exception('Unable to fetch: ' . $e->getMessage(), 0, $e);
             } finally {
                 $profile->endHydrate();
