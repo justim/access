@@ -59,6 +59,11 @@ interface DriverInterface
     public function getDebugStringValue(mixed $value): string;
 
     /**
+     * Convert a PDOException to a more specific Exception
+     */
+    public function convertPdoException(\PDOException $e): ?\Exception;
+
+    /**
      * Get the function name for random in SQL dialect
      */
     public function getFunctionNameRandom(): string;
