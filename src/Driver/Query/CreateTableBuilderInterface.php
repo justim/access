@@ -15,6 +15,7 @@ namespace Access\Driver\Query;
 
 use Access\Schema\Field;
 use Access\Schema\Index;
+use Access\Schema\Table;
 
 /**
  * @author Tim <me@justim.net>
@@ -25,4 +26,5 @@ interface CreateTableBuilderInterface
     public function primaryKey(Field $field): string;
     public function foreignKey(Field $field): string;
     public function index(Index $index): string;
+    public function tableOptions(Table $table): string;
 }

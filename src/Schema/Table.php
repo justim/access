@@ -49,6 +49,10 @@ class Table
     private bool $hasUpdatedAt = false;
     private bool $hasDeletedAt = false;
 
+    private Charset $defautCharset = Charset::Utf8;
+    private Collate $collate = Collate::Default;
+    private Engine $engine = Engine::Default;
+
     public function __construct(
         string $name,
         bool $hasCreatedAt = false,
@@ -193,5 +197,35 @@ class Table
         }
 
         return false;
+    }
+
+    public function getDefaultCharset(): Charset
+    {
+        return $this->defautCharset;
+    }
+
+    public function setDefaultCharset(Charset $charset): void
+    {
+        $this->defautCharset = $charset;
+    }
+
+    public function getCollate(): Collate
+    {
+        return $this->collate;
+    }
+
+    public function setCollate(Collate $collate): void
+    {
+        $this->collate = $collate;
+    }
+
+    public function getEngine(): Engine
+    {
+        return $this->engine;
+    }
+
+    public function setEngine(Engine $engine): void
+    {
+        $this->engine = $engine;
     }
 }

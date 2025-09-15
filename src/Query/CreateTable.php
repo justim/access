@@ -86,11 +86,13 @@ class CreateTable extends Query
         }
 
         $tableParts = array_filter($tableParts);
+        $tableOptions = $builder->tableOptions($this->table);
 
         $sql = sprintf(
-            "CREATE TABLE %s (\n    %s\n)",
+            "CREATE TABLE %s (\n    %s\n)%s",
             $driver->escapeIdentifier($this->tableName),
             implode(",\n    ", $tableParts),
+            $tableOptions ? ' ' . $tableOptions : '',
         );
 
         return $sql;
