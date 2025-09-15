@@ -18,6 +18,7 @@ use Access\Driver\DriverInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Schema\Field;
 use Access\Schema\Index;
+use Access\Schema\Table;
 use Access\Schema\Type;
 
 /**
@@ -67,5 +68,10 @@ class CreateTableBuilder implements CreateTableBuilderInterface
         );
 
         return sprintf('UNIQUE (%s)', implode(', ', $fields));
+    }
+
+    public function tableOptions(Table $table): string
+    {
+        return '';
     }
 }

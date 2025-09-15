@@ -15,8 +15,12 @@ namespace Access\Driver\Mysql\Query;
 
 use Access\Driver\DriverInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
+use Access\Schema\Charset;
+use Access\Schema\Collate;
+use Access\Schema\Engine;
 use Access\Schema\Field;
 use Access\Schema\Index;
+use Access\Schema\Table;
 use Access\Schema\Type;
 
 /**
@@ -56,5 +60,27 @@ class CreateTableBuilder implements CreateTableBuilderInterface
     public function index(Index $index): string
     {
         return $index->getSqlDefinition($this->driver);
+    }
+
+    public function tableOptions(Table $table): string
+    {
+        $defaultCharset = match ($table->getDefaultCharset()) {
+            Charset::Utf8 => 'utf8mb4',
+        };
+
+        $collate = match ($table->getCollate()) {
+            Collate::Default => 'utf8mb4_general_ci',
+        };
+
+        $engine = match ($table->getEngine()) {
+            Engine::Default => 'InnoDB',
+        };
+
+        return sprintf(
+            'DEFAULT CHARSET=%s COLLATE=%s ENGINE=%s',
+            $defaultCharset,
+            $collate,
+            $engine,
+        );
     }
 }

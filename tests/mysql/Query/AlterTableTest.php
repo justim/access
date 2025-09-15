@@ -38,7 +38,7 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
                 `updated_at` DATETIME NOT NULL,
                 `deleted_at` DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (`id`)
-            )
+            ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
             SQL
             ,
             $query->getSql($db->getDriver()),
@@ -127,7 +127,7 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
             CREATE TABLE `users` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 PRIMARY KEY (`id`)
-            )
+            ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
             SQL
             ,
             $query->getSql($db->getDriver()),
@@ -147,7 +147,7 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
                 `owner_id` INT NOT NULL,
                 PRIMARY KEY (`id`),
                 FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`)
-            )
+            ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
             SQL
             ,
             $query->getSql($db->getDriver()),
