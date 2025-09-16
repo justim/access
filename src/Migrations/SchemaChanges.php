@@ -95,11 +95,17 @@ class SchemaChanges
     /**
      * @return Query[]
      */
-    public function getQueries(): array
+    private function generateQueries(Checkpoint $checkpoint): array
     {
         $queries = [];
+        $step = 0;
 
         foreach ($this->changes as $change) {
+            if ($checkpoint->shouldSkip($step)) {
+                $step++;
+                continue;
+            }
+
             switch ($change['type']) {
                 case ChangeType::CreateTable:
                     assert(isset($change['createTable']), 'Create table must exist');
@@ -125,15 +131,39 @@ class SchemaChanges
                     $queries[] = $change['query'];
                     break;
             }
+
+            $step++;
+            $checkpoint->advance();
         }
 
         return $queries;
     }
 
-    public function applyChanges(Database $db): void
+    /**
+     * Get queries starting from checkpoint
+     *
+     * @param Checkpoint $checkpoint Checkpoint to start from, will not be modified
+     * @return Query[]
+     */
+    public function getQueries(Checkpoint $checkpoint = new Checkpoint()): array
     {
-        foreach ($this->getQueries() as $query) {
+        $checkpoint = clone $checkpoint;
+
+        return $this->generateQueries($checkpoint);
+    }
+
+    /**
+     * Apply changes to the database
+     *
+     * @param Database $db Database instance
+     * @param Checkpoint $checkpoint Checkpoint to start from, will be modified for each query
+     */
+    public function applyChanges(Database $db, Checkpoint $checkpoint = new Checkpoint()): void
+    {
+        foreach ($this->getQueries($checkpoint) as $query) {
             $db->query($query);
+
+            $checkpoint->advance();
         }
     }
 }

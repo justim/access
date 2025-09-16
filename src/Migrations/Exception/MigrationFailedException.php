@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access\Migrations\Exception;
 
 use Access\Exception;
+use Access\Migrations\Checkpoint;
 use Access\Migrations\MigrationResult;
 use Access\Migrations\SchemaChanges;
 
@@ -40,5 +41,15 @@ class MigrationFailedException extends Exception
         assert($changes instanceof SchemaChanges);
 
         return $changes;
+    }
+
+    public function getCheckpoint(): Checkpoint
+    {
+        $checkpoint = $this->migrationResult->getCheckpoint();
+
+        // the failure case always has a checkpoint
+        assert($checkpoint instanceof Checkpoint);
+
+        return $checkpoint;
     }
 }

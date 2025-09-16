@@ -38,10 +38,12 @@ class Version2025080412001 extends Migration
 
         $admin = new Insert($users);
         $admin->values([
-            'roles' => ['ROLE_ADMIN'],
+            'roles' => json_encode(['ROLE_ADMIN']),
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
+
+        $schemaChanges->query($admin);
     }
 
     public function revertConstructive(SchemaChanges $schemaChanges): void

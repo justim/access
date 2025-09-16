@@ -90,8 +90,12 @@ class Migrator
         $this->dryRun = $dryRun;
     }
 
-    public function constructive(Migration $migration): MigrationResult
-    {
+    public function constructive(
+        Migration $migration,
+        Checkpoint $checkpoint = new Checkpoint(),
+    ): MigrationResult {
+        $checkpoint = clone $checkpoint;
+
         $migrationRecord = $this->getMigrationRecord($migration);
 
         if ($migrationRecord !== null && $migrationRecord->getConstructiveExecutedAt()) {
@@ -106,9 +110,9 @@ class Migrator
         }
 
         try {
-            $schemaChanges->applyChanges($this->db);
+            $schemaChanges->applyChanges($this->db, $checkpoint);
         } catch (\Throwable $e) {
-            $result = MigrationResult::failure($schemaChanges);
+            $result = MigrationResult::failure($schemaChanges, $checkpoint);
             throw new MigrationFailedException($result, $e);
         }
 
@@ -123,8 +127,12 @@ class Migrator
         return MigrationResult::success($schemaChanges);
     }
 
-    public function destructive(Migration $migration): MigrationResult
-    {
+    public function destructive(
+        Migration $migration,
+        Checkpoint $checkpoint = new Checkpoint(),
+    ): MigrationResult {
+        $checkpoint = clone $checkpoint;
+
         $migrationRecord = $this->getMigrationRecord($migration);
 
         if ($migrationRecord === null || $migrationRecord->getConstructiveExecutedAt() === null) {
@@ -143,9 +151,9 @@ class Migrator
         }
 
         try {
-            $schemaChanges->applyChanges($this->db);
+            $schemaChanges->applyChanges($this->db, $checkpoint);
         } catch (\Throwable $e) {
-            $result = MigrationResult::failure($schemaChanges);
+            $result = MigrationResult::failure($schemaChanges, $checkpoint);
             throw new MigrationFailedException($result, $e);
         }
 
@@ -156,8 +164,12 @@ class Migrator
         return MigrationResult::success($schemaChanges);
     }
 
-    public function revertConstructive(Migration $migration): MigrationResult
-    {
+    public function revertConstructive(
+        Migration $migration,
+        Checkpoint $checkpoint = new Checkpoint(),
+    ): MigrationResult {
+        $checkpoint = clone $checkpoint;
+
         $migrationRecord = $this->getMigrationRecord($migration);
 
         if ($migrationRecord === null || $migrationRecord->getConstructiveExecutedAt() === null) {
@@ -183,9 +195,9 @@ class Migrator
         }
 
         try {
-            $schemaChanges->applyChanges($this->db);
+            $schemaChanges->applyChanges($this->db, $checkpoint);
         } catch (\Throwable $e) {
-            $result = MigrationResult::failure($schemaChanges);
+            $result = MigrationResult::failure($schemaChanges, $checkpoint);
             throw new MigrationFailedException($result, $e);
         }
 
@@ -196,8 +208,12 @@ class Migrator
         return MigrationResult::success($schemaChanges);
     }
 
-    public function revertDestructive(Migration $migration): MigrationResult
-    {
+    public function revertDestructive(
+        Migration $migration,
+        Checkpoint $checkpoint = new Checkpoint(),
+    ): MigrationResult {
+        $checkpoint = clone $checkpoint;
+
         $migrationRecord = $this->getMigrationRecord($migration);
 
         if ($migrationRecord === null || $migrationRecord->getConstructiveExecutedAt() === null) {
@@ -216,9 +232,9 @@ class Migrator
         }
 
         try {
-            $schemaChanges->applyChanges($this->db);
+            $schemaChanges->applyChanges($this->db, $checkpoint);
         } catch (\Throwable $e) {
-            $result = MigrationResult::failure($schemaChanges);
+            $result = MigrationResult::failure($schemaChanges, $checkpoint);
             throw new MigrationFailedException($result, $e);
         }
 

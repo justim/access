@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Tests\Base;
 
 use Access\Exception;
+use Access\Migrations\Checkpoint;
+use Access\Migrations\Exception\MigrationFailedException;
 use Access\Migrations\MigrationEntity;
 use Access\Migrations\Migrator;
 use PHPUnit\Framework\TestCase;
@@ -152,5 +154,23 @@ abstract class BaseMigrationTest extends TestCase implements DatabaseBuilderInte
         iterator_to_array($users); // consume once
         // generator is consumed, thus, table is created
         $this->assertNull($users->getReturn());
+    }
+
+    public function testMigrationCheckpoint(): void
+    {
+        $db = static::createEmptyDatabase();
+
+        $migrator = new Migrator($db);
+        $migrator->init();
+
+        $migration = new Version2025080412001();
+
+        $checkpoint = new Checkpoint(1);
+
+        // using checkpoint 1 skips past the create table
+        $this->expectException(MigrationFailedException::class);
+        $this->expectExceptionMessageMatches('/Table does not exists/');
+
+        $migrator->constructive($migration, $checkpoint);
     }
 }

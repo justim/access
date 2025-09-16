@@ -61,6 +61,30 @@ $result = $migrator->constructive($migration);
 The `$result` will be a `MigrationResult` that contains a status and the
 queries that have been executed.
 
+## Checkpoints
+
+When developing migrations it can be a hassle if one of the queries fails for
+one reason or another. The database is in an inconsistent state and running a
+migration again might no be possible because one of the queries in the
+migration _did_ succeed. By using a checkpoint when running a migration it is
+possible to skip some steps of a migration. A checkpoint is a simple number
+that counts executed steps of a migration, nothing more, nothing less.
+
+A failed `MigrationResult` will contain a checkpoint that tells which queries
+did succeeed, passing that checkpoint to any of the migrator methods will point
+to the same step. Without any changes to the migration and/or database, and
+passing the checkpoint from the result to the mgirator will fail on exactly the
+same query.
+
+```php
+$migration = new SomeMigration();
+
+// Skip first step/query of the migration
+$checkpoint = new Checkpoint(1);
+
+$result = $migrator->constructive($migration, $checkpoint);
+```
+
 ## Migrations lifecycle
 
 Migrations go through a specific lifecycle.
