@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Migrations;
 
-enum MigrationResultTypt
+enum MigrationResultType
 {
     case Success;
     case Failure;
@@ -60,47 +60,57 @@ enum MigrationResultTypt
 class MigrationResult
 {
     private ?SchemaChanges $changes;
-    private MigrationResultTypt $type;
+    private MigrationResultType $type;
+    private ?Checkpoint $checkpoint = null;
 
-    private function __construct(?SchemaChanges $changes, MigrationResultTypt $type)
-    {
+    private function __construct(
+        ?SchemaChanges $changes,
+        MigrationResultType $type,
+        ?Checkpoint $checkpoint = null,
+    ) {
         $this->changes = $changes;
         $this->type = $type;
+        $this->checkpoint = $checkpoint;
     }
 
     public static function success(SchemaChanges $changes): self
     {
-        return new self($changes, MigrationResultTypt::Success);
+        return new self($changes, MigrationResultType::Success);
     }
 
-    public static function failure(SchemaChanges $changes): self
+    public static function failure(SchemaChanges $changes, Checkpoint $checkpoint): self
     {
-        return new self($changes, MigrationResultTypt::Failure);
+        return new self($changes, MigrationResultType::Failure, $checkpoint);
     }
 
     public static function constructiveNotExecuted(): self
     {
-        return new self(null, MigrationResultTypt::ConstructiveNotExecuted);
+        return new self(null, MigrationResultType::ConstructiveNotExecuted);
     }
 
     public static function blockedByDestructiveChange(): self
     {
-        return new self(null, MigrationResultTypt::BlockedByDestructiveChange);
+        return new self(null, MigrationResultType::BlockedByDestructiveChange);
     }
 
     public static function destructiveNotExecuted(): self
     {
-        return new self(null, MigrationResultTypt::DestructiveNotExecuted);
+        return new self(null, MigrationResultType::DestructiveNotExecuted);
     }
 
     public static function alreadyExecuted(): self
     {
-        return new self(null, MigrationResultTypt::AlreadyExecuted);
+        return new self(null, MigrationResultType::AlreadyExecuted);
     }
 
     public function getChanges(): ?SchemaChanges
     {
         return $this->changes;
+    }
+
+    public function getCheckpoint(): ?Checkpoint
+    {
+        return $this->checkpoint;
     }
 
     public function isSuccess(): bool
