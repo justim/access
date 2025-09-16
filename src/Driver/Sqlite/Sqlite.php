@@ -16,9 +16,11 @@ namespace Access\Driver\Sqlite;
 use Access\Clause\Field;
 use Access\Driver\Driver;
 use Access\Driver\Query\AlterTableBuilderInterface;
+use Access\Driver\Query\CreateDatabaseBuilderInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Driver\SqlTypeDefinitionBuilderInterface;
 use Access\Driver\Sqlite\Query\AlterTableBuilder;
+use Access\Driver\Sqlite\Query\CreateDatabaseBuilder;
 use Access\Driver\Sqlite\Query\CreateTableBuilder;
 use Access\Driver\Sqlite\SqliteSqlTypeDefinitionBuilder;
 use Access\Exception\NotSupportedException;
@@ -39,6 +41,7 @@ class Sqlite extends Driver
     public const NAME = 'sqlite';
 
     private SqlTypeDefinitionBuilderInterface $sqlTypeDefinition;
+    private CreateDatabaseBuilder $createDatabaseBuilder;
     private CreateTableBuilder $createTableBuilder;
     private AlterTableBuilder $alterTableBuilder;
 
@@ -110,6 +113,11 @@ class Sqlite extends Driver
     public function getSqlIndexDefinition(Index $index): string
     {
         throw new NotSupportedException('Creating indexes for SQLite not yet possible');
+    }
+
+    public function getCreateDatabaseBuilder(): CreateDatabaseBuilderInterface
+    {
+        return $this->createDatabaseBuilder ??= new CreateDatabaseBuilder();
     }
 
     public function getCreateTableBuilder(): CreateTableBuilderInterface
