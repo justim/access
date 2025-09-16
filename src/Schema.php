@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access;
 
+use Access\Schema\Charset;
+use Access\Schema\Collate;
 use Access\Schema\Table;
 
 /**
@@ -20,7 +22,42 @@ use Access\Schema\Table;
  */
 class Schema
 {
+    private string $name;
+
+    private Charset $defautCharset = Charset::Utf8;
+    private Collate $defaultCollate = Collate::Default;
+
     private array $tables = [];
+
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function getDefaultCharset(): Charset
+    {
+        return $this->defautCharset;
+    }
+
+    public function setDefaultCharset(Charset $charset): void
+    {
+        $this->defautCharset = $charset;
+    }
+
+    public function getDefaultCollate(): Collate
+    {
+        return $this->defaultCollate;
+    }
+
+    public function setDefaultCollate(Collate $collate): void
+    {
+        $this->defaultCollate = $collate;
+    }
 
     /**
      * Add a table to the schema

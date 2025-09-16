@@ -14,7 +14,11 @@ declare(strict_types=1);
 namespace Tests\Mysql;
 
 use Access\Database;
+use Access\Query\CreateDatabase;
+use Access\Query\DropDatabase;
 use Access\Query\Raw;
+use Access\Query\UseDatabase;
+use Access\Schema;
 use PDO;
 use Psr\Clock\ClockInterface;
 
@@ -86,9 +90,19 @@ trait DatabaseBuilderTrait
             $name = $_ENV['MYSQL_DATABASE_NAME'];
         }
 
-        $db->query(new Raw("DROP DATABASE IF EXISTS `$name`"));
-        $db->query(new Raw("CREATE DATABASE IF NOT EXISTS `$name`"));
-        $db->query(new Raw("USE `$name`"));
+        $schema = new Schema($name);
+
+        $drop = new DropDatabase($schema);
+        $drop->checkExistence();
+
+        $create = new CreateDatabase($schema);
+        $create->checkExistence();
+
+        $use = new UseDatabase($schema);
+
+        $db->query($drop);
+        $db->query($create);
+        $db->query($use);
     }
 
     private static function createPdo(): PDO

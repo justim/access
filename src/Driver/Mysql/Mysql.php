@@ -17,8 +17,10 @@ use Access\Clause\Field;
 use Access\Driver\Driver;
 use Access\Driver\Mysql\MysqlSqlTypeDefinitionBuilder;
 use Access\Driver\Mysql\Query\AlterTableBuilder;
+use Access\Driver\Mysql\Query\CreateDatabaseBuilder;
 use Access\Driver\Mysql\Query\CreateTableBuilder;
 use Access\Driver\Query\AlterTableBuilderInterface;
+use Access\Driver\Query\CreateDatabaseBuilderInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Driver\SqlTypeDefinitionBuilderInterface;
 use Access\Exception\TableDoesNotExistException;
@@ -41,6 +43,7 @@ class Mysql extends Driver
     private const ERROR_CODE_BAD_TABLE_ERROR = 1051;
 
     private SqlTypeDefinitionBuilderInterface $sqlTypeDefinition;
+    private CreateDatabaseBuilder $createDatabaseBuilder;
     private CreateTableBuilder $createTableBuilder;
     private AlterTableBuilder $alterTableBuilder;
 
@@ -133,6 +136,11 @@ class Mysql extends Driver
             $this->escapeIdentifier($index->getName()),
             implode(', ', $fields),
         );
+    }
+
+    public function getCreateDatabaseBuilder(): CreateDatabaseBuilderInterface
+    {
+        return $this->createDatabaseBuilder ??= new CreateDatabaseBuilder($this);
     }
 
     public function getCreateTableBuilder(): CreateTableBuilderInterface
