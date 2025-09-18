@@ -31,6 +31,15 @@ class Enum extends Type
     private string $enumName;
 
     /**
+     * Override the cases available in the enum
+     *
+     * Migrations could have different values than the actual enum, most likely in the reverse migration
+     *
+     * @var array<string|int>|null
+     */
+    private ?array $overrideCases = null;
+
+    /**
      * @param class-string<BackedEnum> $enumName
      * @psalm-param class-string<T> $enumName
      */
@@ -60,10 +69,28 @@ class Enum extends Type
      */
     public function getCases(): array
     {
+        if ($this->overrideCases !== null) {
+            return $this->overrideCases;
+        }
+
         return array_map(
             fn(BackedEnum $case): string|int => $case->value,
             $this->enumName::cases(),
         );
+    }
+
+    /**
+     * Set override cases
+     *
+     * Migrations could have different values than the actual enum, most likely in the reverse migration
+     *
+     * @param array<string|int> $cases
+     */
+    public function setOverrideCases(array $cases): static
+    {
+        $this->overrideCases = $cases;
+
+        return $this;
     }
 
     /**
