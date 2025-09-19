@@ -20,6 +20,11 @@ namespace Access\Migrations;
  */
 abstract class Migration
 {
+    public function getDescription(): string
+    {
+        return '';
+    }
+
     abstract public function constructive(SchemaChanges $schemaChanges): void;
 
     public function destructive(SchemaChanges $schemaChanges): void {}
