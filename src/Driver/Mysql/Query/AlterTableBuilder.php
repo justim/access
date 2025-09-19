@@ -18,8 +18,10 @@ use Access\Driver\DriverInterface;
 use Access\Driver\Query\AlterTableBuilderInterface;
 use Access\Schema\Field;
 use Access\Schema\Index;
+use Access\Schema\Table;
 
 /**
+ * @see https://dev.mysql.com/doc/refman/8.4/en/alter-table.html
  * @author Tim <me@justim.net>
  * @internal
  */
@@ -30,6 +32,13 @@ class AlterTableBuilder implements AlterTableBuilderInterface
     public function __construct(DriverInterface $driver)
     {
         $this->driver = $driver;
+    }
+
+    public function renameTable(Table|string $table): string
+    {
+        $table = $table instanceof Table ? $table->getName() : $table;
+
+        return sprintf('RENAME TO %s', $this->driver->escapeIdentifier($table));
     }
 
     public function addField(Field $field): string

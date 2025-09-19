@@ -16,6 +16,7 @@ namespace Access\Driver\Query;
 use Access\Clause\Field as ClauseField;
 use Access\Schema\Field;
 use Access\Schema\Index;
+use Access\Schema\Table;
 
 /**
  * @author Tim <me@justim.net>
@@ -23,6 +24,8 @@ use Access\Schema\Index;
  */
 interface AlterTableBuilderInterface
 {
+    public function renameTable(Table|string $table): string;
+
     public function addField(Field $field): string;
     public function removeField(ClauseField $field): string;
     public function changeField(ClauseField $from, Field $to): string;

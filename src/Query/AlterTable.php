@@ -24,6 +24,7 @@ use Access\Schema\Type;
 
 enum AlterType
 {
+    case RenameTable;
     case AddField;
     case RemoveField;
     case ChangeField;
@@ -45,6 +46,7 @@ class AlterTable extends Query
     /**
      * @var array<array{
      *  type: AlterType,
+     *  toTableName?: Table|string,
      *  fieldDefinition?: Schema\Field,
      *  fieldName?: Clause\Field,
      *  fromName?: Clause\Field,
@@ -66,6 +68,11 @@ class AlterTable extends Query
         $this->table = $table;
 
         parent::__construct($table, null);
+    }
+
+    public function renameTable(Table|string $toTableName): void
+    {
+        $this->alters[] = ['type' => AlterType::RenameTable, 'toTableName' => $toTableName];
     }
 
     public function addField(
@@ -200,6 +207,15 @@ class AlterTable extends Query
 
         foreach ($this->alters as $alter) {
             switch ($alter['type']) {
+                case AlterType::RenameTable:
+                    assert(
+                        isset($alter['toTableName']),
+                        'To table name must be set for RenameTable alter type',
+                    );
+
+                    $columnDefinitions[] = $builder->renameTable($alter['toTableName']);
+                    break;
+
                 case AlterType::AddField:
                     assert(
                         isset($alter['fieldDefinition']),
