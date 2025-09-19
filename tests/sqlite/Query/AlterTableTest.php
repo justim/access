@@ -98,4 +98,38 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $db->query($query);
     }
+
+    public function testRenameTable(): void
+    {
+        $db = self::createEmptyDatabase();
+
+        $users = new Table('users');
+
+        $query = new CreateTable($users);
+
+        $this->assertEquals(
+            <<<SQL
+            CREATE TABLE "users" (
+                "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
+            )
+            SQL
+            ,
+            $query->getSql($db->getDriver()),
+        );
+
+        $db->query($query);
+
+        $users = new AlterTable($users);
+        $users->renameTable('members');
+
+        $this->assertEquals(
+            <<<SQL
+            ALTER TABLE "users" RENAME TO "members"
+            SQL
+            ,
+            $users->getSql($db->getDriver()),
+        );
+
+        $db->query($users);
+    }
 }
