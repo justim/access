@@ -63,6 +63,11 @@ class MysqlSqlTypeDefinitionBuilder extends SqlTypeDefinitionBuilder
             $parts[] = 'AUTO_INCREMENT';
         }
 
+        $after = $field->getAfter();
+        if ($after !== null) {
+            $parts[] = 'AFTER ' . $this->driver->escapeIdentifier($after);
+        }
+
         return implode(' ', $parts);
     }
 

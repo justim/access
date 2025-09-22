@@ -241,4 +241,41 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $db->query($users);
     }
+
+    public function testAfter(): void
+    {
+        $db = self::createEmptyDatabase();
+
+        $users = new Table('users');
+        $users->field('last_name');
+
+        $query = new CreateTable($users);
+
+        $this->assertEquals(
+            <<<SQL
+            CREATE TABLE `users` (
+                `id` INT NOT NULL AUTO_INCREMENT,
+                `last_name` VARCHAR(191) NOT NULL,
+                PRIMARY KEY (`id`)
+            ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
+            SQL
+            ,
+            $query->getSql($db->getDriver()),
+        );
+
+        $db->query($query);
+
+        $users = new AlterTable($users);
+        $users->addField('first_name')->after('id');
+
+        $this->assertEquals(
+            <<<SQL
+            ALTER TABLE `users` ADD COLUMN `first_name` VARCHAR(191) NOT NULL AFTER `id`
+            SQL
+            ,
+            $users->getSql($db->getDriver()),
+        );
+
+        $db->query($users);
+    }
 }

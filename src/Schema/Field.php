@@ -76,6 +76,13 @@ class Field extends ClauseField
     private bool $hasAutoIncrement = false;
 
     /**
+     * After which field should this field appear
+     *
+     * Migrations only
+     */
+    private ClauseField|string|null $after = null;
+
+    /**
      * @param Type|null $type Defaults to `VarChar` if null
      * @param mixed $default Not providing it means no default, providing null means default null
      */
@@ -237,6 +244,16 @@ class Field extends ClauseField
     public function getIncludeInCopy(): bool
     {
         return $this->includeInCopy;
+    }
+
+    public function after(ClauseField|string|null $field): void
+    {
+        $this->after = $field;
+    }
+
+    public function getAfter(): ClauseField|string|null
+    {
+        return $this->after;
     }
 
     /**
