@@ -28,6 +28,7 @@ enum AlterType
     case AddField;
     case RemoveField;
     case ChangeField;
+    case ModifyField;
     case RenameField;
     case AddIndex;
     case RemoveIndex;
@@ -118,6 +119,24 @@ class AlterTable extends Query
         $this->alters[] = [
             'type' => AlterType::ChangeField,
             'fromName' => $from,
+            'toDefinition' => $to,
+        ];
+
+        return $to;
+    }
+
+    public function modifyField(
+        Schema\Field|string $to,
+        ?Type $type = null,
+        mixed $default = null,
+    ): Schema\Field {
+        /** @var array{Schema\Field|string, ?Type, mixed} $args */
+        $args = func_get_args();
+
+        $to = $this->maybeCreateField(...$args);
+
+        $this->alters[] = [
+            'type' => AlterType::ModifyField,
             'toDefinition' => $to,
         ];
 
@@ -244,6 +263,15 @@ class AlterTable extends Query
                         $alter['fromName'],
                         $alter['toDefinition'],
                     );
+                    break;
+
+                case AlterType::ModifyField:
+                    assert(
+                        isset($alter['toDefinition']),
+                        'To fields must be set for ModifyField alter type',
+                    );
+
+                    $columnDefinitions[] = $builder->modifyField($alter['toDefinition']);
                     break;
 
                 case AlterType::RenameField:
