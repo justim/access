@@ -60,6 +60,11 @@ class AlterTableBuilder implements AlterTableBuilderInterface
         );
     }
 
+    public function modifyField(Field $to): string
+    {
+        return sprintf('MODIFY COLUMN %s', $to->getSqlDefinition($this->driver));
+    }
+
     public function renameField(ClauseField $from, ClauseField $to): string
     {
         return sprintf(

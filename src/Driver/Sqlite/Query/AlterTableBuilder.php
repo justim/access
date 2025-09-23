@@ -58,6 +58,11 @@ class AlterTableBuilder implements AlterTableBuilderInterface
         throw new NotSupportedException('SQLite does not support changing fields');
     }
 
+    public function modifyField(Field $to): string
+    {
+        throw new NotSupportedException('SQLite does not support modifying fields');
+    }
+
     public function renameField(ClauseField $from, ClauseField $to): string
     {
         return sprintf(
