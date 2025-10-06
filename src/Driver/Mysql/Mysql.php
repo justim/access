@@ -23,6 +23,7 @@ use Access\Driver\Query\AlterTableBuilderInterface;
 use Access\Driver\Query\CreateDatabaseBuilderInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Driver\SqlTypeDefinitionBuilderInterface;
+use Access\Exception\ConnectionGoneException;
 use Access\Exception\TableDoesNotExistException;
 use Access\Schema\Index;
 
@@ -41,6 +42,8 @@ class Mysql extends Driver
 
     private const ERROR_CODE_NO_SUCH_TABLE = 1146;
     private const ERROR_CODE_BAD_TABLE_ERROR = 1051;
+    private const ERROR_CODE_SERVER_GONE_ERROR = 2006;
+    private const ERROR_CODE_CLIENT_INTERACTION_TIMEOUT = 4031;
 
     private SqlTypeDefinitionBuilderInterface $sqlTypeDefinition;
     private CreateDatabaseBuilder $createDatabaseBuilder;
@@ -75,6 +78,9 @@ class Mysql extends Driver
 
     /**
      * Convert a PDOException to a more specific Exception
+     *
+     * @see https://dev.mysql.com/doc/mysql-errors/8.0/en/server-error-reference.html
+     * @see https://dev.mysql.com/doc/mysql-errors/8.0/en/client-error-reference.html
      */
     public function convertPdoException(\PDOException $e): ?\Exception
     {
@@ -91,6 +97,14 @@ class Mysql extends Driver
             case self::ERROR_CODE_BAD_TABLE_ERROR:
                 return new TableDoesNotExistException(
                     sprintf('Table does not exists: %s', $message),
+                    0,
+                    $e,
+                );
+
+            case self::ERROR_CODE_SERVER_GONE_ERROR:
+            case self::ERROR_CODE_CLIENT_INTERACTION_TIMEOUT:
+                return new ConnectionGoneException(
+                    sprintf('Database server has gone away: %s', $message),
                     0,
                     $e,
                 );
