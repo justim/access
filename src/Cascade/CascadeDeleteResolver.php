@@ -22,7 +22,6 @@ use Access\Entity;
 use Access\Exception\NotSupportedException;
 use Access\Query;
 use Access\Schema\Type;
-use Access\Statement;
 
 /**
  * Resolve the order of cascading delete operations
@@ -378,8 +377,7 @@ class CascadeDeleteResolver
             'id IN (?)' => $ids,
         ]);
 
-        $stmt = new Statement($this->db, $this->db->getProfiler(), $query);
-        $gen = $stmt->execute();
+        $gen = $this->db->executeStatement($query);
         $updated = $gen->getReturn() > 0;
 
         return $updated;
@@ -401,8 +399,7 @@ class CascadeDeleteResolver
             'id IN (?)' => $ids,
         ]);
 
-        $stmt = new Statement($this->db, $this->db->getProfiler(), $query);
-        $gen = $stmt->execute();
+        $gen = $this->db->executeStatement($query);
         $updated = $gen->getReturn() > 0;
         return $updated;
     }

@@ -82,7 +82,7 @@ final class Statement
     /**
      * Execute the query
      *
-     * @return \Generator - yields Entity for select queries
+     * @return \Generator<array<string, mixed>> - yields Entity for select queries
      */
     public function execute(): \Generator
     {

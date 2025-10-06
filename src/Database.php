@@ -337,10 +337,10 @@ class Database
         $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
         try {
-            $stmt = new Statement($this, $this->profiler, $query);
+            $gen = $this->executeStatement($query);
 
             /** @var array<string, mixed> $record */
-            foreach ($stmt->execute() as $record) {
+            foreach ($gen as $record) {
                 $model = $entityProvider->create();
                 $model->hydrate($record);
 
@@ -417,8 +417,7 @@ class Database
         $query = new Query\Insert($model::tableName());
         $query->values($values);
 
-        $stmt = new Statement($this, $this->profiler, $query);
-        $gen = $stmt->execute();
+        $gen = $this->executeStatement($query);
         $model->setId(intval($gen->getReturn()));
 
         // set default values/timestamps
@@ -446,8 +445,7 @@ class Database
             'id = ?' => $id,
         ]);
 
-        $stmt = new Statement($this, $this->profiler, $query);
-        $gen = $stmt->execute();
+        $gen = $this->executeStatement($query);
 
         // set default values/timestamps
         $model->markUpdated($values);
@@ -568,14 +566,26 @@ class Database
         $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
         try {
-            $stmt = new Statement($this, $this->profiler, $query);
-            $gen = $stmt->execute();
+            $gen = $this->executeStatement($query);
 
             // consume generator
             $gen->getReturn();
         } finally {
             $query->setIncludeSoftDeleted($oldIncludeSoftDeleted);
         }
+    }
+
+    /**
+     * Execute a statement and return the generator
+     *
+     * @internal
+     * @param Query $query Query to be executed
+     * @return \Generator<array<string, mixed>> - yields array<string, mixed>
+     */
+    public function executeStatement(Query $query): \Generator
+    {
+        $stmt = new Statement($this, $this->profiler, $query);
+        return $stmt->execute();
     }
 
     /**
