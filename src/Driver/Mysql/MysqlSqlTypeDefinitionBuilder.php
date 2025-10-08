@@ -114,6 +114,11 @@ class MysqlSqlTypeDefinitionBuilder extends SqlTypeDefinitionBuilder
         return 'VARCHAR(' . $type->getSize() . ')';
     }
 
+    public function fromVarBinaryType(Type\VarBinary $type): string
+    {
+        return 'VARBINARY(' . $type->getSize() . ')';
+    }
+
     public function fromTextType(Type\Text $type): string
     {
         return 'TEXT';

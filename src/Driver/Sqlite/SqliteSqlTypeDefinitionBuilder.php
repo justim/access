@@ -105,6 +105,11 @@ class SqliteSqlTypeDefinitionBuilder extends SqlTypeDefinitionBuilder
         return 'VARCHAR(' . $type->getSize() . ')';
     }
 
+    public function fromVarBinaryType(Type\VarBinary $type): string
+    {
+        return 'BLOB';
+    }
+
     public function fromTextType(Type\Text $type): string
     {
         return 'TEXT';
