@@ -34,6 +34,7 @@ abstract class SqlTypeDefinitionBuilder implements SqlTypeDefinitionBuilderInter
             Type\Integer::class => $this->fromIntegerType($type),
             Type\FloatType::class => $this->fromFloatType($type),
             Type\VarChar::class => $this->fromVarCharType($type),
+            Type\VarBinary::class => $this->fromVarBinaryType($type),
             Type\Text::class => $this->fromTextType($type),
             Type\Json::class => $this->fromJsonType($type),
             Type\Reference::class => $this->fromReferenceType($type),

@@ -33,6 +33,7 @@ interface SqlTypeDefinitionBuilderInterface
     public function fromIntegerType(Type\Integer $type): string;
     public function fromFloatType(Type\FloatType $type): string;
     public function fromVarCharType(Type\VarChar $type): string;
+    public function fromVarBinaryType(Type\VarBinary $type): string;
     public function fromTextType(Type\Text $type): string;
     public function fromJsonType(Type\Json $type): string;
     public function fromReferenceType(Type\Reference $type): string;
