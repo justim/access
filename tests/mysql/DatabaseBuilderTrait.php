@@ -82,7 +82,7 @@ trait DatabaseBuilderTrait
         return $db;
     }
 
-    private static function initializeDatabase(Database $db): void
+    private static function initializeDatabase(Database $db): string
     {
         $name = sprintf('access_test_%s', bin2hex(random_bytes(8)));
 
@@ -103,6 +103,8 @@ trait DatabaseBuilderTrait
         $db->query($drop);
         $db->query($create);
         $db->query($use);
+
+        return $name;
     }
 
     private static function createPdo(): PDO
@@ -115,35 +117,43 @@ trait DatabaseBuilderTrait
         return new PDO(sprintf('mysql:host=%s;port=%s', $host, $port), $user, $password);
     }
 
-    public static function createEmptyDatabase(): Database
+    public static function createEmptyDatabase(?string &$name = null): Database
     {
         $pdo = self::createPdo();
         $db = new Database($pdo);
 
-        self::initializeDatabase($db);
+        $name = self::initializeDatabase($db);
 
         return $db;
     }
 
-    public static function createDatabase(): Database
+    /**
+     * @psalm-param-out string $name
+     */
+    public static function createDatabase(?string &$name = null): Database
     {
         $pdo = self::createPdo();
         $db = new Database($pdo);
 
-        self::initializeDatabase($db);
+        $name = self::initializeDatabase($db);
 
         return self::createTables($db);
     }
 
-    public static function createDatabaseWithMockClock(?ClockInterface $clock = null): Database
-    {
+    /**
+     * @psalm-param-out string $name
+     */
+    public static function createDatabaseWithMockClock(
+        ?ClockInterface $clock = null,
+        ?string &$name = null,
+    ): Database {
         $pdo = self::createPdo();
         $db = new Database($pdo);
         $clock = $clock ?? new MockClock();
 
         $db = new Database($pdo, null, $clock);
 
-        self::initializeDatabase($db);
+        $name = self::initializeDatabase($db);
 
         return self::createTables($db);
     }
@@ -154,10 +164,12 @@ trait DatabaseBuilderTrait
      * - 1 profile image
      * - 2 users
      * - 2 projects
+     *
+     * @psalm-param-out string $name
      */
-    public static function createDatabaseWithDummyData(): Database
+    public static function createDatabaseWithDummyData(?string &$name = null): Database
     {
-        $db = self::createDatabase();
+        $db = self::createDatabase($name);
 
         $profileImage = new ProfileImage();
         $db->save($profileImage);
@@ -183,6 +195,18 @@ trait DatabaseBuilderTrait
         $accessFork->setOwnerId($bob->getId());
         $accessFork->setName('Access fork');
         $db->insert($accessFork);
+
+        return $db;
+    }
+
+    public static function getFreshDatabaseConnection(string $name): Database
+    {
+        $pdo = self::createPdo();
+        $db = new Database($pdo);
+
+        $schema = new Schema($name);
+        $use = new UseDatabase($schema);
+        $db->query($use);
 
         return $db;
     }

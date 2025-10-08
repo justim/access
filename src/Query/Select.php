@@ -15,6 +15,7 @@ namespace Access\Query;
 
 use Access\Database;
 use Access\Driver\DriverInterface;
+use Access\ReadLock;
 use Access\Query;
 use Access\Schema\Table;
 
@@ -34,6 +35,11 @@ class Select extends Query
      * @var string|null $select
      */
     private ?string $select = null;
+
+    /**
+     * Read lock for selected rows
+     */
+    private ?ReadLock $readLock = null;
 
     /**
      * @param Table|string $tableName Name of the table (or name of entity class)
@@ -80,6 +86,50 @@ class Select extends Query
     }
 
     /**
+     * Sets a shared mode lock on any rows that are read
+     */
+    public function readLockForShare(): static
+    {
+        $this->readLock = ReadLock::Share;
+
+        return $this;
+    }
+
+    /**
+     * Sets a shared mode lock on any rows that are read
+     *
+     * Throws [`LockNotAcquiredException`] if the lock could not be acquired immediately
+     */
+    public function readLockForShareNoWait(): static
+    {
+        $this->readLock = ReadLock::ShareNoWait;
+
+        return $this;
+    }
+
+    /**
+     * Sets an exclusive mode lock on any rows that are read
+     */
+    public function readLockForUpdate(): static
+    {
+        $this->readLock = ReadLock::Update;
+
+        return $this;
+    }
+
+    /**
+     * Sets an exclusive mode lock on any rows that are read
+     *
+     * Throws `LockNotAcquiredException` if the lock could not be acquired immediately
+     */
+    public function readLockForUpdateNoWait(): static
+    {
+        $this->readLock = ReadLock::UpdateNoWait;
+
+        return $this;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getSql(?DriverInterface $driver = null): ?string
@@ -97,6 +147,7 @@ class Select extends Query
         $sqlHaving = $this->getHavingSql($driver);
         $sqlOrderBy = $this->getOrderBySql($driver);
         $sqlLimit = $this->getLimitSql();
+        $sqlReadLock = $this->getLockForSql($driver);
 
         return $sqlSelect .
             $sqlFrom .
@@ -106,7 +157,8 @@ class Select extends Query
             $sqlGroupBy .
             $sqlHaving .
             $sqlOrderBy .
-            $sqlLimit;
+            $sqlLimit .
+            $sqlReadLock;
     }
 
     /**
@@ -152,6 +204,18 @@ class Select extends Query
         }
 
         return $sql;
+    }
+
+    /**
+     * Get the SQL for a read lock
+     */
+    private function getLockForSql(DriverInterface $driver): string
+    {
+        if ($this->readLock === null) {
+            return '';
+        }
+
+        return ' ' . $driver->getReadLockSql($this->readLock);
     }
 
     /**
