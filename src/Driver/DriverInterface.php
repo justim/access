@@ -17,6 +17,7 @@ use Access\Clause;
 use Access\Driver\Query\AlterTableBuilderInterface;
 use Access\Driver\Query\CreateDatabaseBuilderInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
+use Access\ReadLock as ReadLock;
 use Access\Schema;
 use Access\Schema\Index;
 
@@ -73,6 +74,11 @@ interface DriverInterface
      * Has the driver support for LOCK/UNLOCK TABLES?
      */
     public function hasLockSupport(): bool;
+
+    /**
+     * Get the SQL for a read lock
+     */
+    public function getReadLockSql(ReadLock $readLock): string;
 
     /**
      * Get the builder to create SQL type definitions

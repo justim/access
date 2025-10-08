@@ -25,6 +25,7 @@ use Access\Driver\Sqlite\Query\CreateTableBuilder;
 use Access\Driver\Sqlite\SqliteSqlTypeDefinitionBuilder;
 use Access\Exception\NotSupportedException;
 use Access\Exception\TableDoesNotExistException;
+use Access\ReadLock;
 use Access\Schema\Index;
 
 /**
@@ -103,6 +104,14 @@ class Sqlite extends Driver
     public function hasLockSupport(): bool
     {
         return false;
+    }
+
+    /**
+     * Get the SQL for a read lock
+     */
+    public function getReadLockSql(ReadLock $readLock): string
+    {
+        return '';
     }
 
     public function getSqlTypeDefinitionBuilder(): SqlTypeDefinitionBuilderInterface

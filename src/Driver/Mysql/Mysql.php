@@ -24,7 +24,9 @@ use Access\Driver\Query\CreateDatabaseBuilderInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Driver\SqlTypeDefinitionBuilderInterface;
 use Access\Exception\ConnectionGoneException;
+use Access\Exception\LockNotAcquiredException;
 use Access\Exception\TableDoesNotExistException;
+use Access\ReadLock;
 use Access\Schema\Index;
 
 /**
@@ -44,6 +46,9 @@ class Mysql extends Driver
     private const ERROR_CODE_BAD_TABLE_ERROR = 1051;
     private const ERROR_CODE_SERVER_GONE_ERROR = 2006;
     private const ERROR_CODE_CLIENT_INTERACTION_TIMEOUT = 4031;
+
+    private const ERROR_CODE_LOCK_NOWAIT = 3572;
+    private const ERROR_CODE_LOCK_WAIT_TIMEOUT = 1205;
 
     private SqlTypeDefinitionBuilderInterface $sqlTypeDefinition;
     private CreateDatabaseBuilder $createDatabaseBuilder;
@@ -109,6 +114,20 @@ class Mysql extends Driver
                     $e,
                 );
 
+            case self::ERROR_CODE_LOCK_NOWAIT:
+                return new LockNotAcquiredException(
+                    sprintf('Unable to acquire lock immediately: %s', $message),
+                    0,
+                    $e,
+                );
+
+            case self::ERROR_CODE_LOCK_WAIT_TIMEOUT:
+                return new LockNotAcquiredException(
+                    sprintf('Unable to acquire lock in time: %s', $message),
+                    0,
+                    $e,
+                );
+
             default:
                 return null;
         }
@@ -128,6 +147,19 @@ class Mysql extends Driver
     public function hasLockSupport(): bool
     {
         return true;
+    }
+
+    /**
+     * Get the SQL for a read lock
+     */
+    public function getReadLockSql(ReadLock $readLock): string
+    {
+        return match ($readLock) {
+            ReadLock::Share => 'FOR SHARE',
+            ReadLock::ShareNoWait => 'FOR SHARE NOWAIT',
+            ReadLock::Update => 'FOR UPDATE',
+            ReadLock::UpdateNoWait => 'FOR UPDATE NOWAIT',
+        };
     }
 
     public function getSqlTypeDefinitionBuilder(): SqlTypeDefinitionBuilderInterface
