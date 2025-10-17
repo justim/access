@@ -23,6 +23,7 @@ use Access\Driver\Query\AlterTableBuilderInterface;
 use Access\Driver\Query\CreateDatabaseBuilderInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Driver\SqlTypeDefinitionBuilderInterface;
+use Access\Exception;
 use Access\Exception\ConnectionGoneException;
 use Access\Exception\LockNotAcquiredException;
 use Access\Exception\TableDoesNotExistException;
@@ -87,7 +88,7 @@ class Mysql extends Driver
      * @see https://dev.mysql.com/doc/mysql-errors/8.0/en/server-error-reference.html
      * @see https://dev.mysql.com/doc/mysql-errors/8.0/en/client-error-reference.html
      */
-    public function convertPdoException(\PDOException $e): ?\Exception
+    public function convertPdoException(\PDOException $e): ?Exception
     {
         $message = $e->getMessage();
 

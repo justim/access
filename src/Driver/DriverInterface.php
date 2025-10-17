@@ -17,6 +17,7 @@ use Access\Clause;
 use Access\Driver\Query\AlterTableBuilderInterface;
 use Access\Driver\Query\CreateDatabaseBuilderInterface;
 use Access\Driver\Query\CreateTableBuilderInterface;
+use Access\Exception;
 use Access\ReadLock as ReadLock;
 use Access\Schema;
 use Access\Schema\Index;
@@ -63,7 +64,7 @@ interface DriverInterface
     /**
      * Convert a PDOException to a more specific Exception
      */
-    public function convertPdoException(\PDOException $e): ?\Exception;
+    public function convertPdoException(\PDOException $e): ?Exception;
 
     /**
      * Get the function name for random in SQL dialect

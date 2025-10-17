@@ -677,6 +677,25 @@ class Database
     }
 
     /**
+     * Convert a PDOException to a more specific Exception
+     *
+     * Fallback to `Access\Exception` with `$genericErrorMessage` when no specific exception is found
+     *
+     * @param \PDOException $e The original PDO exception
+     * @param string $genericErrorMessage The generic error message to use when no specific exception is found
+     */
+    public function convertPdoException(\PDOException $e, string $genericErrorMessage): Exception
+    {
+        $specificException = $this->getDriver()->convertPdoException($e);
+
+        if ($specificException !== null) {
+            return $specificException;
+        }
+
+        return new Exception($genericErrorMessage, 0, $e);
+    }
+
+    /**
      * Check for a valid entity class name
      *
      * @param string $klass Entity class name
