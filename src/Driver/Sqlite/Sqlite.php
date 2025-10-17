@@ -23,6 +23,7 @@ use Access\Driver\Sqlite\Query\AlterTableBuilder;
 use Access\Driver\Sqlite\Query\CreateDatabaseBuilder;
 use Access\Driver\Sqlite\Query\CreateTableBuilder;
 use Access\Driver\Sqlite\SqliteSqlTypeDefinitionBuilder;
+use Access\Exception;
 use Access\Exception\NotSupportedException;
 use Access\Exception\TableDoesNotExistException;
 use Access\ReadLock;
@@ -75,7 +76,7 @@ class Sqlite extends Driver
     /**
      * Convert a PDOException to a more specific Exception
      */
-    public function convertPdoException(\PDOException $e): ?\Exception
+    public function convertPdoException(\PDOException $e): ?Exception
     {
         $message = $e->getMessage();
 

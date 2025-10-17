@@ -74,19 +74,26 @@ class Transaction
      */
     public function begin(): void
     {
-        $connection = $this->db->getConnection();
+        try {
+            $connection = $this->db->getConnection();
 
-        if ($connection->inTransaction()) {
-            $this->savepointIdentifier = $this->generateSavepointIdentifier();
-            $query = new Savepoint($this->savepointIdentifier);
-            $this->db->query($query);
-        } else {
-            $query = new Begin();
-            $this->db->getProfiler()->createForQuery($query);
-            $connection->beginTransaction();
+            if ($connection->inTransaction()) {
+                $this->savepointIdentifier = $this->generateSavepointIdentifier();
+                $query = new Savepoint($this->savepointIdentifier);
+                $this->db->query($query);
+            } else {
+                $query = new Begin();
+                $this->db->getProfiler()->createForQuery($query);
+                $connection->beginTransaction();
+            }
+
+            $this->inTransaction = true;
+        } catch (\PDOException $e) {
+            throw $this->db->convertPdoException(
+                $e,
+                'Unable to begin transaction: ' . $e->getMessage(),
+            );
         }
-
-        $this->inTransaction = true;
     }
 
     /**
@@ -94,22 +101,29 @@ class Transaction
      */
     public function commit(): void
     {
-        if (!$this->inTransaction) {
-            return;
-        }
+        try {
+            if (!$this->inTransaction) {
+                return;
+            }
 
-        if ($this->savepointIdentifier !== null) {
-            // the outer transaction will provide the commit
+            if ($this->savepointIdentifier !== null) {
+                // the outer transaction will provide the commit
+                $this->inTransaction = false;
+                return;
+            }
+
+            $this->db->getConnection()->commit();
+
+            $query = new Commit();
+            $this->db->getProfiler()->createForQuery($query);
+
             $this->inTransaction = false;
-            return;
+        } catch (\PDOException $e) {
+            throw $this->db->convertPdoException(
+                $e,
+                'Unable to commit transaction: ' . $e->getMessage(),
+            );
         }
-
-        $this->db->getConnection()->commit();
-
-        $query = new Commit();
-        $this->db->getProfiler()->createForQuery($query);
-
-        $this->inTransaction = false;
     }
 
     /**
@@ -117,24 +131,31 @@ class Transaction
      */
     public function rollBack(): void
     {
-        if (!$this->inTransaction) {
-            return;
-        }
+        try {
+            if (!$this->inTransaction) {
+                return;
+            }
 
-        if ($this->savepointIdentifier !== null) {
-            $query = new RollbackToSavepoint($this->savepointIdentifier);
-            $this->db->query($query);
+            if ($this->savepointIdentifier !== null) {
+                $query = new RollbackToSavepoint($this->savepointIdentifier);
+                $this->db->query($query);
+
+                $this->inTransaction = false;
+                return;
+            }
+
+            $this->db->getConnection()->rollBack();
+
+            $query = new Rollback();
+            $this->db->getProfiler()->createForQuery($query);
 
             $this->inTransaction = false;
-            return;
+        } catch (\PDOException $e) {
+            throw $this->db->convertPdoException(
+                $e,
+                'Unable to roll back transaction: ' . $e->getMessage(),
+            );
         }
-
-        $this->db->getConnection()->rollBack();
-
-        $query = new Rollback();
-        $this->db->getProfiler()->createForQuery($query);
-
-        $this->inTransaction = false;
     }
 
     private function generateSavepointIdentifier(): string

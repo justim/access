@@ -96,13 +96,10 @@ final class Statement
             $profile->startPrepare();
             $statement = $this->statementPool->prepare($this->sql);
         } catch (\PDOException $e) {
-            $specificException = $this->db->getDriver()->convertPdoException($e);
-
-            if ($specificException !== null) {
-                throw $specificException;
-            }
-
-            throw new Exception('Unable to prepare query: ' . $e->getMessage(), 0, $e);
+            throw $this->db->convertPdoException(
+                $e,
+                'Unable to prepare query: ' . $e->getMessage(),
+            );
         } finally {
             $profile->endPrepare();
         }
@@ -111,13 +108,10 @@ final class Statement
             $profile->startExecute();
             $statement->execute($this->query->getValues($this->db->getDriver()));
         } catch (\PDOException $e) {
-            $specificException = $this->db->getDriver()->convertPdoException($e);
-
-            if ($specificException !== null) {
-                throw $specificException;
-            }
-
-            throw new Exception('Unable to execute query: ' . $e->getMessage(), 0, $e);
+            throw $this->db->convertPdoException(
+                $e,
+                'Unable to execute query: ' . $e->getMessage(),
+            );
         } finally {
             $profile->endExecute();
         }
@@ -133,13 +127,7 @@ final class Statement
                     yield $row;
                 }
             } catch (\PDOException $e) {
-                $specificException = $this->db->getDriver()->convertPdoException($e);
-
-                if ($specificException !== null) {
-                    throw $specificException;
-                }
-
-                throw new Exception('Unable to fetch: ' . $e->getMessage(), 0, $e);
+                throw $this->db->convertPdoException($e, 'Unable to fetch: ' . $e->getMessage());
             } finally {
                 $profile->endHydrate();
                 $profile->setNumberOfResults($numberOfResults);
@@ -158,28 +146,35 @@ final class Statement
      */
     private function getReturnValue(): ?int
     {
-        if ($this->query instanceof Insert) {
-            if ($this->sql === null) {
-                // insert queries always return a string, but the type
-                // of this property is string|null, so we need to check
-                // for it
-                // @codeCoverageIgnoreStart
-                return -1;
-                // @codeCoverageIgnoreEnd
+        try {
+            if ($this->query instanceof Insert) {
+                if ($this->sql === null) {
+                    // insert queries always return a string, but the type
+                    // of this property is string|null, so we need to check
+                    // for it
+                    // @codeCoverageIgnoreStart
+                    return -1;
+                    // @codeCoverageIgnoreEnd
+                }
+
+                return (int) $this->db->getConnection()->lastInsertId();
             }
 
-            return (int) $this->db->getConnection()->lastInsertId();
-        }
+            if (!$this->query instanceof Select) {
+                if ($this->sql === null) {
+                    return 0;
+                }
 
-        if (!$this->query instanceof Select) {
-            if ($this->sql === null) {
-                return 0;
+                $statement = $this->statementPool->prepare($this->sql);
+                return $statement->rowCount();
             }
 
-            $statement = $this->statementPool->prepare($this->sql);
-            return $statement->rowCount();
+            return null;
+        } catch (\PDOException $e) {
+            throw $this->db->convertPdoException(
+                $e,
+                'Unable to get return value: ' . $e->getMessage(),
+            );
         }
-
-        return null;
     }
 }
