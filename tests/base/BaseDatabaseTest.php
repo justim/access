@@ -325,4 +325,18 @@ abstract class BaseDatabaseTest extends TestCase implements DatabaseBuilderInter
         $user = $db->findOne(User::class, 1);
         $this->assertNotNull($user);
     }
+
+    public function testCloseConnection(): void
+    {
+        $db = static::createDatabaseWithDummyData();
+
+        $connection = $db->getConnection();
+        self::assertInstanceOf(PDO::class, $connection);
+
+        $db->closeConnection();
+
+        self::expectException(Exception::class);
+        self::expectExceptionMessage('Connection is null');
+        $db->getConnection();
+    }
 }
