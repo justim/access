@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Database;
+use Countable;
 
 /**
  * Query statement pool
@@ -22,7 +23,7 @@ use Access\Database;
  *
  * @author Tim <me@justim.net>
  */
-final class StatementPool
+final class StatementPool implements Countable
 {
     /**
      * All open prepared statements
@@ -71,5 +72,15 @@ final class StatementPool
     public function clear(): void
     {
         $this->stmtPool = [];
+    }
+
+    /**
+     * Get number of prepared statements
+     *
+     * @return int
+     */
+    public function count(): int
+    {
+        return count($this->stmtPool);
     }
 }
