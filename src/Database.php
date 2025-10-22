@@ -19,6 +19,7 @@ use Access\Driver\Mysql;
 use Access\Driver\Sqlite;
 use Access\Entity;
 use Access\Exception;
+use Access\Exception\ClosedConnectionException;
 use Access\Lock;
 use Access\Presenter;
 use Access\Presenter\EntityPresenter;
@@ -129,7 +130,7 @@ class Database
     public function getConnection(): \PDO
     {
         if ($this->connection === null) {
-            throw new Exception('Connection is null');
+            throw new ClosedConnectionException();
         }
 
         return $this->connection;
