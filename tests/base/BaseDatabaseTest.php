@@ -15,6 +15,7 @@ namespace Tests\Base;
 
 use Access\Database;
 use Access\Exception;
+use Access\Exception\ClosedConnectionException;
 use Access\Query;
 use PDO;
 use PHPUnit\Framework\TestCase;
@@ -324,5 +325,19 @@ abstract class BaseDatabaseTest extends TestCase implements DatabaseBuilderInter
         // the user is findable again
         $user = $db->findOne(User::class, 1);
         $this->assertNotNull($user);
+    }
+
+    public function testCloseConnection(): void
+    {
+        $db = static::createDatabaseWithDummyData();
+
+        $connection = $db->getConnection();
+        self::assertInstanceOf(PDO::class, $connection);
+
+        $db->closeConnection();
+
+        self::expectException(ClosedConnectionException::class);
+        self::expectExceptionMessage('Connection is closed');
+        $db->getConnection();
     }
 }
