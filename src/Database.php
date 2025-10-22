@@ -147,6 +147,7 @@ class Database
     public function closeConnection(): void
     {
         $this->connection = null;
+        $this->statementPool->clear();
     }
 
     /**

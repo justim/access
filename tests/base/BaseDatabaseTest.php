@@ -331,13 +331,18 @@ abstract class BaseDatabaseTest extends TestCase implements DatabaseBuilderInter
     {
         $db = static::createDatabaseWithDummyData();
 
+        $db->getStatementPool()->clear();
+        $db->getStatementPool()->prepare('SELECT 1');
+        $this->assertCount(1, $db->getStatementPool());
+
         $connection = $db->getConnection();
-        self::assertInstanceOf(PDO::class, $connection);
+        $this->assertInstanceOf(PDO::class, $connection);
 
         $db->closeConnection();
+        $this->assertEmpty($db->getStatementPool());
 
-        self::expectException(ClosedConnectionException::class);
-        self::expectExceptionMessage('Connection is closed');
+        $this->expectException(ClosedConnectionException::class);
+        $this->expectExceptionMessage('Connection is closed');
         $db->getConnection();
     }
 }
