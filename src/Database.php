@@ -44,9 +44,9 @@ class Database
     /**
      * PDO connection
      *
-     * @var \PDO $connection
+     * @var \PDO|null $connection
      */
-    private \PDO $connection;
+    private ?\PDO $connection;
 
     /**
      * Driver
@@ -128,7 +128,24 @@ class Database
      */
     public function getConnection(): \PDO
     {
+        if ($this->connection === null) {
+            throw new Exception('Connection is null');
+        }
+
         return $this->connection;
+    }
+
+    /**
+     * Close the PDO connection by setting the property to null
+     *
+     * Note that in order for the connection to be closed, all it's instances
+     * must be set to null
+     *
+     * @return void
+     */
+    public function closeConnection(): void
+    {
+        $this->connection = null;
     }
 
     /**
