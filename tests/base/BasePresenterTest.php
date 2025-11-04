@@ -38,6 +38,7 @@ use Tests\Fixtures\Presenter\ProjectWithDatesPresenter;
 use Tests\Fixtures\Presenter\ProjectWithEmptyPresenter;
 use Tests\Fixtures\Presenter\ProjectWithOwnerPresenter;
 use Tests\Fixtures\Presenter\ProjectWithReceiveDependenciesPresenter;
+use Tests\Fixtures\Presenter\ProjectWithUserNamePresenter;
 use Tests\Fixtures\Presenter\UserEmptyResultPresenter;
 use Tests\Fixtures\Presenter\UserOptionalDependencyPresenter;
 use Tests\Fixtures\Presenter\UserWithClausePresenter;
@@ -60,6 +61,7 @@ abstract class BasePresenterTest extends TestCase implements DatabaseBuilderInte
         $db = static::createDatabase();
 
         $userOne = new User();
+        $userOne->setName('one');
         $db->save($userOne);
 
         $projectOne = new Project();
@@ -69,6 +71,7 @@ abstract class BasePresenterTest extends TestCase implements DatabaseBuilderInte
 
         if (($options & self::OPTION_EXTRA_USER) !== 0) {
             $userTwo = new User();
+            $userTwo->setName('two');
             $db->save($userTwo);
         } else {
             $userTwo = null;
@@ -1324,6 +1327,24 @@ abstract class BasePresenterTest extends TestCase implements DatabaseBuilderInte
 
         $presenter = $db->createPresenter();
         $result = $presenter->presentEntity(UserWithSingleNumberMarkerPresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testStringReferenceValue(): void
+    {
+        [$db, $userOne, $projectOne] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $projectOne->getId(),
+            'owner' => [
+                'id' => $userOne->getId(),
+                'name' => $userOne->getName(),
+            ],
+        ];
+
+        $presenter = $db->createPresenter();
+        $result = $presenter->presentEntity(ProjectWithUserNamePresenter::class, $projectOne);
 
         $this->assertEquals($expected, $result);
     }

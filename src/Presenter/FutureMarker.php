@@ -41,7 +41,7 @@ final class FutureMarker implements EntityMarkerInterface
     /**
      * ID of the references field of entity
      *
-     * @var int[]
+     * @var int[]|string[]
      */
     private array $refIds;
 
@@ -65,14 +65,14 @@ final class FutureMarker implements EntityMarkerInterface
      *
      * @psalm-param class-string<TEntity> $entityKlass
      * @param string $entityKlass
-     * @param int|int[] $refIds ID of the entity
+     * @param int|int[]|string|string[] $refIds ID of the entity
      * @param bool $multiple Fill with multiple entities when filled
      * @param \Closure $callback Function to call when future is resolved
      */
     public function __construct(
         string $entityKlass,
         string $fieldName,
-        int|array $refIds,
+        int|string|array $refIds,
         bool $multiple,
         \Closure $callback,
         ?ClauseInterface $clause = null,
@@ -109,7 +109,7 @@ final class FutureMarker implements EntityMarkerInterface
     /**
      * ID of the references field of entity
      *
-     * @return int[]
+     * @return int[]|string[]
      */
     public function getRefIds(): array
     {
