@@ -42,7 +42,7 @@ final class PresentationMarker implements EntityMarkerInterface
     /**
      * ID of the references field of entity
      *
-     * @var int[]
+     * @var int[]|string[]
      */
     private array $refIds;
 
@@ -61,13 +61,13 @@ final class PresentationMarker implements EntityMarkerInterface
      *
      * @psalm-param class-string<TEntityPresenter> $presenterKlass
      * @param string $presenterKlass Class to present the entity with
-     * @param int|int[] $refIds ID of the entity
+     * @param int|int[]|string|string[] $refIds ID of the entity
      * @param bool $multiple Fill with multiple entities when filled
      */
     public function __construct(
         string $presenterKlass,
         string $fieldName,
-        int|array $refIds,
+        int|string|array $refIds,
         bool $multiple,
         ?ClauseInterface $clause = null,
     ) {
@@ -116,7 +116,7 @@ final class PresentationMarker implements EntityMarkerInterface
     /**
      * ID of the references field of entity
      *
-     * @return int[]
+     * @return int[]|string[]
      */
     public function getRefIds(): array
     {

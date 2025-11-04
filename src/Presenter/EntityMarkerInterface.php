@@ -42,7 +42,7 @@ interface EntityMarkerInterface
     /**
      * IDs of the references field of entity
      *
-     * @return int[]
+     * @return int[]|string[]
      */
     public function getRefIds(): array;
 

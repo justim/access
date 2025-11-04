@@ -70,7 +70,7 @@ final class EntityPool
      *
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
-     * @param int[] $ids List of IDs
+     * @param int[]|string[] $ids List of IDs
      * @return Collection
      */
     public function getCollection(string $entityKlass, string $fieldName, array $ids): Collection
@@ -107,9 +107,9 @@ final class EntityPool
      *
      * @param Entity $entity Entity to query
      * @param string $fieldName Name of referenced field
-     * @return int|null
+     * @return int|string|null
      */
-    private function getValue(Entity $entity, string $fieldName): ?int
+    private function getValue(Entity $entity, string $fieldName): string|int|null
     {
         $values = $entity->getValues();
 
@@ -121,7 +121,7 @@ final class EntityPool
             return null;
         }
 
-        if (!is_int($values[$fieldName])) {
+        if (!is_int($values[$fieldName]) && !is_string($values[$fieldName])) {
             return null;
         }
 

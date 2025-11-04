@@ -142,14 +142,14 @@ abstract class EntityPresenter
      *
      * @param string $presenterKlass Class to present the entity with
      * @param string $fieldName Name of referenced field
-     * @param int|Entity|null $id ID of the entity
+     * @param int|Entity|string|null $id ID of the entity
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
      * @return PresentationMarker|null Marker with presenter info
      */
     protected function presentInversedRef(
         string $presenterKlass,
         string $fieldName,
-        int|Entity|null $id,
+        int|Entity|string|null $id,
         ?ClauseInterface $clause = null,
     ): ?PresentationMarker {
         Database::assertValidPresenterClass($presenterKlass);
@@ -191,19 +191,21 @@ abstract class EntityPresenter
      *
      * @param string $relationEntityKlass Entity class name
      * @param string $sourceFieldName Name of referenced field for source
-     * @param int|Entity|null $id ID of the entity
+     * @param int|string|Entity|null $id ID of the entity
      * @param string $targetFieldName Name of referenced field for target
      * @param string $targetPresenterKlass Class to present the entity with
      * @param ClauseInterface|null $relationClause Optional clause to manipulate resulting entities (applied to relation entities)
+     * @param string $targetMatchFieldName Name of the referenced field in target presenter entity
      * @return FutureMarker|null Marker with presenter info
      */
     protected function presentThroughInversedRef(
         string $relationEntityKlass,
         string $sourceFieldName,
-        int|Entity|null $id,
+        int|string|Entity|null $id,
         string $targetFieldName,
         string $targetPresenterKlass,
         ?ClauseInterface $relationClause = null,
+        string $targetMatchFieldName = 'id',
     ): ?FutureMarker {
         Database::assertValidEntityClass($relationEntityKlass);
         Database::assertValidPresenterClass($targetPresenterKlass);
@@ -216,8 +218,9 @@ abstract class EntityPresenter
             $relationEntityKlass,
             $sourceFieldName,
             $id,
-            fn(Entity $entity) => $this->present(
+            fn(Entity $entity) => $this->presentInversedRef(
                 $targetPresenterKlass,
+                $targetMatchFieldName,
                 $this->getValidRefId($entity, $targetFieldName),
             ),
             $relationClause,
@@ -246,14 +249,14 @@ abstract class EntityPresenter
      *
      * @param string $presenterKlass Class to present the entity with
      * @param string $fieldName Name of referenced field
-     * @param int|int[]|Entity|Collection|null $id ID of the entity
+     * @param int|int[]|string|string[]|Entity|Collection|null $id ID of the entity
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
      * @return PresentationMarker|array Marker with presenter info (or empty array on empty ID)
      */
     protected function presentMultipleInversedRefs(
         string $presenterKlass,
         string $fieldName,
-        int|array|Entity|Collection|null $id,
+        int|string|array|Entity|Collection|null $id,
         ?ClauseInterface $clause = null,
     ): PresentationMarker|array {
         Database::assertValidPresenterClass($presenterKlass);
@@ -296,21 +299,23 @@ abstract class EntityPresenter
      *
      * @param string $relationEntityKlass Entity class name
      * @param string $sourceFieldName Name of referenced field for source
-     * @param int|int[]|Entity|Collection|null $id ID of the entity
+     * @param int|int[]|string|string[]|Entity|Collection|null $id ID of the entity
      * @param string $targetFieldName Name of referenced field for target
      * @param string $targetPresenterKlass Class to present the entity with
      * @param ClauseInterface|null $relationClause Optional clause to manipulate resulting entities (applied to relation entities)
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities (applied to result entities)
+     * @param string $targetMatchFieldName Name of the referenced field in target presenter entity
      * @return FutureMarker|array Marker with presenter info (or empty array on empty ID)
      */
     protected function presentMultipleThroughInversedRefs(
         string $relationEntityKlass,
         string $sourceFieldName,
-        int|array|Entity|Collection|null $id,
+        int|string|array|Entity|Collection|null $id,
         string $targetFieldName,
         string $targetPresenterKlass,
         ?ClauseInterface $relationClause = null,
         ?ClauseInterface $clause = null,
+        string $targetMatchFieldName = 'id',
     ): FutureMarker|array {
         Database::assertValidEntityClass($relationEntityKlass);
         Database::assertValidPresenterClass($targetPresenterKlass);
@@ -323,8 +328,9 @@ abstract class EntityPresenter
             $relationEntityKlass,
             $sourceFieldName,
             $id,
-            fn(Collection $collection) => $this->presentMultiple(
+            fn(Collection $collection) => $this->presentMultipleInversedRefs(
                 $targetPresenterKlass,
+                $targetMatchFieldName,
                 array_filter(
                     $collection->map(
                         fn(Entity $entity) => $this->getValidRefId($entity, $targetFieldName),
@@ -434,7 +440,7 @@ abstract class EntityPresenter
      *
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
-     * @param int|Entity|null $id ID of the entity
+     * @param int|string|Entity|null $id ID of the entity
      * @param \Closure $callback On resolved callback
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entity
      * @return FutureMarker|null Marker with future presentation info
@@ -442,7 +448,7 @@ abstract class EntityPresenter
     protected function presentFutureInversedRef(
         string $entityKlass,
         string $fieldName,
-        int|Entity|null $id,
+        int|string|Entity|null $id,
         \Closure $callback,
         ?ClauseInterface $clause = null,
     ): ?FutureMarker {
@@ -479,7 +485,7 @@ abstract class EntityPresenter
      *
      * @param string $entityKlass Entity class name
      * @param string $fieldName Name of referenced field
-     * @param int|int[]|Entity|Collection|null $id ID of the entity
+     * @param int|int[]|string|string[]|Entity|Collection|null $id ID of the entity
      * @param \Closure $callback On resolved callback
      * @param ClauseInterface|null $clause Optional clause to manipulate resulting entities
      * @return FutureMarker|array Marker with future presentation info (or empty array on empty ID)
@@ -487,7 +493,7 @@ abstract class EntityPresenter
     protected function presentFutureMultipleInversedRefs(
         string $entityKlass,
         string $fieldName,
-        int|array|Entity|Collection|null $id,
+        int|string|array|Entity|Collection|null $id,
         \Closure $callback,
         ?ClauseInterface $clause = null,
     ): FutureMarker|array {
@@ -540,7 +546,7 @@ abstract class EntityPresenter
     /**
      * Return a valid ref ID for a target field name of an entity
      */
-    private function getValidRefId(Entity $entity, string $targetFieldName): ?int
+    private function getValidRefId(Entity $entity, string $targetFieldName): string|int|null
     {
         $values = $entity->getValues();
 
@@ -548,7 +554,7 @@ abstract class EntityPresenter
             return null;
         }
 
-        if (!is_int($values[$targetFieldName])) {
+        if (!is_int($values[$targetFieldName]) && !is_string($values[$targetFieldName])) {
             return null;
         }
 
