@@ -14,14 +14,13 @@ declare(strict_types=1);
 namespace Access;
 
 use Access\Profiler\QueryProfile;
-use Access\Query;
 
 /**
  * A simple collection of query profiles to keep some timings
  *
  * @author Tim <me@justim.net>
  */
-class Profiler
+class Profiler implements ProfilerInterface
 {
     /**
      * @var QueryProfile[] $queryProfiles
@@ -30,9 +29,6 @@ class Profiler
 
     /**
      * Create a query profile for query
-     *
-     * @param Query $query
-     * @return QueryProfile
      */
     public function createForQuery(Query $query): QueryProfile
     {
@@ -53,8 +49,6 @@ class Profiler
 
     /**
      * Get the total duration in seconds
-     *
-     * @return float
      */
     public function getTotalDuration(): float
     {
@@ -69,8 +63,6 @@ class Profiler
 
     /**
      * Get the total duration with hydrate in seconds
-     *
-     * @return float
      */
     public function getTotalDurationWithHydrate(): float
     {
@@ -85,8 +77,6 @@ class Profiler
 
     /**
      * Return number of query profiles
-     *
-     * @return int
      */
     public function count(): int
     {
@@ -95,8 +85,7 @@ class Profiler
 
     /**
      * Get a flat export of query profiles
-     *
-     * @return array
+     * 
      * @psalm-return array{duration: float, durationWithHydrate: float, queries: array<array-key, array{sql: ?string, values: mixed[], runnableSql: ?string, duration: float, durationWithHydrate: float, numberOfResults: ?int}>}
      */
     public function export(): array

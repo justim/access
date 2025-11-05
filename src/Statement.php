@@ -13,11 +13,8 @@ declare(strict_types=1);
 
 namespace Access;
 
-use Access\Profiler;
-use Access\Query;
 use Access\Query\Insert;
 use Access\Query\Select;
-use Access\StatementPool;
 
 /**
  * Query executer
@@ -28,16 +25,8 @@ use Access\StatementPool;
  */
 final class Statement
 {
-    /**
-     * Database
-     *
-     * @var Database
-     */
     private Database $db;
 
-    /**
-     * @var StatementPool $statementPool
-     */
     private StatementPool $statementPool;
 
     /**
@@ -49,26 +38,15 @@ final class Statement
 
     /**
      * The SQL to execute
-     *
-     * @var string|null
      */
     private ?string $sql;
 
-    /**
-     * Profiler
-     *
-     * @var Profiler $profiler
-     */
-    private Profiler $profiler;
+    private ProfilerInterface $profiler;
 
     /**
      * Create a statement
-     *
-     * @param Database $db
-     * @param Profiler $profiler
-     * @param Query $query
      */
-    public function __construct(Database $db, Profiler $profiler, Query $query)
+    public function __construct(Database $db, ProfilerInterface $profiler, Query $query)
     {
         $this->db = $db;
         $this->statementPool = $db->getStatementPool();
@@ -135,8 +113,6 @@ final class Statement
 
     /**
      * Get the return value based in query type
-     *
-     * @return ?int
      */
     private function getReturnValue(): ?int
     {

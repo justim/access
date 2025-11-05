@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Access\Profiler;
 
 use Access\Profiler;
-use Access\Profiler\QueryProfile;
 use Access\Query;
 
 /**
@@ -30,9 +29,6 @@ class BlackholeProfiler extends Profiler
      * Create a query profile for query
      *
      * Does not keep it in history
-     *
-     * @param Query $query
-     * @return QueryProfile
      */
     public function createForQuery(Query $query): QueryProfile
     {
