@@ -20,51 +20,24 @@ use Access\Query;
  *
  * @author Tim <me@justim.net>
  */
-class QueryProfile
+class QueryProfile implements QueryProfileInterface
 {
-    /**
-     * @var Query $query
-     */
     private Query $query;
 
-    /**
-     * @var float
-     */
     private float $prepareDurationStart = 0.0;
 
-    /**
-     * @var float
-     */
     private float $prepareDurationEnd = 0.0;
 
-    /**
-     * @var float
-     */
     private float $executeDurationStart = 0.0;
 
-    /**
-     * @var float
-     */
     private float $executeDurationEnd = 0.0;
 
-    /**
-     * @var float
-     */
     private float $hydrateDurationStart = 0.0;
 
-    /**
-     * @var float
-     */
     private float $hydrateDurationEnd = 0.0;
 
-    /**
-     * @var int|null
-     */
     private ?int $numberOfResults = null;
 
-    /**
-     * @param Query $query
-     */
     public function __construct(Query $query)
     {
         $this->query = $query;
@@ -72,25 +45,17 @@ class QueryProfile
 
     /**
      * Get the query for this profile
-     *
-     * @return Query
      */
     public function getQuery(): Query
     {
         return $this->query;
     }
 
-    /**
-     * Start of prepare
-     */
     public function startPrepare(): void
     {
         $this->prepareDurationStart = microtime(true);
     }
 
-    /**
-     * End of prepare
-     */
     public function endPrepare(): void
     {
         $this->prepareDurationEnd = microtime(true);
@@ -98,25 +63,17 @@ class QueryProfile
 
     /**
      * Get prepare duration in seconds
-     *
-     * @return float
      */
     public function getPrepareDuration(): float
     {
         return $this->prepareDurationEnd - $this->prepareDurationStart;
     }
 
-    /**
-     * Start of execute
-     */
     public function startExecute(): void
     {
         $this->executeDurationStart = microtime(true);
     }
 
-    /**
-     * End of execute
-     */
     public function endExecute(): void
     {
         $this->executeDurationEnd = microtime(true);
@@ -124,25 +81,17 @@ class QueryProfile
 
     /**
      * Get execute duration in seconds
-     *
-     * @return float
      */
     public function getExecuteDuration(): float
     {
         return $this->executeDurationEnd - $this->executeDurationStart;
     }
 
-    /**
-     * Start of hydrate
-     */
     public function startHydrate(): void
     {
         $this->hydrateDurationStart = microtime(true);
     }
 
-    /**
-     * End of hydrate
-     */
     public function endHydrate(): void
     {
         $this->hydrateDurationEnd = microtime(true);
@@ -150,8 +99,6 @@ class QueryProfile
 
     /**
      * Get hydrate duration in seconds
-     *
-     * @return float
      */
     public function getHydrateDuration(): float
     {
@@ -160,8 +107,6 @@ class QueryProfile
 
     /**
      * Set number of results
-     *
-     * @param int|null $numberOfResults
      */
     public function setNumberOfResults(?int $numberOfResults): void
     {
@@ -174,8 +119,6 @@ class QueryProfile
      * This might not be accurate if the looping over the results of the query
      * is cut short for any reason, it's the number of records that have been
      * yielded by the statement
-     *
-     * @return int|null
      */
     public function getNumberOfResults(): ?int
     {
@@ -188,12 +131,10 @@ class QueryProfile
      * - Prepare duration
      * - Execute duration
      *
-     * Acutal fetching of data is not included, because we yield all records
+     * Actual fetching of data is not included, because we yield all records
      * directly to the caller, skewing the time it takes to fetch. You can get
      * the duration of the fetching with `getHydrateDuration` or
      * `getTotalDurationWithHydrate`
-     *
-     * @return float
      */
     public function getTotalDuration(): float
     {
@@ -206,8 +147,6 @@ class QueryProfile
      * - Prepare duration
      * - Execute duration
      * - Hydrate duration
-     *
-     * @return float
      */
     public function getTotalDurationWithHydrate(): float
     {

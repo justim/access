@@ -17,21 +17,15 @@ use Access\Cascade\CascadeDeleteResolver;
 use Access\Driver\DriverInterface;
 use Access\Driver\Mysql;
 use Access\Driver\Sqlite;
-use Access\Entity;
-use Access\Exception;
 use Access\Exception\ClosedConnectionException;
-use Access\Lock;
-use Access\Presenter;
 use Access\Presenter\EntityPresenter;
-use Access\Profiler;
-use Access\Query;
 use Access\Query\IncludeSoftDeletedFilter;
-use Access\Repository;
-use Access\Statement;
-use Access\StatementPool;
-use Access\Transaction;
 use DateTimeImmutable;
+use Generator;
+use PDO;
 use Psr\Clock\ClockInterface;
+use ReflectionException;
+use ReflectionMethod;
 
 /**
  * An Access database
@@ -42,38 +36,16 @@ use Psr\Clock\ClockInterface;
  */
 class Database
 {
-    /**
-     * PDO connection
-     *
-     * @var \PDO|null $connection
-     */
-    private ?\PDO $connection;
+    private ?PDO $connection;
 
-    /**
-     * Driver
-     *
-     * @var DriverInterface $driver
-     */
     private DriverInterface $driver;
 
-    /**
-     * Statement pool
-     *
-     * @var StatementPool $statementPool
-     */
     private StatementPool $statementPool;
 
-    /**
-     * Profiler
-     *
-     * @var Profiler $profiler
-     */
-    private Profiler $profiler;
+    private ProfilerInterface $profiler;
 
     /**
      * Clock used for the timestamps
-     *
-     * @var ClockInterface $clock
      */
     private ClockInterface $clock;
 
@@ -85,14 +57,14 @@ class Database
     private IncludeSoftDeletedFilter $includeSoftDeletedFilter = IncludeSoftDeletedFilter::Auto;
 
     /**
-     * Create a Access database with a PDO connection
+     * Create an Access database with a PDO connection
      *
-     * @param \PDO $connection A PDO connection
-     * @param Profiler $profiler A custom profiler, optionally
+     * @param PDO $connection A PDO connection
+     * @param ?ProfilerInterface $profiler A custom profiler, optionally
      */
     public function __construct(
-        \PDO $connection,
-        ?Profiler $profiler = null,
+        PDO $connection,
+        ?ProfilerInterface $profiler = null,
         ?ClockInterface $clock = null,
     ) {
         $this->statementPool = new StatementPool($this);
@@ -103,19 +75,19 @@ class Database
     }
 
     /**
-     * Create a access database with a PDO connection string
+     * Create an access database with a PDO connection string
      *
      * @param string $connectionString A PDO connection string
-     * @param Profiler $profiler A custom profiler, optionally
-     * @return self A Access database object
+     * @param ?ProfilerInterface $profiler A custom profiler, optionally
+     * @return self An Access database object
      */
     public static function create(
         string $connectionString,
-        ?Profiler $profiler = null,
+        ?ProfilerInterface $profiler = null,
         ?ClockInterface $clock = null,
     ): self {
         try {
-            $connection = new \PDO($connectionString);
+            $connection = new PDO($connectionString);
             return new self($connection, $profiler, $clock);
         } catch (\Exception $e) {
             throw new Exception("Invalid database: {$connectionString}", 0, $e);
@@ -125,9 +97,9 @@ class Database
     /**
      * Get the PDO connection
      *
-     * @return \PDO A PDO connection
+     * @return PDO A PDO connection
      */
-    public function getConnection(): \PDO
+    public function getConnection(): PDO
     {
         if ($this->connection === null) {
             throw new ClosedConnectionException();
@@ -141,8 +113,6 @@ class Database
      *
      * Note that in order for the connection to be closed, all it's instances
      * must be set to null
-     *
-     * @return void
      */
     public function closeConnection(): void
     {
@@ -153,18 +123,18 @@ class Database
     /**
      * Set a new PDO connection
      *
-     * @param \PDO $connection A new PDO connection
+     * @param PDO $connection A new PDO connection
      */
-    final public function setConnection(\PDO $connection): void
+    final public function setConnection(PDO $connection): void
     {
         // make sure we don't have any link to the old connection
         $this->statementPool->clear();
 
-        $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->connection = $connection;
 
         /** @var string $driverName */
-        $driverName = $connection->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        $driverName = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
         $this->driver = match ($driverName) {
             Mysql::NAME => new Mysql(),
             Sqlite::NAME => new Sqlite(),
@@ -172,11 +142,6 @@ class Database
         };
     }
 
-    /**
-     * Get the statement pool
-     *
-     * @return StatementPool
-     */
     public function getStatementPool(): StatementPool
     {
         return $this->statementPool;
@@ -184,10 +149,8 @@ class Database
 
     /**
      * Get the profiler for some timings
-     *
-     * @return Profiler
      */
-    public function getProfiler(): Profiler
+    public function getProfiler(): ProfilerInterface
     {
         return $this->profiler;
     }
@@ -213,11 +176,6 @@ class Database
         return $driver ?? new Mysql();
     }
 
-    /**
-     * Begin a transaction
-     *
-     * @return Transaction
-     */
     public function beginTransaction(): Transaction
     {
         $transaction = new Transaction($this);
@@ -228,8 +186,6 @@ class Database
 
     /**
      * Create a lock object
-     *
-     * @return Lock
      */
     public function createLock(): Lock
     {
@@ -247,11 +203,11 @@ class Database
      */
     public function getRepository(string $klass): Repository
     {
-        $this->assertValidEntityClass($klass);
+        self::assertValidEntityClass($klass);
 
         $repositoryClassName = $klass::getRepository();
 
-        $this->assertValidRepositoryClass($repositoryClassName);
+        self::assertValidRepositoryClass($repositoryClassName);
 
         /** @var Repository<TEntity> $repository
          * @psalm-suppress UnsafeInstantiation */
@@ -269,7 +225,6 @@ class Database
      *
      * @param string $klass Entity class name
      * @param int $id ID of the entity
-     * @return ?Entity
      */
     public function findOne(string $klass, int $id): ?Entity
     {
@@ -285,7 +240,6 @@ class Database
      *
      * @param string $klass Entity class name
      * @param array<string, mixed> $fields List of fields with values
-     * @return ?Entity
      */
     public function findOneBy(string $klass, array $fields): ?Entity
     {
@@ -298,14 +252,14 @@ class Database
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      * @psalm-suppress InvalidReturnType TODO remove when psalm supports this
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return Generator<int, TEntity, mixed, void> - yields Entity
      *
      * @param string $klass Entity class name
      * @param array<string, mixed> $fields List of fields with values
-     * @param ?int $limit A a limit to the query
-     * @return \Generator - yields Entity
+     * @param ?int $limit A limit to the query
+     * @return Generator - yields Entity
      */
-    public function findBy(string $klass, $fields, ?int $limit = null): \Generator
+    public function findBy(string $klass, array $fields, ?int $limit = null): Generator
     {
         yield from $this->getRepository($klass)->findBy($fields, $limit);
     }
@@ -316,14 +270,14 @@ class Database
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      * @psalm-suppress InvalidReturnType TODO remove when psalm supports this
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return Generator<int, TEntity, mixed, void> - yields Entity
      *
      * @param string $klass Entity class name
      * @param int[] $ids List of ids
-     * @param ?int $limit A a limit to the query
-     * @return \Generator - yields Entity
+     * @param ?int $limit A limit to the query
+     * @return Generator - yields Entity
      */
-    public function findByIds(string $klass, array $ids, ?int $limit = null): \Generator
+    public function findByIds(string $klass, array $ids, ?int $limit = null): Generator
     {
         yield from $this->getRepository($klass)->findByIds($ids, $limit);
     }
@@ -334,18 +288,18 @@ class Database
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
      * @psalm-suppress InvalidReturnType TODO remove when psalm supports this
-     * @psalm-return \Generator<int, TEntity, mixed, void> - yields Entity
+     * @psalm-return Generator<int, TEntity, mixed, void> - yields Entity
      *
      * @param string $klass Entity class name
-     * @param ?int $limit A a limit to the query
+     * @param ?int $limit A limit to the query
      * @param string $orderBy The order to use to find all entities
-     * @return \Generator - yields Entity
+     * @return Generator - yields Entity
      */
     public function findAll(
         string $klass,
         ?int $limit = null,
         string $orderBy = 'id ASC',
-    ): \Generator {
+    ): Generator {
         yield from $this->getRepository($klass)->findAll($limit, $orderBy);
     }
 
@@ -353,16 +307,16 @@ class Database
      * Execute a select query with a entity provider
      *
      * @psalm-template TEntity of Entity
-     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
+     * @psalm-return Generator<int|null, TEntity, mixed, void> - yields Entity
      *
      * @param EntityProvider<TEntity> $entityProvider Creator the empty entity shells
      * @param Query\Select $query Select query to be executed
-     * @return \Generator - yields Entity
+     * @return Generator - yields Entity
      */
     public function selectWithEntityProvider(
         EntityProvider $entityProvider,
         Query\Select $query,
-    ): \Generator {
+    ): Generator {
         $oldIncludeSoftDeleted = $query->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
         try {
@@ -390,15 +344,15 @@ class Database
      *
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
-     * @psalm-return \Generator<int|null, TEntity, mixed, void> - yields Entity
+     * @psalm-return Generator<int|null, TEntity, mixed, void> - yields Entity
      *
      * @param string $klass Entity class name
      * @param Query\Select $query Select query to be executed
-     * @return \Generator - yields Entity
+     * @return Generator - yields Entity
      */
-    public function select(string $klass, Query\Select $query): \Generator
+    public function select(string $klass, Query\Select $query): Generator
     {
-        $this->assertValidEntityClass($klass);
+        self::assertValidEntityClass($klass);
 
         $entityProvider = new EntityProvider($klass);
 
@@ -410,7 +364,6 @@ class Database
      *
      * @param string $klass Entity class name
      * @param Query\Select $query Select query to be executed
-     * @return ?Entity
      *
      * @psalm-template TEntity of Entity
      * @psalm-param class-string<TEntity> $klass
@@ -433,13 +386,10 @@ class Database
      * Insert a model
      *
      * The ID is set to the returned model
-     *
-     * @param Entity $model
-     * @return Entity
      */
     public function insert(Entity $model): Entity
     {
-        $this->assertValidEntityClass(get_class($model));
+        self::assertValidEntityClass(get_class($model));
 
         $values = $model->getInsertValues($this->clock);
 
@@ -448,7 +398,7 @@ class Database
 
         $stmt = new Statement($this, $this->profiler, $query);
         $gen = $stmt->execute();
-        $model->setId(intval($gen->getReturn()));
+        $model->setId((int)$gen->getReturn());
 
         // set default values/timestamps
         $model->markUpdated($values);
@@ -459,12 +409,11 @@ class Database
     /**
      * Send changes in model to database
      *
-     * @param Entity $model
      * @return bool Was something actually updated
      */
     public function update(Entity $model): bool
     {
-        $this->assertValidEntityClass(get_class($model));
+        self::assertValidEntityClass(get_class($model));
 
         $id = $model->getId();
         $values = $model->getUpdateValues($this->clock);
@@ -488,8 +437,6 @@ class Database
      * Save a model to the database
      *
      * Delegates to insert when no id is available, update otherwise
-     *
-     * @param Entity $model
      */
     public function save(Entity $model): void
     {
@@ -510,7 +457,7 @@ class Database
      */
     public function delete(Entity $model): bool
     {
-        $this->assertValidEntityClass(get_class($model));
+        self::assertValidEntityClass(get_class($model));
 
         $transaction = $this->beginTransaction();
 
@@ -548,8 +495,8 @@ class Database
         }
 
         try {
-            $setDeletedAt = new \ReflectionMethod($model, 'setDeletedAt');
-        } catch (\ReflectionException $e) {
+            $setDeletedAt = new ReflectionMethod($model, 'setDeletedAt');
+        } catch (ReflectionException $e) {
             throw new Exception('Entity is not soft deletable', 0, $e);
         }
 
@@ -583,7 +530,6 @@ class Database
      *
      * Has no return value, not suited for select queries
      *
-     * @param Query $query
      * @throws Exception when $query is a Query\Select
      */
     public function query(Query $query): void
@@ -616,11 +562,10 @@ class Database
      *
      * @param string $presenterKlass Class to present the entity with
      * @param Entity $entity Entity to present
-     * @return array|null
      */
     public function presentEntity(string $presenterKlass, Entity $entity): ?array
     {
-        $this->assertValidPresenterClass($presenterKlass);
+        self::assertValidPresenterClass($presenterKlass);
 
         $presenter = $this->createPresenter();
 
@@ -636,7 +581,6 @@ class Database
      *
      * @param string $presenterKlass Class to present the collection with
      * @param Collection $collection Collection to present
-     * @return array
      */
     public function presentCollection(string $presenterKlass, Collection $collection): array
     {
@@ -644,7 +588,7 @@ class Database
     }
 
     /**
-     * Create an presenter instance
+     * Create a presenter instance
      *
      * @return Presenter An presenter instance
      */
