@@ -36,6 +36,6 @@ class BlackholeProfiler extends Profiler
      */
     public function createForQuery(Query $query): QueryProfile
     {
-        return new QueryProfile($query);
+        return $this->createQueryProfileInstance($query);
     }
 }

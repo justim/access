@@ -29,7 +29,10 @@ class Profiler
     private array $queryProfiles = [];
 
     /**
-     * Create a query profile for query
+     * Create a query profile for query and append to internal query profile list
+     *
+     * At this point no timings are known, the returned `QueryProfile` instance
+     * will be used by the query executor to record timings.
      *
      * @param Query $query
      * @return QueryProfile
@@ -37,10 +40,25 @@ class Profiler
     public function createForQuery(Query $query): QueryProfile
     {
         // make sure to create a clone of the query, it might be modified afterwards
-        $queryProfile = new QueryProfile(clone $query);
+        $queryProfile = $this->createQueryProfileInstance(clone $query);
+
         $this->queryProfiles[] = $queryProfile;
 
         return $queryProfile;
+    }
+
+    /**
+     * Create a query profile instance
+     *
+     * This method is used by the default profilers to create a new query profile,
+     * can be used as an extension hook to create custom query profile instances.
+     *
+     * @param Query $query
+     * @return QueryProfile
+     */
+    public function createQueryProfileInstance(Query $query): QueryProfile
+    {
+        return new QueryProfile($query);
     }
 
     /**
