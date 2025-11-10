@@ -17,6 +17,8 @@ use Access\Clause\Condition\IsNull;
 use Access\Clause\Condition\Raw;
 use Access\Clause\ConditionInterface;
 use Access\Clause\Field;
+use Access\Clause\Limit;
+use Access\Clause\LimitInterface;
 use Access\Clause\Multiple;
 use Access\Clause\MultipleOr;
 use Access\Clause\OrderBy\Ascending;
@@ -61,6 +63,8 @@ abstract class Query
     protected const PREFIX_SUBQUERY_CONDITION = 'z';
     /** @var string */
     protected const PREFIX_ORDER = 'o';
+    /** @var string */
+    protected const PREFIX_LIMIT = 'l';
 
     /**
      * Unescaped table name
@@ -87,14 +91,9 @@ abstract class Query
     protected array $having = [];
 
     /**
-     * @var int|null
+     * @var Limit|null
      */
-    protected ?int $limit = null;
-
-    /**
-     * @var int|null
-     */
-    protected ?int $offset = null;
+    protected ?Limit $limit = null;
 
     /**
      * @psalm-var array<array-key, array{
@@ -381,14 +380,21 @@ abstract class Query
     /**
      * Add a LIMIT clause to query
      *
-     * @param int $limit
-     * @param int|null $offset
+     * @param Limit|int $limit
+     * @param int|null $offset Will override anything set in `$limit`
      * @return $this
      */
-    public function limit(int $limit, ?int $offset = null): static
+    public function limit(Limit|int $limit, ?int $offset = null): static
     {
+        if (is_int($limit)) {
+            $limit = new Limit($limit);
+        }
+
+        if ($offset !== null) {
+            $limit->setOffset($offset);
+        }
+
         $this->limit = $limit;
-        $this->offset = $offset;
 
         return $this;
     }
@@ -739,23 +745,20 @@ abstract class Query
      *
      * @return string
      */
-    protected function getLimitSql(): string
+    protected function getLimitSql(DriverInterface $driver): string
     {
-        /**
-         * All cases for which `empty` returns falsey should default to an empty string
-         * @psalm-suppress RiskyTruthyFalsyComparison
-         */
-        if (empty($this->limit)) {
+        $limit = $this->limit;
+
+        if ($limit === null) {
             return '';
         }
 
-        $limitSql = " LIMIT {$this->limit}";
+        $prefix = self::PREFIX_LIMIT;
+        $state = new QueryGeneratorState($driver, $prefix, self::PREFIX_SUBQUERY_CONDITION);
 
-        if ($this->offset !== null) {
-            $limitSql .= " OFFSET {$this->offset}";
-        }
+        $sqlLimit = $limit->getConditionSql($state);
 
-        return $limitSql;
+        return $this->replaceQuestionMarks($sqlLimit, $prefix);
     }
 
     /**

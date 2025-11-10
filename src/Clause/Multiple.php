@@ -26,7 +26,12 @@ use Access\Query\QueryGeneratorState;
  *
  * @author Tim <me@justim.net>
  */
-class Multiple implements ConditionInterface, OrderByInterface, FilterInterface, \Countable
+class Multiple implements
+    ConditionInterface,
+    OrderByInterface,
+    FilterInterface,
+    LimitInterface,
+    \Countable
 {
     /**
      * Combinator for AND
@@ -187,6 +192,39 @@ class Multiple implements ConditionInterface, OrderByInterface, FilterInterface,
 
             return true;
         };
+    }
+
+    /**
+     * The limit for this clause
+     *
+     * NOTE: this always returns 0, because the limit of multiple can vary. Do not use directly.
+     */
+    public function getLimit(): int
+    {
+        return 0;
+    }
+
+    /**
+     * The offset for this clause
+     *
+     * NOTE: this always returns null, because the offset of multiple can vary. Do not use directly.
+     */
+    public function getOffset(): ?int
+    {
+        return null;
+    }
+
+    public function limitCollection(?Collection $collection): void
+    {
+        if ($collection === null) {
+            return;
+        }
+
+        foreach ($this->clauses as $clause) {
+            if ($clause instanceof LimitInterface) {
+                $clause->limitCollection($collection);
+            }
+        }
     }
 
     /**

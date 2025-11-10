@@ -1040,6 +1040,126 @@ abstract class BasePresenterTest extends TestCase implements DatabaseBuilderInte
         $this->assertEquals($expected, $result);
     }
 
+    public function testLimitClause(): void
+    {
+        [$db, $userOne, $projectOne] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\Limit(1));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testMultipleLimitClause(): void
+    {
+        [$db, $userOne, $projectOne] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\Multiple(new Clause\Limit(10), new Clause\Limit(1)));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testMultipleInverseLimitClause(): void
+    {
+        [$db, $userOne, $projectOne] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectOne->getId(),
+                    'name' => $projectOne->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(new Clause\Multiple(new Clause\Limit(1), new Clause\Limit(10)));
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testMultipleLimitOffsetClause(): void
+    {
+        [$db, $userOne, , $projectTwo] = $this->createAndSetupEntities();
+
+        $expected = [
+            'id' => $userOne->getId(),
+            'projects' => [
+                [
+                    'id' => $projectTwo->getId(),
+                    'name' => $projectTwo->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(
+            new Clause\Multiple(new Clause\Limit(1, 1), new Clause\Limit(10)),
+        );
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $userOne);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testMixedMultipleLimitClause(): void
+    {
+        $db = static::createDatabase();
+
+        $user = $this->createUser($db, 'Name');
+
+        $this->createProject($db, $user, 'Same name');
+        $this->createProject($db, $user, 'Same name');
+        $p3 = $this->createProject($db, $user, 'Other name');
+
+        $expected = [
+            'id' => $user->getId(),
+            'projects' => [
+                [
+                    'id' => $p3->getId(),
+                    'name' => $p3->getName(),
+                ],
+            ],
+        ];
+
+        $presenter = new Presenter($db);
+        $presenter->addDependency(
+            new Clause\Multiple(
+                new Clause\Filter\Unique('id'),
+                new Clause\Filter\Unique('name'),
+                new Clause\OrderBy\Descending('id'),
+                new Clause\Limit(1),
+            ),
+        );
+        $result = $presenter->presentEntity(UserWithClausePresenter::class, $user);
+
+        $this->assertEquals($expected, $result);
+    }
+
     public function testInvalidPresenterKlass(): void
     {
         [$db, $userOne] = $this->createAndSetupEntities();

@@ -516,4 +516,40 @@ abstract class BaseCollectionTest extends TestCase implements DatabaseBuilderInt
 
         $this->assertEquals(0, $deduplicated->count());
     }
+
+    public function testSimpleLimit(): void
+    {
+        $db = static::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+        $projects = $projectRepo->findAllCollection();
+
+        $ids = $projects->getIds();
+        $this->assertEquals([1, 2], $ids);
+
+        $limitedProjects = $projects->applyClause(new Clause\Limit(1));
+
+        $limitedIds = $limitedProjects->getIds();
+        $this->assertEquals([1], $limitedIds);
+    }
+
+    public function testMultipleLimit(): void
+    {
+        $db = static::createDatabaseWithDummyData();
+
+        /** @var ProjectRepository $projectRepo */
+        $projectRepo = $db->getRepository(Project::class);
+        $projects = $projectRepo->findAllCollection();
+
+        $ids = $projects->getIds();
+        $this->assertEquals([1, 2], $ids);
+
+        $limitedProjects = $projects->applyClause(
+            new Clause\Multiple(new Clause\Limit(1, 1), new Clause\Limit(1)),
+        );
+
+        $limitedIds = $limitedProjects->getIds();
+        $this->assertEquals([2], $limitedIds);
+    }
 }

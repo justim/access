@@ -95,7 +95,7 @@ class Union extends Select
 
         $sqlUnion = implode(' UNION ', $unions);
         $sqlOrderBy = $this->getOrderBySql($driver);
-        $sqlLimit = $this->getLimitSql();
+        $sqlLimit = $this->getLimitSql($driver);
 
         if ($sqlLimit !== '' || $sqlOrderBy !== '') {
             // only wrap the UNIONs in parentheses if there is an ORDER BY or LIMIT

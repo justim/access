@@ -78,7 +78,7 @@ class Update extends Query
         $sqlJoins = $this->getJoinSql($driver);
         $sqlFields = ' SET ' . $fields;
         $sqlWhere = $this->getWhereSql($driver);
-        $sqlLimit = $this->getLimitSql();
+        $sqlLimit = $this->getLimitSql($driver);
 
         return $sqlUpdate . $sqlAlias . $sqlJoins . $sqlFields . $sqlWhere . $sqlLimit;
     }

@@ -52,7 +52,7 @@ class Delete extends Query
         $sqlAlias = $this->getAliasSql($driver);
         $sqlJoins = $this->getJoinSql($driver);
         $sqlWhere = $this->getWhereSql($driver);
-        $sqlLimit = $this->getLimitSql();
+        $sqlLimit = $this->getLimitSql($driver);
 
         return $sqlDelete . $sqlAlias . $sqlJoins . $sqlWhere . $sqlLimit;
     }
