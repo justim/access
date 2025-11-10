@@ -15,6 +15,8 @@ namespace Access;
 
 use Access\Clause\ClauseInterface;
 use Access\Clause\ConditionInterface;
+use Access\Clause\Limit;
+use Access\Clause\LimitInterface;
 use Access\Clause\OrderByInterface;
 use Access\Collection\GroupedCollection;
 use Access\Collection\Iterator;
@@ -290,6 +292,35 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
+     * Limit collection in place
+     *
+     * NOTE: Only the `Limit` class is accepted, not `LimitInterface`
+     * NOTE: No new collection is created
+     *
+     * @param Limit|int $limit Limit of entities
+     * @param int|null $offset Will override anything set in `$limit`
+     * @return $this
+     */
+    public function limit(Limit|int $limit, ?int $offset = null): static
+    {
+        if (is_int($limit)) {
+            $limit = new Limit($limit);
+        }
+
+        if ($offset !== null) {
+            $limit->setOffset($offset);
+        }
+
+        $this->entities = array_slice(
+            $this->entities,
+            $limit->getOffset() ?? 0,
+            $limit->getLimit(),
+        );
+
+        return $this;
+    }
+
+    /**
      * Map over collection
      *
      * @psalm-template T
@@ -446,6 +477,10 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 
         if ($clause instanceof ConditionInterface) {
             $collection = $collection->filter(\Closure::fromCallable([$clause, 'matchesEntity']));
+        }
+
+        if ($clause instanceof LimitInterface) {
+            $clause->limitCollection($collection);
         }
 
         return $collection;

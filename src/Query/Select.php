@@ -146,7 +146,7 @@ class Select extends Query
         $sqlGroupBy = $this->getGroupBySql();
         $sqlHaving = $this->getHavingSql($driver);
         $sqlOrderBy = $this->getOrderBySql($driver);
-        $sqlLimit = $this->getLimitSql();
+        $sqlLimit = $this->getLimitSql($driver);
         $sqlReadLock = $this->getLockForSql($driver);
 
         return $sqlSelect .

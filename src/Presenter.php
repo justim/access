@@ -16,6 +16,7 @@ namespace Access;
 use Access\Clause\ClauseInterface;
 use Access\Clause\ConditionInterface;
 use Access\Clause\FilterInterface;
+use Access\Clause\LimitInterface;
 use Access\Clause\OrderByInterface;
 use Access\Presenter\CustomMarkerInterface;
 use Access\Presenter\EntityPool;
@@ -446,7 +447,7 @@ class Presenter
                 $entities = $clause->filterCollection($entities);
             }
 
-            if ($clause instanceof OrderByInterface) {
+            if ($clause instanceof OrderByInterface || $clause instanceof LimitInterface) {
                 $entities = $entities->applyClause($clause);
             }
         }
