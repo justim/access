@@ -16,7 +16,11 @@ namespace Tests\Base;
 use Access\Database;
 use Access\Exception;
 use Access\Exception\ClosedConnectionException;
+use Access\Exception\DuplicateEntryException;
 use Access\Query;
+use Access\Query\CreateTable;
+use Access\Query\Insert;
+use Access\Schema\Table;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -344,5 +348,26 @@ abstract class BaseDatabaseTest extends TestCase implements DatabaseBuilderInter
         $this->expectException(ClosedConnectionException::class);
         $this->expectExceptionMessage('Connection is closed');
         $db->getConnection();
+    }
+
+    public function testDuplicateEntryException(): void
+    {
+        $db = static::createEmptyDatabase();
+
+        $posts = new Table('users');
+        $slug = $posts->field('slug');
+        $posts->index('slug_index', $slug)->unique();
+
+        $create = new CreateTable($posts);
+        $db->query($create);
+
+        $insert = new Insert($posts);
+        $insert->values(['slug' => 'example']);
+        $db->query($insert);
+
+        $this->expectException(DuplicateEntryException::class);
+        $this->expectExceptionMessage('Duplicate entry');
+
+        $db->query($insert);
     }
 }

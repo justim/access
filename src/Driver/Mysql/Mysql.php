@@ -25,6 +25,7 @@ use Access\Driver\Query\CreateTableBuilderInterface;
 use Access\Driver\SqlTypeDefinitionBuilderInterface;
 use Access\Exception;
 use Access\Exception\ConnectionGoneException;
+use Access\Exception\DuplicateEntryException;
 use Access\Exception\LockNotAcquiredException;
 use Access\Exception\TableDoesNotExistException;
 use Access\ReadLock;
@@ -47,6 +48,11 @@ class Mysql extends Driver
     private const ERROR_CODE_BAD_TABLE_ERROR = 1051;
     private const ERROR_CODE_SERVER_GONE_ERROR = 2006;
     private const ERROR_CODE_CLIENT_INTERACTION_TIMEOUT = 4031;
+
+    private const ERROR_CODE_DUP_ENTRY = 1062;
+    private const ERROR_CODE_FOREIGN_DUPLICATE_KEY_OLD_UNUSED = 1557;
+    private const ERROR_CODE_DUP_ENTRY_AUTOINCREMENT_CASE = 1569;
+    private const ERROR_CODE_DUP_ENTRY_WITH_KEY_NAME = 1586;
 
     private const ERROR_CODE_LOCK_NOWAIT = 3572;
     private const ERROR_CODE_LOCK_WAIT_TIMEOUT = 1205;
@@ -114,6 +120,12 @@ class Mysql extends Driver
                     0,
                     $e,
                 );
+
+            case self::ERROR_CODE_DUP_ENTRY:
+            case self::ERROR_CODE_FOREIGN_DUPLICATE_KEY_OLD_UNUSED:
+            case self::ERROR_CODE_DUP_ENTRY_AUTOINCREMENT_CASE:
+            case self::ERROR_CODE_DUP_ENTRY_WITH_KEY_NAME:
+                return new DuplicateEntryException(sprintf('Duplicate entry: %s', $message), 0, $e);
 
             case self::ERROR_CODE_LOCK_NOWAIT:
                 return new LockNotAcquiredException(
