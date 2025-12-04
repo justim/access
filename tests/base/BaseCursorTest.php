@@ -15,14 +15,12 @@ namespace Tests\Base;
 
 use Access\Batch;
 use Access\Query\Cursor\CurrentIdsCursor;
-use Access\Query\Cursor\MaxValueCursor;
-use Access\Query\Cursor\MinValueCursor;
 use Access\Query\Cursor\PageCursor;
 use Access\Query\Select;
 use PHPUnit\Framework\TestCase;
 use Tests\Fixtures\Entity\Project;
+use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\Repository\ProjectRepository;
-use Tests\Sqlite\AbstractBaseTestCase;
 
 abstract class BaseCursorTest extends TestCase implements DatabaseBuilderInterface
 {
@@ -298,5 +296,64 @@ abstract class BaseCursorTest extends TestCase implements DatabaseBuilderInterfa
         // all queries should be used
         $this->assertCount(0, $expectedQueries);
         $this->assertCount(0, $expectedValues);
+    }
+
+    public function testFilterClausePageCursor(): void
+    {
+        $db = static::createDatabaseWithDummyData();
+
+        $third = new User();
+        $third->setEmail('third@example.com');
+        $third->setName('Third');
+        $db->insert($third);
+
+        $all = $db->getRepository(User::class)->findAllCollection();
+
+        $this->assertCount(3, $all);
+
+        $baseIds = $all->getIds();
+        $this->assertEquals([1, 2, 3], $baseIds);
+
+        $cursor = new PageCursor(pageSize: 2, page: 1);
+        $page = $all->applyClause($cursor);
+        $this->assertCount(2, $page);
+        $this->assertEquals([1, 2], $page->getIds());
+
+        $cursor->setPage(2);
+        $page = $all->applyClause($cursor);
+        $this->assertCount(1, $page);
+        $this->assertEquals([3], $page->getIds());
+
+        $cursor->setPage(3);
+        $page = $all->applyClause($cursor);
+        $this->assertCount(0, $page);
+        $this->assertEquals([], $page->getIds());
+    }
+
+    public function testFilterClauseCurrentIdsCursor(): void
+    {
+        $db = static::createDatabaseWithDummyData();
+
+        $third = new User();
+        $third->setEmail('third@example.com');
+        $third->setName('Third');
+        $db->insert($third);
+
+        $all = $db->getRepository(User::class)->findAllCollection();
+
+        $this->assertCount(3, $all);
+
+        $baseIds = $all->getIds();
+        $this->assertEquals([1, 2, 3], $baseIds);
+
+        $cursor = new CurrentIdsCursor(pageSize: 2);
+        $page = $all->applyClause($cursor);
+        $this->assertCount(3, $page);
+        $this->assertEquals([1, 2, 3], $page->getIds());
+
+        $cursor->addCurrentIds([1, 2]);
+        $page = $all->applyClause($cursor);
+        $this->assertCount(1, $page);
+        $this->assertEquals([3], $page->getIds());
     }
 }

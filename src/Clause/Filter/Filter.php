@@ -25,8 +25,6 @@ abstract class Filter implements FilterInterface
 {
     /**
      * Filter given collection in place based on this filter clause
-     *
-     * @param Collection $collection Collection to filter
      */
     public function filterCollection(Collection $collection): Collection
     {

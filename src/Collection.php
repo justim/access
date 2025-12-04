@@ -15,6 +15,8 @@ namespace Access;
 
 use Access\Clause\ClauseInterface;
 use Access\Clause\ConditionInterface;
+use Access\Clause\Filter\FilterItemResult;
+use Access\Clause\FilterInterface;
 use Access\Clause\Limit;
 use Access\Clause\LimitInterface;
 use Access\Clause\OrderByInterface;
@@ -24,6 +26,7 @@ use Access\Database;
 use Access\Entity;
 use Access\Exception;
 use Access\Presenter;
+use Access\Query\Cursor\Cursor;
 
 /**
  * Collection of entities
@@ -359,15 +362,29 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Create a new filtered collection
      *
-     * @psalm-param callable(TEntity): scalar $finder Include entity when $finder returns `true`
      * @param callable $finder Include entity when $finder returns `true`
+     * @psalm-param callable(TEntity): (FilterItemResult|bool) $finder Include entity when $finder returns `true`
      * @return Collection<TEntity> Newly created, and filtered, collection
      */
     public function filter(callable $finder): Collection
     {
         /** @var self<TEntity> $result */
         $result = new self($this->db);
-        $result->fromIterable(array_filter($this->entities, $finder));
+
+        foreach ($this->entities as $entity) {
+            /** @var FilterItemResult|bool $filterResult */
+            $filterResult = $finder($entity);
+
+            if ($filterResult === FilterItemResult::Done) {
+                break;
+            } elseif ($filterResult === FilterItemResult::Exclude) {
+                continue;
+            } elseif (!$filterResult) {
+                continue;
+            }
+
+            $result->addEntity($entity);
+        }
 
         return $result;
     }
@@ -481,6 +498,10 @@ class Collection implements \ArrayAccess, \Countable, \IteratorAggregate
 
         if ($clause instanceof LimitInterface) {
             $clause->limitCollection($collection);
+        }
+
+        if ($clause instanceof FilterInterface) {
+            $collection = $clause->filterCollection($collection);
         }
 
         return $collection;

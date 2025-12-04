@@ -34,7 +34,7 @@ class Unique extends Filter
      * Create the finder function for this filter clause
      *
      * @return callable
-     * @psalm-return callable(\Access\Entity): scalar
+     * @psalm-return callable(\Access\Entity): (FilterItemResult|bool)
      */
     public function createFilterFinder(): callable
     {

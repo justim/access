@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Access\Query\Cursor;
 
 use Access\Clause\Condition\NotIn;
+use Access\Entity;
 use Access\Query;
 
 /**
@@ -75,5 +76,20 @@ class CurrentIdsCursor extends Cursor
 
             $query->where(new NotIn(sprintf('%s.id', $tableName), $this->currentIds));
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createFilterFinder(): callable
+    {
+        // it's a "negative" cursor, no IDs mean that everything is allowed
+        if (empty($this->currentIds)) {
+            return fn(Entity $entity): bool => true;
+        }
+
+        $currentIds = array_flip($this->currentIds);
+
+        return fn(Entity $entity): bool => !isset($currentIds[$entity->getId()]);
     }
 }
