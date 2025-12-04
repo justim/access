@@ -15,7 +15,11 @@ namespace Tests\Base;
 
 use Access\Database;
 use Access\Exception;
+use Access\Exception\DuplicateEntryException;
 use Access\Query;
+use Access\Query\CreateTable;
+use Access\Query\Insert;
+use Access\Schema\Table;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -324,5 +328,26 @@ abstract class BaseDatabaseTest extends TestCase implements DatabaseBuilderInter
         // the user is findable again
         $user = $db->findOne(User::class, 1);
         $this->assertNotNull($user);
+    }
+
+    public function testDuplicateEntryException(): void
+    {
+        $db = static::createEmptyDatabase();
+
+        $posts = new Table('users');
+        $slug = $posts->field('slug');
+        $posts->index('slug_index', $slug)->unique();
+
+        $create = new CreateTable($posts);
+        $db->query($create);
+
+        $insert = new Insert($posts);
+        $insert->values(['slug' => 'example']);
+        $db->query($insert);
+
+        $this->expectException(DuplicateEntryException::class);
+        $this->expectExceptionMessage('Duplicate entry');
+
+        $db->query($insert);
     }
 }

@@ -43,14 +43,11 @@ class StatementTest extends TestCase
 
         $query = new Query\Insert(User::class);
         $query->values([
-            'id' => 1,
+            'id' => 'foo',
             'name' => 'Dave',
             'email' => 'dave@example.com',
         ]);
 
-        $db->query($query);
-
-        // insert with same primary key value
         $db->query($query);
     }
 }

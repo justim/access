@@ -24,6 +24,7 @@ use Access\Driver\Sqlite\Query\CreateDatabaseBuilder;
 use Access\Driver\Sqlite\Query\CreateTableBuilder;
 use Access\Driver\Sqlite\SqliteSqlTypeDefinitionBuilder;
 use Access\Exception;
+use Access\Exception\DuplicateEntryException;
 use Access\Exception\NotSupportedException;
 use Access\Exception\TableDoesNotExistException;
 use Access\ReadLock;
@@ -86,6 +87,10 @@ class Sqlite extends Driver
                 0,
                 $e,
             );
+        }
+
+        if (strpos($message, 'UNIQUE constraint failed') !== false) {
+            return new DuplicateEntryException(sprintf('Duplicate entry: %s', $message), 0, $e);
         }
 
         return null;
