@@ -13,6 +13,10 @@ declare(strict_types=1);
 
 namespace Access\Query\Cursor;
 
+use Access\Clause\Filter\FilterItemResult;
+use Access\Clause\FilterInterface;
+use Access\Collection;
+use Access\Exception\NotSupportedException;
 use Access\Query;
 
 /**
@@ -20,7 +24,7 @@ use Access\Query;
  *
  * @author Tim <me@justim.net>
  */
-abstract class Cursor
+abstract class Cursor implements FilterInterface
 {
     /**
      * Default page size
@@ -72,4 +76,31 @@ abstract class Cursor
      * @param Query $query The query that needs cursoring
      */
     abstract public function apply(Query $query): void;
+
+    /**
+     * Filter given collection in place based on this cursor
+     *
+     * @psalm-template TEntity of \Access\Entity
+     * @param Collection $collection The collection that needs cursoring
+     * @psalm-param Collection<TEntity> $collection The collection that needs cursoring
+     * @return Collection The filtered collection
+     * @psalm-return Collection<TEntity> The filtered collection
+     */
+    public function filterCollection(Collection $collection): Collection
+    {
+        return $collection->filter($this->createFilterFinder());
+    }
+
+    /**
+     * Create the finder function for this cursor
+     *
+     * @return callable
+     * @psalm-return callable(\Access\Entity): (FilterItemResult|bool)
+     */
+    public function createFilterFinder(): callable
+    {
+        throw new NotSupportedException(
+            sprintf('The "%s" cursor does not support collections', get_class($this)),
+        );
+    }
 }

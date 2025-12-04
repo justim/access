@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Access\Query\Cursor;
 
+use Access\Clause\Filter\FilterItemResult;
 use Access\Query;
 
 /**
@@ -69,5 +70,29 @@ class PageCursor extends Cursor
     {
         $offset = ($this->page - 1) * $this->pageSize;
         $query->limit($this->pageSize, $offset);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createFilterFinder(): callable
+    {
+        $i = 0;
+        $pageSize = $this->getPageSize();
+        $offset = ($this->getPage() - 1) * $pageSize;
+
+        return function () use (&$i, $offset, $pageSize): FilterItemResult {
+            if ($i < $offset) {
+                $i++;
+                return FilterItemResult::Exclude;
+            }
+
+            if ($i >= $offset + $pageSize) {
+                return FilterItemResult::Done;
+            }
+
+            $i++;
+            return FilterItemResult::Include;
+        };
     }
 }

@@ -15,6 +15,7 @@ namespace Access\Clause;
 
 use Access\Clause\ClauseInterface;
 use Access\Clause\ConditionInterface;
+use Access\Clause\Filter\FilterItemResult;
 use Access\Collection;
 use Access\Entity;
 use Access\Query\QueryGeneratorState;
@@ -153,8 +154,6 @@ class Multiple implements
 
     /**
      * Filter given collection in place based on this filter clause
-     *
-     * @param Collection $collection Collection to filter
      */
     public function filterCollection(Collection $collection): Collection
     {
@@ -165,28 +164,32 @@ class Multiple implements
      * Create the finder function for this filter clause
      *
      * @return callable
-     * @psalm-return callable(\Access\Entity): scalar
+     * @psalm-return callable(\Access\Entity): (FilterItemResult|bool)
      */
     public function createFilterFinder(): callable
     {
         /**
-         * @var callable[] $finders
-         * @psalm-var array<array-key, callable(Entity, Entity): int> $finders
+         * @var callable[] $filterers
+         * @psalm-var array<array-key, callable(Entity): (FilterItemResult|bool)> $filterers
          */
-        $finders = [];
+        $filterers = [];
 
         foreach ($this->clauses as $clause) {
             if ($clause instanceof FilterInterface) {
-                $finders[] = $clause->createFilterFinder();
+                $filterers[] = $clause->createFilterFinder();
             }
         }
 
-        return function (Entity $entity) use ($finders): bool {
-            foreach ($finders as $finder) {
-                $found = $finder($entity);
+        return function (Entity $entity) use ($filterers): FilterItemResult|bool {
+            foreach ($filterers as $filterer) {
+                $itemResult = $filterer($entity);
 
-                if ($found === false) {
-                    return false;
+                if (
+                    $itemResult === false ||
+                    $itemResult === FilterItemResult::Exclude ||
+                    $itemResult === FilterItemResult::Done
+                ) {
+                    return $itemResult;
                 }
             }
 
