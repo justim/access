@@ -28,7 +28,7 @@ use Access\Presenter;
  *
  * @author Tim <me@justim.net>
  *
- * @psalm-template TEntity of Entity
+ * @template-covariant TEntity of Entity
  * @template-implements \ArrayAccess<int, TEntity>
  * @template-implements \IteratorAggregate<int, TEntity>
  */
