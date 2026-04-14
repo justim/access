@@ -28,7 +28,7 @@ use Access\Schema\Type;
  *
  * @psalm-type FieldOptions = array{
  *  default?: mixed,
- *  type?: self::FIELD_TYPE_*,
+ *  type?: self::FIELD_TYPE_*|Type,
  *  enumName?: class-string<BackedEnum>,
  *  virtual?: bool,
  *  excludeInCopy?: bool,
@@ -141,6 +141,8 @@ abstract class Entity implements IdentifiableInterface
             } elseif (isset($field['type'])) {
                 if ($field['type'] === self::FIELD_TYPE_ENUM && isset($field['enumName'])) {
                     $type = new Type\Enum($field['enumName']);
+                } elseif ($field['type'] instanceof Type) {
+                    $type = $field['type'];
                 } else {
                     $type = match ($field['type']) {
                         self::FIELD_TYPE_INT => new Type\Integer(),

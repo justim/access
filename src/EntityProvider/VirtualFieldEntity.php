@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Access\EntityProvider;
 
+use Access\Schema\Type\VirtualMixedType;
+
 /**
  * Entity class to fetch a single virtual field
  *
@@ -40,6 +42,14 @@ class VirtualFieldEntity extends VirtualEntity
 
         if ($virtualType !== null) {
             $field['type'] = $virtualType;
+        } else {
+            // the default for `null` type is `String`, but with the
+            // introduction of the type classes the string type has
+            // gotten a bit more strict, it expects values coming from
+            // the database to be a string. the mixed type just allows
+            // everything to be passed through, which is what we want
+            // for a virtual field with no type
+            $field['type'] = new VirtualMixedType();
         }
 
         parent::__construct([

@@ -16,6 +16,7 @@ namespace Access\EntityProvider;
 use Access\Cascade;
 use Access\Entity;
 use Access\Schema\Table;
+use Access\Schema\Type;
 use BackedEnum;
 
 /**
@@ -25,7 +26,7 @@ use BackedEnum;
  *
  * @psalm-type FieldOptions = array{
  *  default?: mixed,
- *  type?: Entity::FIELD_TYPE_*,
+ *  type?: Entity::FIELD_TYPE_*|Type,
  *  enumName?: class-string<BackedEnum>,
  *  virtual?: bool,
  *  excludeInCopy?: bool,
