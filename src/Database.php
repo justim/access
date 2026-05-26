@@ -268,10 +268,10 @@ class Database
      * @psalm-return ?TEntity
      *
      * @param string $klass Entity class name
-     * @param int $id ID of the entity
+     * @param ?int $id ID of the entity
      * @return ?Entity
      */
-    public function findOne(string $klass, int $id): ?Entity
+    public function findOne(string $klass, ?int $id): ?Entity
     {
         return $this->getRepository($klass)->findOne($id);
     }
