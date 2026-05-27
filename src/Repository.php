@@ -79,11 +79,15 @@ class Repository
     /**
      * Find a single entity by its ID
      *
-     * @param int $id ID of the entity
+     * @param ?int $id ID of the entity
      * @psalm-return ?TEntity
      */
-    public function findOne(int $id): ?Entity
+    public function findOne(?int $id): ?Entity
     {
+        if ($id === null) {
+            return null;
+        }
+        
         return $this->findOneBy([
             'id' => $id,
         ]);
