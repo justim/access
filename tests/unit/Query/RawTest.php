@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Query;
 
-use PHPUnit\Framework\TestCase;
 use Access\Query\Raw;
+use PHPUnit\Framework\TestCase;
 
 class RawTest extends TestCase
 {

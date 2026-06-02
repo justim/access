@@ -24,7 +24,10 @@ use Access\Schema\Table;
 interface CreateTableBuilderInterface
 {
     public function primaryKey(Field $field): string;
+
     public function foreignKey(Field $field): string;
+
     public function index(Index $index): string;
+
     public function tableOptions(Table $table): string;
 }

@@ -314,7 +314,10 @@ abstract class BaseCursorTest extends TestCase implements DatabaseBuilderInterfa
         $baseIds = $all->getIds();
         $this->assertEquals([1, 2, 3], $baseIds);
 
-        $cursor = new PageCursor(pageSize: 2, page: 1);
+        $cursor = new PageCursor(
+            pageSize: 2,
+            page: 1,
+        );
         $page = $all->applyClause($cursor);
         $this->assertCount(2, $page);
         $this->assertEquals([1, 2], $page->getIds());

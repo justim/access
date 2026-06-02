@@ -16,6 +16,4 @@ namespace Access;
  *
  * @author Tim <me@justim.net>
  */
-class Exception extends \RuntimeException
-{
-}
+class Exception extends \RuntimeException {}

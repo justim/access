@@ -8,7 +8,6 @@ use Access\Exception\NotSupportedException;
 use Access\Query\Select;
 use Access\Query\Union;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Fixtures\Entity\Project;
 
 class UnionTest extends TestCase
@@ -25,8 +24,8 @@ class UnionTest extends TestCase
         $query->addQuery($q2);
 
         $this->assertEquals(
-            'SELECT `p1`.* FROM `projects` AS `p1` WHERE (p1.status = :u0w0) ' .
-                'UNION SELECT `p2`.* FROM `projects` AS `p2` WHERE (p2.status = :u1w0)',
+            'SELECT `p1`.* FROM `projects` AS `p1` WHERE (p1.status = :u0w0) '
+            . 'UNION SELECT `p2`.* FROM `projects` AS `p2` WHERE (p2.status = :u1w0)',
             $query->getSql(),
         );
         $this->assertEquals(
@@ -48,8 +47,8 @@ class UnionTest extends TestCase
         $query->limit(1);
 
         $this->assertEquals(
-            '(SELECT `p1`.* FROM `projects` AS `p1` WHERE (p1.status = :u0w0) ' .
-                'UNION SELECT `p2`.* FROM `projects` AS `p2` WHERE (p2.status = :u1w0)) LIMIT 1',
+            '(SELECT `p1`.* FROM `projects` AS `p1` WHERE (p1.status = :u0w0) '
+            . 'UNION SELECT `p2`.* FROM `projects` AS `p2` WHERE (p2.status = :u1w0)) LIMIT 1',
             $query->getSql(),
         );
         $this->assertEquals(

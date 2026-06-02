@@ -153,8 +153,8 @@ class CascadeDeleteResolver
             if (isset($this->dependsOn[$a][$b]) && isset($this->dependsOn[$b][$a])) {
                 // the cycle is soft, so we can ignore it
                 if (
-                    $this->dependsOn[$a][$b] === DeleteKind::Soft &&
-                    $this->dependsOn[$b][$a] === DeleteKind::Soft
+                    $this->dependsOn[$a][$b] === DeleteKind::Soft
+                    && $this->dependsOn[$b][$a] === DeleteKind::Soft
                 ) {
                     return 0;
                 }

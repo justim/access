@@ -16,7 +16,6 @@ namespace Tests\Sqlite;
 use Access\Database;
 use Access\Query\Raw;
 use Psr\Clock\ClockInterface;
-
 use Tests\Fixtures\Entity\ProfileImage;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;

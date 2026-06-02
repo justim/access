@@ -39,9 +39,11 @@ enum MigrationResultType
 
     public function isError(): bool
     {
-        return $this === self::ConstructiveNotExecuted ||
-            $this === self::BlockedByDestructiveChange ||
-            $this === self::DestructiveNotExecuted;
+        return (
+            $this === self::ConstructiveNotExecuted
+            || $this === self::BlockedByDestructiveChange
+            || $this === self::DestructiveNotExecuted
+        );
     }
 
     public function getMessage(): string

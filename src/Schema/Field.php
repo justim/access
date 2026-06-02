@@ -151,9 +151,10 @@ class Field extends ClauseField
     public function getDefaultValue(Entity $entity)
     {
         if (!$this->hasDefault()) {
-            throw new NoDefaultValueException(
-                sprintf('No default value for field "%s"', $this->name),
-            );
+            throw new NoDefaultValueException(sprintf(
+                'No default value for field "%s"',
+                $this->name,
+            ));
         }
 
         if (is_callable($this->default)) {
@@ -168,18 +169,23 @@ class Field extends ClauseField
      */
     public function hasStaticDefault(): bool
     {
-        return $this->hasDefault() &&
-            (is_scalar($this->default) ||
-                $this->default instanceof BackedEnum ||
-                $this->default === null);
+        return (
+            $this->hasDefault()
+            && (
+                is_scalar($this->default)
+                || $this->default instanceof BackedEnum
+                || $this->default === null
+            )
+        );
     }
 
     public function getStaticDefaultValue(): int|float|string|bool|BackedEnum|null
     {
         if (!$this->hasStaticDefault()) {
-            throw new NoDefaultValueException(
-                sprintf('No static default value for field "%s"', $this->name),
-            );
+            throw new NoDefaultValueException(sprintf(
+                'No static default value for field "%s"',
+                $this->name,
+            ));
         }
 
         return $this->default;

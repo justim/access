@@ -9,7 +9,6 @@ use Access\Clause\OrderBy\Ascending;
 use Access\Exception;
 use Access\Query\Select;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Fixtures\Entity\MissingTableEntity;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
@@ -148,11 +147,11 @@ class SelectTest extends TestCase
         $query->having('u.name IS NOT NULL');
 
         $this->assertEquals(
-            'SELECT `u`.*, COUNT(p.id) AS `total_projects` FROM `users` AS `u` ' .
-                'LEFT JOIN `projects` AS `p` ON (p.owner_id = u.id) ' .
-                'WHERE `u`.`deleted_at` IS NULL ' .
-                'GROUP BY u.id ' .
-                'HAVING (total_projects > :h0) AND (u.name IS NOT NULL)',
+            'SELECT `u`.*, COUNT(p.id) AS `total_projects` FROM `users` AS `u` '
+            . 'LEFT JOIN `projects` AS `p` ON (p.owner_id = u.id) '
+            . 'WHERE `u`.`deleted_at` IS NULL '
+            . 'GROUP BY u.id '
+            . 'HAVING (total_projects > :h0) AND (u.name IS NOT NULL)',
             $query->getSql(),
         );
 
@@ -239,10 +238,10 @@ class SelectTest extends TestCase
         $query->where('u.first_name = ?', 'Dave');
 
         $this->assertEquals(
-            'SELECT `u`.*, (SELECT COUNT(p.id) FROM `projects` AS `p` WHERE ' .
-                '(p.user_id = u.id) AND (p.status = :s0w0)) AS `total_projects` FROM `users` AS `u` ' .
-                'INNER JOIN `projects` AS `pp` ON ((pp.user_id = u.id) AND (pp.id = :j0j0)) ' .
-                'WHERE `u`.`deleted_at` IS NULL AND (u.first_name = :w0)',
+            'SELECT `u`.*, (SELECT COUNT(p.id) FROM `projects` AS `p` WHERE '
+            . '(p.user_id = u.id) AND (p.status = :s0w0)) AS `total_projects` FROM `users` AS `u` '
+            . 'INNER JOIN `projects` AS `pp` ON ((pp.user_id = u.id) AND (pp.id = :j0j0)) '
+            . 'WHERE `u`.`deleted_at` IS NULL AND (u.first_name = :w0)',
             $query->getSql(),
         );
 
@@ -299,9 +298,9 @@ class SelectTest extends TestCase
         ]);
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND ' .
-                '((u.id = (SELECT p1.user_id FROM `projects` AS `p1` WHERE (p1.status = :z0w0) LIMIT 1)) ' .
-                'OR (u.external_id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE (p2.status != :z1w0) AND (p2.name = :z1w1) LIMIT 1)))',
+            'SELECT `u`.* FROM `users` AS `u` WHERE `u`.`deleted_at` IS NULL AND '
+            . '((u.id = (SELECT p1.user_id FROM `projects` AS `p1` WHERE (p1.status = :z0w0) LIMIT 1)) '
+            . 'OR (u.external_id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE (p2.status != :z1w0) AND (p2.name = :z1w1) LIMIT 1)))',
             $query->getSql(),
         );
 
@@ -334,9 +333,9 @@ class SelectTest extends TestCase
         $query->where('u.id = ?', $subQueryInProgress);
 
         $this->assertEquals(
-            'SELECT `u`.*, (SELECT COUNT(p1.id) FROM `projects` AS `p1` WHERE ' .
-                '(p1.user_id = u.id) AND (p1.status = :s0w0)) AS `total_projects` FROM `users` AS `u` ' .
-                'WHERE `u`.`deleted_at` IS NULL AND (u.id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE (p2.status = :z0w0) LIMIT 1))',
+            'SELECT `u`.*, (SELECT COUNT(p1.id) FROM `projects` AS `p1` WHERE '
+            . '(p1.user_id = u.id) AND (p1.status = :s0w0)) AS `total_projects` FROM `users` AS `u` '
+            . 'WHERE `u`.`deleted_at` IS NULL AND (u.id = (SELECT p2.user_id FROM `projects` AS `p2` WHERE (p2.status = :z0w0) LIMIT 1))',
             $query->getSql(),
         );
 
@@ -360,8 +359,8 @@ class SelectTest extends TestCase
         $query->where('u.id IN (?)', $subQueryInProgress);
 
         $this->assertEquals(
-            'SELECT `u`.* FROM `users` AS `u` ' .
-                'WHERE `u`.`deleted_at` IS NULL AND (u.id IN (SELECT p1.user_id FROM `projects` AS `p1` WHERE (p1.status = :z0w0)))',
+            'SELECT `u`.* FROM `users` AS `u` '
+            . 'WHERE `u`.`deleted_at` IS NULL AND (u.id IN (SELECT p1.user_id FROM `projects` AS `p1` WHERE (p1.status = :z0w0)))',
             $query->getSql(),
         );
 

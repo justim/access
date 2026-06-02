@@ -7,7 +7,6 @@ namespace Tests\Unit\Query;
 use Access\Clause\Field;
 use Access\Query\Insert;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Fixtures\Entity\User;
 
 class InsertTest extends TestCase

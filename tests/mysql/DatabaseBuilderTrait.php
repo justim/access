@@ -21,7 +21,6 @@ use Access\Query\UseDatabase;
 use Access\Schema;
 use PDO;
 use Psr\Clock\ClockInterface;
-
 use Tests\Fixtures\Entity\ProfileImage;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;

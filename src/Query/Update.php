@@ -51,9 +51,9 @@ class Update extends Query
             if ($value instanceof Field) {
                 // use the name of the field directly
                 $parts[] =
-                    $driver->escapeIdentifier($q) .
-                    ' = ' .
-                    $driver->escapeIdentifier($value->getName());
+                    $driver->escapeIdentifier($q)
+                    . ' = '
+                    . $driver->escapeIdentifier($value->getName());
             } elseif ($value instanceof Raw) {
                 // use the raw part directly
                 $parts[] = $driver->escapeIdentifier($q) . ' = ' . $value->getCondition();

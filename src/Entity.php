@@ -15,11 +15,11 @@ namespace Access;
 
 use Access\IdentifiableInterface;
 use Access\Repository;
-use BackedEnum;
-use Psr\Clock\ClockInterface;
 use Access\Schema\Field;
 use Access\Schema\Table;
 use Access\Schema\Type;
+use BackedEnum;
+use Psr\Clock\ClockInterface;
 
 /**
  * Entity functionality

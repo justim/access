@@ -20,6 +20,4 @@ use Access\Exception;
  *
  * @author Tim <me@justim.net>
  */
-class NotSupportedException extends Exception
-{
-}
+class NotSupportedException extends Exception {}

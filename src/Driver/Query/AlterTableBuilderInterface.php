@@ -27,12 +27,18 @@ interface AlterTableBuilderInterface
     public function renameTable(Table|string $table): string;
 
     public function addField(Field $field): string;
+
     public function removeField(ClauseField $field): string;
+
     public function changeField(ClauseField $from, Field $to): string;
+
     public function modifyField(Field $to): string;
+
     public function renameField(ClauseField $from, ClauseField $to): string;
 
     public function addIndex(Index $index): string;
+
     public function removeIndex(Index|string $index): string;
+
     public function renameIndex(Index|string $from, Index|string $to): string;
 }

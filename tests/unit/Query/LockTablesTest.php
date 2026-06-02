@@ -13,9 +13,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Query;
 
-use PHPUnit\Framework\TestCase;
 use Access\Query;
-
+use PHPUnit\Framework\TestCase;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 

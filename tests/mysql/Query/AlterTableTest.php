@@ -9,7 +9,6 @@ use Access\Query\CreateTable;
 use Access\Schema\Table;
 use Access\Schema\Type;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Base\DatabaseBuilderInterface;
 use Tests\Fixtures\UserStatus;
 use Tests\Mysql\DatabaseBuilderTrait;
@@ -28,8 +27,7 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `users` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 `name` VARCHAR(50) NOT NULL DEFAULT "Dave",
@@ -39,10 +37,7 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
                 `deleted_at` DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (`id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -55,13 +50,9 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
         $role->markAsNullable();
         $query->addField($role);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `users` ADD COLUMN `role` VARCHAR(30) NULL
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -69,13 +60,9 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
         $role = $users->field('role');
         $query->removeField($role);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `users` DROP COLUMN `role`
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -86,13 +73,9 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
         $query = new AlterTable($users);
         $query->renameField($currentName, $newName);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `users` RENAME COLUMN `name` TO `first_name`
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -103,13 +86,9 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
         $query = new AlterTable($users);
         $query->changeField($currentName, $newName);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `users` CHANGE COLUMN `first_name` `first_name` VARCHAR(50) NOT NULL DEFAULT "John"
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
     }
@@ -122,16 +101,12 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `users` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 PRIMARY KEY (`id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -140,18 +115,14 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($projects);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `projects` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 `owner_id` INT NOT NULL,
                 PRIMARY KEY (`id`),
                 FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -162,49 +133,33 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
         $query = new AlterTable($projects);
         $query->addIndex($ownerIndex);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `projects` ADD INDEX `owner_id_index` (`owner_id`)
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $query = new AlterTable($projects);
         $query->removeIndex($ownerIndex);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `projects` DROP INDEX `owner_id_index`
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $query = new AlterTable($projects);
         $ownerIndex->unique();
         $query->addIndex($ownerIndex);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `projects` ADD UNIQUE INDEX `owner_id_index` (`owner_id`)
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $newOwnerIndex = $projects->index('new_owner_id_index', $ownerId);
 
         $query = new AlterTable($projects);
         $query->renameIndex($ownerIndex, $newOwnerIndex);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `projects` RENAME INDEX `owner_id_index` TO `new_owner_id_index`
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
     }
 
     public function testRenameTable(): void
@@ -215,29 +170,21 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `users` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 PRIMARY KEY (`id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
         $users = new AlterTable($users);
         $users->renameTable('members');
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `users` RENAME TO `members`
-            SQL
-            ,
-            $users->getSql($db->getDriver()),
-        );
+            SQL, $users->getSql($db->getDriver()));
 
         $db->query($users);
     }
@@ -251,30 +198,22 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `users` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 `last_name` VARCHAR(191) NOT NULL,
                 PRIMARY KEY (`id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
         $users = new AlterTable($users);
         $users->addField('first_name')->after('id');
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `users` ADD COLUMN `first_name` VARCHAR(191) NOT NULL AFTER `id`
-            SQL
-            ,
-            $users->getSql($db->getDriver()),
-        );
+            SQL, $users->getSql($db->getDriver()));
 
         $db->query($users);
     }
@@ -288,30 +227,22 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `users` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 `last_name` VARCHAR(191) NOT NULL,
                 PRIMARY KEY (`id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
         $users = new AlterTable($users);
         $users->modifyField('last_name', new Type\VarChar(100), null);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE `users` MODIFY COLUMN `last_name` VARCHAR(100) NULL DEFAULT NULL
-            SQL
-            ,
-            $users->getSql($db->getDriver()),
-        );
+            SQL, $users->getSql($db->getDriver()));
 
         $db->query($users);
     }

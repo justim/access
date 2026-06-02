@@ -66,8 +66,10 @@ class Cascade
      */
     public function shouldCascadeDelete(DeleteKind $kind, string $entityName): bool
     {
-        return $this->shouldCascadeDeleteRegular($kind) ||
-            $this->shouldCascadeDeleteSoft($kind, $entityName);
+        return (
+            $this->shouldCascadeDeleteRegular($kind)
+            || $this->shouldCascadeDeleteSoft($kind, $entityName)
+        );
     }
 
     /**
@@ -75,8 +77,11 @@ class Cascade
      */
     public function shouldCascadeDeleteRegular(DeleteKind $kind): bool
     {
-        return $this->delete === CascadeDeleteKind::ForceRegular ||
-            ($this->delete === CascadeDeleteKind::Same && $kind === DeleteKind::Regular);
+        return (
+            $this->delete === CascadeDeleteKind::ForceRegular
+            || $this->delete === CascadeDeleteKind::Same
+            && $kind === DeleteKind::Regular
+        );
     }
 
     /**
@@ -88,8 +93,10 @@ class Cascade
      */
     public function shouldCascadeDeleteSoft(DeleteKind $kind, string $entityName): bool
     {
-        return $this->delete === CascadeDeleteKind::Same &&
-            $kind === DeleteKind::Soft &&
-            $entityName::isSoftDeletable();
+        return (
+            $this->delete === CascadeDeleteKind::Same
+            && $kind === DeleteKind::Soft
+            && $entityName::isSoftDeletable()
+        );
     }
 }

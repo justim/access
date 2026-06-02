@@ -31,8 +31,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE "users" (
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 "name" VARCHAR(50) NOT NULL DEFAULT 'Dave',
@@ -42,10 +41,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
                 "updated_at" DATETIME NOT NULL,
                 "deleted_at" DATETIME NULL DEFAULT NULL
             )
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -62,8 +58,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($projects);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE "projects" (
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 "owner_id" INTEGER NOT NULL,
@@ -73,10 +68,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
                 "deleted_at" DATETIME NULL DEFAULT NULL,
                 FOREIGN KEY ("owner_id") REFERENCES "users" ("id")
             )
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
     }
@@ -89,15 +81,11 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE "users" (
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
             )
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -107,18 +95,14 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($projects);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE "projects" (
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 "owner_id" INTEGER NOT NULL,
                 FOREIGN KEY ("owner_id") REFERENCES "users" ("id"),
                 UNIQUE ("owner_id")
             )
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
     }

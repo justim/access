@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Entity;
 
 use Access\Cascade;
-use Tests\Fixtures\Repository\ProjectRepository;
-
 use Access\Entity;
 use Access\Schema\Field;
 use Access\Schema\Table;
 use Access\Schema\Type;
+use Tests\Fixtures\Repository\ProjectRepository;
 
 /**
  * SAFETY Return types are not known, they are stored in an array config

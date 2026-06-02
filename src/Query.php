@@ -136,7 +136,8 @@ abstract class Query
      *
      * @var IncludeSoftDeletedFilter
      */
-    protected IncludeSoftDeletedFilter $includeSoftDeletedFilter = IncludeSoftDeletedFilter::Exclude;
+    protected IncludeSoftDeletedFilter $includeSoftDeletedFilter =
+        IncludeSoftDeletedFilter::Exclude;
 
     /**
      * Create a query
@@ -161,9 +162,11 @@ abstract class Query
                  * @psalm-suppress RiskyTruthyFalsyComparison
                  */
                 $tableIdentifier = $alias ?: $this->tableName;
-                $this->softDeleteCondition = new IsNull(
-                    sprintf('%s.%s', $tableIdentifier, Table::DELETED_AT_FIELD),
-                );
+                $this->softDeleteCondition = new IsNull(sprintf(
+                    '%s.%s',
+                    $tableIdentifier,
+                    Table::DELETED_AT_FIELD,
+                ));
             }
         }
 
@@ -246,9 +249,11 @@ abstract class Query
         if (is_subclass_of($tableName, Entity::class)) {
             if ($tableName::isSoftDeletable()) {
                 $tableIdentifier = $alias ?: $tableName::tableName();
-                $softDeleteCondition = new IsNull(
-                    sprintf('%s.%s', $tableIdentifier, Table::DELETED_AT_FIELD),
-                );
+                $softDeleteCondition = new IsNull(sprintf(
+                    '%s.%s',
+                    $tableIdentifier,
+                    Table::DELETED_AT_FIELD,
+                ));
             }
 
             $tableName = $tableName::tableName();
@@ -599,39 +604,42 @@ abstract class Query
     {
         $i = 0;
 
-        $joins = array_map(function ($join) use ($driver, &$i) {
-            /** @var int $i */
-            $escapedJoinTableName = $driver->escapeIdentifier($join['tableName']);
-            $escapedAlias = $driver->escapeIdentifier($join['alias']);
-            $sql = '';
+        $joins = array_map(
+            function ($join) use ($driver, &$i) {
+                /** @var int $i */
+                $escapedJoinTableName = $driver->escapeIdentifier($join['tableName']);
+                $escapedAlias = $driver->escapeIdentifier($join['alias']);
+                $sql = '';
 
-            switch ($join['type']) {
-                case self::JOIN_TYPE_LEFT:
-                    $sql .= 'LEFT JOIN ';
-                    break;
-                case self::JOIN_TYPE_INNER:
-                    $sql .= 'INNER JOIN ';
-                    break;
-            }
+                switch ($join['type']) {
+                    case self::JOIN_TYPE_LEFT:
+                        $sql .= 'LEFT JOIN ';
+                        break;
+                    case self::JOIN_TYPE_INNER:
+                        $sql .= 'INNER JOIN ';
+                        break;
+                }
 
-            $joinConditions = $this->preprocessConditions(
-                $join['on'],
-                $join['softDeleteCondition'],
-            );
+                $joinConditions = $this->preprocessConditions(
+                    $join['on'],
+                    $join['softDeleteCondition'],
+                );
 
-            $onSql = $this->getConditionSql(
-                $driver,
-                'ON',
-                $joinConditions,
-                self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
-            );
+                $onSql = $this->getConditionSql(
+                    $driver,
+                    'ON',
+                    $joinConditions,
+                    self::PREFIX_JOIN . $i . self::PREFIX_JOIN,
+                );
 
-            $sql .= "{$escapedJoinTableName} AS {$escapedAlias}{$onSql}";
+                $sql .= "{$escapedJoinTableName} AS {$escapedAlias}{$onSql}";
 
-            $i++;
+                $i++;
 
-            return $sql;
-        }, $this->joins);
+                return $sql;
+            },
+            $this->joins,
+        );
 
         $sqlJoins = !empty($joins) ? ' ' . implode(' ', $joins) : '';
 
@@ -850,8 +858,8 @@ abstract class Query
         $conditions_ = [];
 
         if (
-            $softDeleteCondition !== null &&
-            $this->includeSoftDeletedFilter === IncludeSoftDeletedFilter::Exclude
+            $softDeleteCondition !== null
+            && $this->includeSoftDeletedFilter === IncludeSoftDeletedFilter::Exclude
         ) {
             $conditions_[] = $softDeleteCondition;
         }
@@ -868,9 +876,8 @@ abstract class Query
      *
      * @return IncludeSoftDeletedFilter The old value
      */
-    public function setIncludeSoftDeleted(
-        IncludeSoftDeletedFilter|bool $includeSoftDeleted,
-    ): IncludeSoftDeletedFilter {
+    public function setIncludeSoftDeleted(IncludeSoftDeletedFilter|bool $includeSoftDeleted): IncludeSoftDeletedFilter
+    {
         $oldValue = $this->includeSoftDeletedFilter;
 
         if (is_bool($includeSoftDeleted)) {

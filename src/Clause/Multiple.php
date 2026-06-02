@@ -185,9 +185,9 @@ class Multiple implements
                 $itemResult = $filterer($entity);
 
                 if (
-                    $itemResult === false ||
-                    $itemResult === FilterItemResult::Exclude ||
-                    $itemResult === FilterItemResult::Done
+                    $itemResult === false
+                    || $itemResult === FilterItemResult::Exclude
+                    || $itemResult === FilterItemResult::Done
                 ) {
                     return $itemResult;
                 }

@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Tests\Base;
 
 use Access\Batch;
+use Access\Clause;
 use Access\Collection;
 use Access\Exception;
-use Access\Clause;
 use Access\Query\Select;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\Repository\ProjectRepository;

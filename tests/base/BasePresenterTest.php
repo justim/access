@@ -21,7 +21,6 @@ use Access\Database;
 use Access\Exception;
 use Access\Presenter;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\Presenter\BrokenInfiniteLoopPresenter;
@@ -155,9 +154,8 @@ abstract class BasePresenterTest extends TestCase implements DatabaseBuilderInte
 
     public function testPresenterCollectionWithDependency(): void
     {
-        [$db, $userOne, $projectOne, $projectTwo, $userTwo] = $this->createAndSetupEntities(
-            self::OPTION_EXTRA_USER,
-        );
+        [$db, $userOne, $projectOne, $projectTwo, $userTwo] =
+            $this->createAndSetupEntities(self::OPTION_EXTRA_USER);
 
         $projects = $db->getRepository(Project::class)->findAllCollection();
 
@@ -1179,9 +1177,8 @@ abstract class BasePresenterTest extends TestCase implements DatabaseBuilderInte
         [$db, $userOne] = $this->createAndSetupEntities();
 
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage(
-            'Missing entity klass for presenter: ' . BrokenWithoutEntityKlassPresenter::class,
-        );
+        $this->expectExceptionMessage('Missing entity klass for presenter: '
+        . BrokenWithoutEntityKlassPresenter::class);
 
         $db->presentEntity(BrokenWithoutEntityKlassPresenter::class, $userOne);
     }
@@ -1235,9 +1232,10 @@ abstract class BasePresenterTest extends TestCase implements DatabaseBuilderInte
         [$db, $userOne] = $this->createAndSetupEntities();
 
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage(
-            sprintf('Unsupported dependency demand: "%s" not available', User::class),
-        );
+        $this->expectExceptionMessage(sprintf(
+            'Unsupported dependency demand: "%s" not available',
+            User::class,
+        ));
 
         $db->presentEntity(BrokenMissingDependencyPresenter::class, $userOne);
     }

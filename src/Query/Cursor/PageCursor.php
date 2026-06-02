@@ -87,7 +87,7 @@ class PageCursor extends Cursor
                 return FilterItemResult::Exclude;
             }
 
-            if ($i >= $offset + $pageSize) {
+            if ($i >= ($offset + $pageSize)) {
                 return FilterItemResult::Done;
             }
 

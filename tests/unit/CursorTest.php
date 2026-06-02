@@ -13,14 +13,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-
 use Access\Query\Cursor\CurrentIdsCursor;
 use Access\Query\Cursor\MaxValueCursor;
 use Access\Query\Cursor\MinValueCursor;
 use Access\Query\Cursor\PageCursor;
 use Access\Query\Select;
-
+use PHPUnit\Framework\TestCase;
 use Tests\Fixtures\Entity\Project;
 
 class CursorTest extends TestCase

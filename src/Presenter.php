@@ -19,10 +19,10 @@ use Access\Clause\FilterInterface;
 use Access\Clause\LimitInterface;
 use Access\Clause\OrderByInterface;
 use Access\Presenter\CustomMarkerInterface;
+use Access\Presenter\EntityMarkerInterface;
 use Access\Presenter\EntityPool;
 use Access\Presenter\EntityPresenter;
 use Access\Presenter\FutureMarker;
-use Access\Presenter\EntityMarkerInterface;
 use Access\Presenter\PresentationMarker;
 
 /**
@@ -116,9 +116,9 @@ class Presenter
 
         $presenter = $this->createEntityPresenter($presenterKlass);
 
-        $presentation = array_values(
-            array_filter($collection->map(fn(Entity $entity) => $presenter->fromEntity($entity))),
-        );
+        $presentation = array_values(array_filter($collection->map(
+            fn(Entity $entity) => $presenter->fromEntity($entity),
+        )));
 
         return $this->processPresentation($presentation);
     }
@@ -330,9 +330,9 @@ class Presenter
                     $currentPresentationMarkers,
                 ) {
                     if (
-                        $item instanceof PresentationMarker &&
-                        $item->getPresenterKlass() === $presenterKlass &&
-                        in_array($item, $currentPresentationMarkers, true)
+                        $item instanceof PresentationMarker
+                        && $item->getPresenterKlass() === $presenterKlass
+                        && in_array($item, $currentPresentationMarkers, true)
                     ) {
                         $item = $this->resolvePresentationMarker($item, $collection, $presenter);
                     }
@@ -363,9 +363,9 @@ class Presenter
                     $currentFutureMarkers,
                 ) {
                     if (
-                        $item instanceof FutureMarker &&
-                        $item->getEntityKlass() === $entityKlass &&
-                        in_array($item, $currentFutureMarkers, true)
+                        $item instanceof FutureMarker
+                        && $item->getEntityKlass() === $entityKlass
+                        && in_array($item, $currentFutureMarkers, true)
                     ) {
                         $item = $this->resolveFutureMarker($item, $collection);
                     }
@@ -390,9 +390,9 @@ class Presenter
             $marker,
             $collection,
             fn(Entity $entity) => $presenter->fromEntity($entity),
-            fn(Collection $entities) => array_values(
-                array_filter($entities->map(fn(Entity $entity) => $presenter->fromEntity($entity))),
-            ),
+            fn(Collection $entities) => array_values(array_filter($entities->map(
+                fn(Entity $entity) => $presenter->fromEntity($entity),
+            ))),
         );
     }
 
@@ -593,9 +593,10 @@ class Presenter
                 continue;
             }
 
-            throw new Exception(
-                sprintf('Unsupported dependency demand: "%s" not available', $typeName),
-            );
+            throw new Exception(sprintf(
+                'Unsupported dependency demand: "%s" not available',
+                $typeName,
+            ));
         }
 
         return $arguments;

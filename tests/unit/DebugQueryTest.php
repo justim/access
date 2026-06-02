@@ -18,7 +18,6 @@ use Access\DebugQuery;
 use Access\Driver\Sqlite\Sqlite;
 use Access\Query;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 use Tests\Fixtures\UserStatus;

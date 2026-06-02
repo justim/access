@@ -16,6 +16,4 @@ namespace Tests\Fixtures\Presenter;
 /**
  * Broken presenter
  */
-class BrokenPresenter
-{
-}
+class BrokenPresenter {}

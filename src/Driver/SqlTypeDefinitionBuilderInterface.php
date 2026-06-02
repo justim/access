@@ -27,14 +27,24 @@ interface SqlTypeDefinitionBuilderInterface
     public function fromField(Field $field): string;
 
     public function fromBooleanType(Type\Boolean $type): string;
+
     public function fromDateType(Type\Date $type): string;
+
     public function fromDateTimeType(Type\DateTime $type): string;
+
     public function fromEnumType(Type\Enum $type): string;
+
     public function fromIntegerType(Type\Integer $type): string;
+
     public function fromFloatType(Type\FloatType $type): string;
+
     public function fromVarCharType(Type\VarChar $type): string;
+
     public function fromVarBinaryType(Type\VarBinary $type): string;
+
     public function fromTextType(Type\Text $type): string;
+
     public function fromJsonType(Type\Json $type): string;
+
     public function fromReferenceType(Type\Reference $type): string;
 }

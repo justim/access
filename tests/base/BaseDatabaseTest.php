@@ -23,7 +23,6 @@ use Access\Query\Insert;
 use Access\Schema\Table;
 use PDO;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Fixtures\Entity\Photo;
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\Role;

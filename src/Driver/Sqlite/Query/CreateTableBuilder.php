@@ -60,12 +60,9 @@ class CreateTableBuilder implements CreateTableBuilderInterface
             return '';
         }
 
-        $fields = array_map(
-            fn(Clause\Field|string $field) => $this->driver->escapeIdentifier(
-                $field instanceof Field ? $field->getName() : $field,
-            ),
-            $index->getFields(),
-        );
+        $fields = array_map(fn(Clause\Field|string $field) => $this->driver->escapeIdentifier(
+            $field instanceof Field ? $field->getName() : $field,
+        ), $index->getFields());
 
         return sprintf('UNIQUE (%s)', implode(', ', $fields));
     }

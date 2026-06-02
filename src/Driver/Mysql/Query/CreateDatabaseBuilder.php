@@ -35,9 +35,7 @@ class CreateDatabaseBuilder implements CreateDatabaseBuilderInterface
 
     public function createOptions(Schema $schema): string
     {
-        $defaultCharset = match ($schema->getDefaultCharset()) {
-            Charset::Utf8 => 'utf8mb4',
-        };
+        $defaultCharset = match ($schema->getDefaultCharset()) { Charset::Utf8 => 'utf8mb4' };
 
         $collate = match ($schema->getDefaultCollate()) {
             Collate::Default => 'utf8mb4_general_ci',

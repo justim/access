@@ -64,17 +64,11 @@ class CreateTableBuilder implements CreateTableBuilderInterface
 
     public function tableOptions(Table $table): string
     {
-        $defaultCharset = match ($table->getDefaultCharset()) {
-            Charset::Utf8 => 'utf8mb4',
-        };
+        $defaultCharset = match ($table->getDefaultCharset()) { Charset::Utf8 => 'utf8mb4' };
 
-        $collate = match ($table->getCollate()) {
-            Collate::Default => 'utf8mb4_general_ci',
-        };
+        $collate = match ($table->getCollate()) { Collate::Default => 'utf8mb4_general_ci' };
 
-        $engine = match ($table->getEngine()) {
-            Engine::Default => 'InnoDB',
-        };
+        $engine = match ($table->getEngine()) { Engine::Default => 'InnoDB' };
 
         return sprintf(
             'DEFAULT CHARSET=%s COLLATE=%s ENGINE=%s',

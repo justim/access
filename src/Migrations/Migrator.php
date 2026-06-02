@@ -177,8 +177,8 @@ class Migrator
         }
 
         if (
-            $migrationRecord->getDestructiveExecutedAt() !== null &&
-            $migrationRecord->getDestructiveRevertedAt() === null
+            $migrationRecord->getDestructiveExecutedAt() !== null
+            && $migrationRecord->getDestructiveRevertedAt() === null
         ) {
             return MigrationResult::blockedByDestructiveChange();
         }
@@ -248,9 +248,11 @@ class Migrator
     private function getMigrationRecord(Migration $migration): ?MigrationEntity
     {
         /** @var MigrationEntity|null $migrationRecord */
-        $migrationRecord = $this->db->getRepository($this->migrationsTableEntity)->findOneBy([
-            'version' => $migration::class,
-        ]);
+        $migrationRecord = $this->db
+            ->getRepository($this->migrationsTableEntity)
+            ->findOneBy([
+                'version' => $migration::class,
+            ]);
 
         return $migrationRecord;
     }

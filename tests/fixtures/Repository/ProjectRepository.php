@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Repository;
 
 use Access\Batch;
-use Tests\Fixtures\Entity\Project;
-
 use Access\Collection;
 use Access\EntityProvider\VirtualArrayEntity;
 use Access\EntityProvider\VirtualArrayEntityProvider;
@@ -24,6 +22,7 @@ use Access\EntityProvider\VirtualEntityProvider;
 use Access\Query\Select;
 use Access\Query\Update;
 use Access\Repository;
+use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 
 /**
@@ -138,40 +137,37 @@ class ProjectRepository extends Repository
          *
          * @psalm-suppress MissingTemplateParam
          */
-        return $this->selectWithEntityProvider(
-            $query,
-            new class extends VirtualEntityProvider {
-                public function create(): VirtualEntity
-                {
-                    return new class ([
-                        'user_name' => [],
-                        'user_id' => [
-                            'type' => 'int',
-                        ],
-                    ]) extends VirtualEntity {
-                        /**
-                         * SAFETY Return types are not known, they are stored in an array config
-                         * @psalm-suppress MixedReturnStatement
-                         * @psalm-suppress MixedInferredReturnType
-                         */
-                        public function getUserName(): string
-                        {
-                            return $this->get('user_name');
-                        }
+        return $this->selectWithEntityProvider($query, new class extends VirtualEntityProvider {
+            public function create(): VirtualEntity
+            {
+                return new class([
+                    'user_name' => [],
+                    'user_id' => [
+                        'type' => 'int',
+                    ],
+                ]) extends VirtualEntity {
+                    /**
+                     * SAFETY Return types are not known, they are stored in an array config
+                     * @psalm-suppress MixedReturnStatement
+                     * @psalm-suppress MixedInferredReturnType
+                     */
+                    public function getUserName(): string
+                    {
+                        return $this->get('user_name');
+                    }
 
-                        /**
-                         * SAFETY Return types are not known, they are stored in an array config
-                         * @psalm-suppress MixedReturnStatement
-                         * @psalm-suppress MixedInferredReturnType
-                         */
-                        public function getUserId(): int
-                        {
-                            return $this->get('user_id');
-                        }
-                    };
-                }
-            },
-        );
+                    /**
+                     * SAFETY Return types are not known, they are stored in an array config
+                     * @psalm-suppress MixedReturnStatement
+                     * @psalm-suppress MixedInferredReturnType
+                     */
+                    public function getUserId(): int
+                    {
+                        return $this->get('user_id');
+                    }
+                };
+            }
+        });
     }
 
     /**
@@ -194,18 +190,15 @@ class ProjectRepository extends Repository
          * @psalm-suppress InvalidArgument
          * @var Collection<VirtualArrayEntity>
          */
-        return $this->selectWithEntityProviderCollection(
-            $query,
-            new VirtualArrayEntityProvider([
-                'user_name' => [],
-                'user_id' => [
-                    'type' => 'int',
-                ],
-                'user_created_at' => [
-                    'type' => 'datetime',
-                ],
-            ]),
-        );
+        return $this->selectWithEntityProviderCollection($query, new VirtualArrayEntityProvider([
+            'user_name' => [],
+            'user_id' => [
+                'type' => 'int',
+            ],
+            'user_created_at' => [
+                'type' => 'datetime',
+            ],
+        ]));
     }
 
     public function findVirtualArrayUserNamesSingleField(): Collection
@@ -222,12 +215,9 @@ class ProjectRepository extends Repository
          *
          * @psalm-suppress InvalidArgument
          */
-        return $this->selectWithEntityProviderCollection(
-            $query,
-            new VirtualArrayEntityProvider([
-                'user_name' => [],
-            ]),
-        );
+        return $this->selectWithEntityProviderCollection($query, new VirtualArrayEntityProvider([
+            'user_name' => [],
+        ]));
     }
 
     public function brokenFindVirtualEntity(): Collection
@@ -242,10 +232,8 @@ class ProjectRepository extends Repository
          * SAFEFY This is a broken example, the virtual entity is not created
          * @psalm-suppress MissingTemplateParam
          */
-        return $this->selectWithEntityProviderCollection(
-            $query,
-            new class extends VirtualEntityProvider {},
-        );
+        return $this->selectWithEntityProviderCollection($query, new class extends
+            VirtualEntityProvider {});
     }
 
     /**

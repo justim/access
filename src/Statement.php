@@ -154,6 +154,7 @@ final class Statement
                     // for it
                     // @codeCoverageIgnoreStart
                     return -1;
+
                     // @codeCoverageIgnoreEnd
                 }
 

@@ -14,14 +14,13 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Entity;
 
 use Access\Cascade;
-use Tests\Fixtures\Repository\UserRepository;
-
 use Access\Entity;
 use Access\Entity\SoftDeletableTrait;
 use Access\Entity\TimestampableTrait;
 use Access\Schema\Field;
 use Access\Schema\Table;
 use Access\Schema\Type;
+use Tests\Fixtures\Repository\UserRepository;
 use Tests\Fixtures\UserStatus;
 
 /**

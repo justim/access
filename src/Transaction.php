@@ -15,11 +15,11 @@ namespace Access;
 
 use Access\Database;
 use Access\Exception;
+use Access\Query\Begin;
 use Access\Query\Commit;
 use Access\Query\Rollback;
 use Access\Query\RollbackToSavepoint;
 use Access\Query\Savepoint;
-use Access\Query\Begin;
 
 /**
  * Abstraction to handle database transactions

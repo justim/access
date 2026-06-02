@@ -182,12 +182,9 @@ class Mysql extends Driver
 
     public function getSqlIndexDefinition(Index $index): string
     {
-        $fields = array_map(
-            fn(Field|string $field): string => $this->escapeIdentifier(
-                $field instanceof Field ? $field->getName() : $field,
-            ),
-            $index->getFields(),
-        );
+        $fields = array_map(fn(Field|string $field): string => $this->escapeIdentifier(
+            $field instanceof Field ? $field->getName() : $field,
+        ), $index->getFields());
 
         return sprintf(
             '%sINDEX %s (%s)',

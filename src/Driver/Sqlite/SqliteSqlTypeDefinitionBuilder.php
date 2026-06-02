@@ -52,8 +52,8 @@ class SqliteSqlTypeDefinitionBuilder extends SqlTypeDefinitionBuilder
                 $parts[] = 'DEFAULT NULL';
             } else {
                 $parts[] =
-                    'DEFAULT ' .
-                    $this->driver->getDebugSqlValue(
+                    'DEFAULT '
+                    . $this->driver->getDebugSqlValue(
                         $field->getType()->toDatabaseFormatValue($default),
                     );
             }

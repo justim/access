@@ -8,7 +8,6 @@ use Access\Query\CreateTable;
 use Access\Schema\Table;
 use Access\Schema\Type;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Base\DatabaseBuilderInterface;
 use Tests\Fixtures\UserStatus;
 use Tests\Mysql\DatabaseBuilderTrait;
@@ -32,8 +31,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `users` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 `name` VARCHAR(50) NOT NULL DEFAULT "Dave",
@@ -44,10 +42,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
                 `deleted_at` DATETIME NULL DEFAULT NULL,
                 PRIMARY KEY (`id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -64,8 +59,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($projects);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `projects` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 `owner_id` INT NOT NULL,
@@ -76,10 +70,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
                 PRIMARY KEY (`id`),
                 FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
     }
@@ -92,16 +83,12 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `users` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 PRIMARY KEY (`id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -111,8 +98,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($projects);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE `projects` (
                 `id` INT NOT NULL AUTO_INCREMENT,
                 `owner_id` INT NOT NULL,
@@ -120,10 +106,7 @@ class CreateTableTest extends TestCase implements DatabaseBuilderInterface
                 FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`),
                 INDEX `owner_id_index` (`owner_id`)
             ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ENGINE=InnoDB
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
     }

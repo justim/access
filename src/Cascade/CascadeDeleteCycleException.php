@@ -20,6 +20,4 @@ use Exception;
  *
  * @author Tim <me@justim.net>
  */
-class CascadeDeleteCycleException extends Exception
-{
-}
+class CascadeDeleteCycleException extends Exception {}

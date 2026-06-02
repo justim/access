@@ -15,8 +15,8 @@ namespace Access\Query;
 
 use Access\Database;
 use Access\Driver\DriverInterface;
-use Access\ReadLock;
 use Access\Query;
+use Access\ReadLock;
 use Access\Schema\Table;
 
 /**
@@ -149,16 +149,18 @@ class Select extends Query
         $sqlLimit = $this->getLimitSql($driver);
         $sqlReadLock = $this->getLockForSql($driver);
 
-        return $sqlSelect .
-            $sqlFrom .
-            $sqlAlias .
-            $sqlJoins .
-            $sqlWhere .
-            $sqlGroupBy .
-            $sqlHaving .
-            $sqlOrderBy .
-            $sqlLimit .
-            $sqlReadLock;
+        return (
+            $sqlSelect
+            . $sqlFrom
+            . $sqlAlias
+            . $sqlJoins
+            . $sqlWhere
+            . $sqlGroupBy
+            . $sqlHaving
+            . $sqlOrderBy
+            . $sqlLimit
+            . $sqlReadLock
+        );
     }
 
     /**
@@ -184,9 +186,7 @@ class Select extends Query
             $escapedAlias = $driver->escapeIdentifier($alias);
 
             if ($value instanceof self) {
-                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted(
-                    $this->includeSoftDeletedFilter,
-                );
+                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
                 $subSql = preg_replace(
                     '/:(([a-z][0-9]+)+)/',
@@ -231,9 +231,7 @@ class Select extends Query
 
         foreach ($this->virtualFields as $value) {
             if ($value instanceof self) {
-                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted(
-                    $this->includeSoftDeletedFilter,
-                );
+                $oldIncludeSoftDeleted = $value->setIncludeSoftDeleted($this->includeSoftDeletedFilter);
 
                 /** @var mixed $nestedValue */
                 foreach ($value->getValues($driver) as $nestedIndex => $nestedValue) {

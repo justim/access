@@ -13,11 +13,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-
 use Access\Clause\Condition\Equals;
 use Access\Clause\Multiple;
 use Access\Clause\MultipleOr;
+use PHPUnit\Framework\TestCase;
 
 class ClauseTest extends TestCase
 {

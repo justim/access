@@ -16,7 +16,6 @@ namespace Tests\Mysql;
 use Access\Exception;
 use Access\Query;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Fixtures\Entity\User;
 
 class StatementTest extends TestCase

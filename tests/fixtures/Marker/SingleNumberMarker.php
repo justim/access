@@ -17,9 +17,9 @@ use Access\Presenter\CustomMarkerInterface;
 
 class SingleNumberMarker implements CustomMarkerInterface
 {
-    public function __construct(private int $number)
-    {
-    }
+    public function __construct(
+        private int $number,
+    ) {}
 
     public function fetch(): mixed
     {

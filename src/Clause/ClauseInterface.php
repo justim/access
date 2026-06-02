@@ -18,6 +18,4 @@ namespace Access\Clause;
  *
  * @author Tim <me@justim.net>
  */
-interface ClauseInterface
-{
-}
+interface ClauseInterface {}

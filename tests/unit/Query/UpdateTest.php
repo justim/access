@@ -8,7 +8,6 @@ use Access\Clause\Condition;
 use Access\Clause\Field;
 use Access\Query\Update;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Fixtures\Entity\Project;
 use Tests\Fixtures\Entity\User;
 

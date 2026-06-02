@@ -52,8 +52,8 @@ class MysqlSqlTypeDefinitionBuilder extends SqlTypeDefinitionBuilder
                 $parts[] = 'DEFAULT NULL';
             } else {
                 $parts[] =
-                    'DEFAULT ' .
-                    $this->driver->getDebugSqlValue(
+                    'DEFAULT '
+                    . $this->driver->getDebugSqlValue(
                         $field->getType()->toDatabaseFormatValue($default),
                     );
             }
@@ -88,15 +88,14 @@ class MysqlSqlTypeDefinitionBuilder extends SqlTypeDefinitionBuilder
 
     public function fromEnumType(Type\Enum $type): string
     {
-        return 'ENUM(' .
-            implode(
-                ', ',
-                array_map(
-                    fn(string|int $case): string => $this->driver->getDebugSqlValue($case),
-                    $type->getCases(),
-                ),
-            ) .
-            ')';
+        return (
+            'ENUM('
+            . implode(', ', array_map(
+                fn(string|int $case): string => $this->driver->getDebugSqlValue($case),
+                $type->getCases(),
+            ))
+            . ')'
+        );
     }
 
     public function fromIntegerType(Type\Integer $type): string

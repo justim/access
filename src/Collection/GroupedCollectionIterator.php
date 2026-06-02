@@ -47,7 +47,7 @@ class GroupedCollectionIterator implements \Iterator
      *
      * @return Collection<TEntity>|null
      */
-    public function current(): Collection|null
+    public function current(): ?Collection
     {
         // `Iterator::current` expects `null`, but `current` produces `false` when the array is empty
         // Convert them to `null` to avoid type errors

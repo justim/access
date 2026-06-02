@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Access\EntityProvider;
 
-use Access\Entity;
 use Access\Cascade;
+use Access\Entity;
 use BackedEnum;
 
 /**

@@ -99,8 +99,9 @@ abstract class Cursor implements FilterInterface
      */
     public function createFilterFinder(): callable
     {
-        throw new NotSupportedException(
-            sprintf('The "%s" cursor does not support collections', get_class($this)),
-        );
+        throw new NotSupportedException(sprintf(
+            'The "%s" cursor does not support collections',
+            get_class($this),
+        ));
     }
 }

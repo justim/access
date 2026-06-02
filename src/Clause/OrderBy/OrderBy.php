@@ -103,8 +103,8 @@ abstract class OrderBy implements OrderByInterface
                 $valuesTwo = $two->getValues();
 
                 if (
-                    !array_key_exists($this->field->getName(), $valuesOne) ||
-                    !array_key_exists($this->field->getName(), $valuesTwo)
+                    !array_key_exists($this->field->getName(), $valuesOne)
+                    || !array_key_exists($this->field->getName(), $valuesTwo)
                 ) {
                     return 0;
                 }

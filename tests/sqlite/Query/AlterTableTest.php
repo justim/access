@@ -9,7 +9,6 @@ use Access\Query\CreateTable;
 use Access\Schema\Table;
 use Access\Schema\Type;
 use PHPUnit\Framework\TestCase;
-
 use Tests\Base\DatabaseBuilderInterface;
 use Tests\Fixtures\UserStatus;
 use Tests\Sqlite\DatabaseBuilderTrait;
@@ -30,8 +29,7 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE "users" (
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 "name" VARCHAR(50) NOT NULL DEFAULT 'Dave',
@@ -40,10 +38,7 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
                 "updated_at" DATETIME NOT NULL,
                 "deleted_at" DATETIME NULL DEFAULT NULL
             )
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -57,13 +52,9 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
         $role->markAsNullable();
         $query->addField($role);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE "users" ADD COLUMN "role" VARCHAR(30) NULL
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -71,13 +62,9 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
         $role = $users->field('role');
         $query->removeField($role);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE "users" DROP COLUMN "role"
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
@@ -88,13 +75,9 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
         $query = new AlterTable($users);
         $query->renameField($currentName, $newName);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE "users" RENAME COLUMN "name" TO "first_name"
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
     }
@@ -107,28 +90,20 @@ class AlterTableTest extends TestCase implements DatabaseBuilderInterface
 
         $query = new CreateTable($users);
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             CREATE TABLE "users" (
                 "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
             )
-            SQL
-            ,
-            $query->getSql($db->getDriver()),
-        );
+            SQL, $query->getSql($db->getDriver()));
 
         $db->query($query);
 
         $users = new AlterTable($users);
         $users->renameTable('members');
 
-        $this->assertEquals(
-            <<<SQL
+        $this->assertEquals(<<<SQL
             ALTER TABLE "users" RENAME TO "members"
-            SQL
-            ,
-            $users->getSql($db->getDriver()),
-        );
+            SQL, $users->getSql($db->getDriver()));
 
         $db->query($users);
     }

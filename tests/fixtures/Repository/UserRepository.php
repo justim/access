@@ -13,11 +13,10 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Repository;
 
-use Tests\Fixtures\Entity\User;
-
 use Access\Collection;
 use Access\Query;
 use Access\Repository;
+use Tests\Fixtures\Entity\User;
 
 /**
  * @template-extends Repository<User>

@@ -201,9 +201,7 @@ abstract class Condition implements ConditionInterface
                 $driver->escapeIdentifier($this->value),
             ),
             /** @phpstan-ignore match.unreachable */
-            default => throw new Exception(
-                sprintf('Invalid kind of condition: "%s"', $this->kind),
-            ),
+            default => throw new Exception(sprintf('Invalid kind of condition: "%s"', $this->kind)),
         };
 
         if ($this->kind === self::KIND_RELATION) {
@@ -235,13 +233,10 @@ abstract class Condition implements ConditionInterface
             $state->incrementSubQueryIndex();
         } elseif ($this->value === null) {
             /** @var string $condition */
-            $condition = preg_replace_callback_array(
-                [
-                    '/!= ?\?/' => fn() => 'IS NOT NULL',
-                    '/= ?\?/' => fn() => 'IS NULL',
-                ],
-                $condition,
-            );
+            $condition = preg_replace_callback_array([
+                '/!= ?\?/' => fn() => 'IS NOT NULL',
+                '/= ?\?/' => fn() => 'IS NULL',
+            ], $condition);
         } elseif (is_array($this->value) || $this->value instanceof Collection) {
             if (count($this->value) > 0) {
                 $condition = str_replace(

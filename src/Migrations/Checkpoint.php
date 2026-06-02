@@ -24,7 +24,9 @@ namespace Access\Migrations;
  */
 class Checkpoint
 {
-    public function __construct(private int $step = 0) {}
+    public function __construct(
+        private int $step = 0,
+    ) {}
 
     public function getStep(): int
     {

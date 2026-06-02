@@ -331,11 +331,9 @@ abstract class EntityPresenter
             fn(Collection $collection) => $this->presentMultipleInversedRefs(
                 $targetPresenterKlass,
                 $targetMatchFieldName,
-                array_filter(
-                    $collection->map(
-                        fn(Entity $entity) => $this->getValidRefId($entity, $targetFieldName),
-                    ),
-                ),
+                array_filter($collection->map(
+                    fn(Entity $entity) => $this->getValidRefId($entity, $targetFieldName),
+                )),
                 $clause,
             ),
             $relationClause,

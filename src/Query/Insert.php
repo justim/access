@@ -46,10 +46,9 @@ class Insert extends Query
         $sqlInsert = 'INSERT INTO ' . $driver->escapeIdentifier($this->tableName);
 
         // escape field names
-        $sqlFields = array_map(
-            fn(string $field): string => $driver->escapeIdentifier($field),
-            array_keys($this->values),
-        );
+        $sqlFields = array_map(fn(string $field): string => $driver->escapeIdentifier(
+            $field,
+        ), array_keys($this->values));
 
         $sqlFields = ' (' . implode(', ', $sqlFields) . ')';
 
