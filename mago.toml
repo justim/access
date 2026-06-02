@@ -1,0 +1,17 @@
+# Welcome to Mago!
+# For full documentation, see https://mago.carthage.software/tools/overview
+php-version = "8.1.0"
+
+[source]
+workspace = "."
+paths = [
+    "src/",
+    "tests/",
+]
+includes = ["vendor"]
+excludes = []
+
+[formatter]
+preset = "default"
+print-width = 100
+always-break-named-arguments-list = true

@@ -4,6 +4,4 @@ composer.lock
 .phpunit.result.cache
 /.phpunit.cache/
 /xdebug
-/node_modules
-/yarn.lock
 /data

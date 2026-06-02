@@ -20,7 +20,8 @@
         "phpbench/phpbench": "^1.2",
         "vimeo/psalm": "^6.5",
         "symfony/var-dumper": "^6.4",
-        "psalm/plugin-phpunit": "^0.19.2"
+        "psalm/plugin-phpunit": "^0.19.2",
+        "carthage-software/mago": "^1.29"
     },
     "autoload-dev": {
         "psr-4": {
@@ -35,7 +36,8 @@
     "scripts": {
         "test": "XDEBUG_MODE=coverage phpunit",
         "bench": "phpbench run --progress=blinken --report=aggregate",
-        "lint": "psalm --show-info=false"
+        "lint": "psalm --show-info=false",
+        "mago": "mago"
     },
     "config": {
         "allow-plugins": {

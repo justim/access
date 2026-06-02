@@ -33,6 +33,9 @@ jobs:
                   composer-options: '--ignore-platform-req=php+'
                   dependency-versions: ${{ matrix.dependencies }}
 
+            - name: Run Mago format check
+              run: composer run-script mago -- format --check
+
             - name: Run lint
               run: composer run-script lint
 
