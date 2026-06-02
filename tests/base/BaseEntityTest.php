@@ -238,4 +238,28 @@ abstract class BaseEntityTest extends TestCase implements DatabaseBuilderInterfa
 
         $db->softDelete($entity);
     }
+
+    public function testRemoveMissingPublicSoftDelete(): void
+    {
+        $db = static::createDatabase();
+
+        $entity = new MissingPublicSoftDeleteEntity();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Soft delete method is not public');
+
+        $db->remove($entity);
+    }
+
+    public function testRemoveMissingSetDeleted(): void
+    {
+        $db = static::createDatabase();
+
+        $entity = new MissingSetDeletedEntity();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Entity is not soft deletable');
+
+        $db->remove($entity);
+    }
 }

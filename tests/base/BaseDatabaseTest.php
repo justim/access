@@ -331,6 +331,52 @@ abstract class BaseDatabaseTest extends TestCase implements DatabaseBuilderInter
         $this->assertNotNull($user);
     }
 
+    public function testRemoveWithIncludeSoftDeleted(): void
+    {
+        $db = static::createDatabaseWithDummyData();
+
+        // user exists in the database
+        $user = $db->findOne(User::class, 1);
+        $this->assertNotNull($user);
+
+        // `User` entity is soft deletable
+        $db->remove($user);
+
+        // user is soft deleted
+        $user = $db->findOne(User::class, 1);
+        $this->assertNull($user);
+
+        // create a new database instance with include soft deleted
+        $db = $db->withIncludeSoftDeleted(true);
+
+        // the user is findable again
+        $user = $db->findOne(User::class, 1);
+        $this->assertNotNull($user);
+    }
+
+    public function testRemove(): void
+    {
+        $db = static::createDatabaseWithDummyData();
+
+        // project exists in the database
+        $project = $db->findOne(Project::class, 1);
+        $this->assertNotNull($project);
+
+        // `Project` entity is _not_ soft deletable
+        $db->remove($project);
+
+        // project is deleted
+        $project = $db->findOne(Project::class, 1);
+        $this->assertNull($project);
+
+        // create a new database instance with include soft deleted
+        $db = $db->withIncludeSoftDeleted(true);
+
+        // the project is still not findable, it's really gone
+        $project = $db->findOne(Project::class, 1);
+        $this->assertNull($project);
+    }
+
     public function testCloseConnection(): void
     {
         $db = static::createDatabaseWithDummyData();

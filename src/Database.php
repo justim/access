@@ -571,6 +571,24 @@ class Database
     }
 
     /**
+     * Remove a model from the database
+     *
+     * Either by soft deleting it, when possible, or a regular delete otherwise
+     *
+     * @param Entity $model Entity to remove
+     * @return bool Was something actually removed
+     */
+    // name outside the realm of SQL to make it stand out as a different operation
+    public function remove(Entity $model): bool
+    {
+        if ($model::isSoftDeletable()) {
+            return $this->softDelete($model);
+        }
+
+        return $this->delete($model);
+    }
+
+    /**
      * Execute a raw query
      *
      * Has no return value, not suited for select queries
