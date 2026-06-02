@@ -28,7 +28,7 @@ jobs:
                   coverage: xdebug
 
             - name: Install dependencies with Composer
-              uses: ramsey/composer-install@v3
+              uses: ramsey/composer-install@v4
               with:
                   composer-options: '--ignore-platform-req=php+'
                   dependency-versions: ${{ matrix.dependencies }}
@@ -87,7 +87,7 @@ jobs:
                   coverage: xdebug
 
             - name: Install dependencies with Composer
-              uses: ramsey/composer-install@v3
+              uses: ramsey/composer-install@v4
               with:
                   # Make sure we can install the dependencies that don't support PHP 8.4 yet
                   composer-options: '--ignore-platform-req=php+'
