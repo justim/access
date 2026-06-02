@@ -19,7 +19,7 @@ jobs:
         name: Lint
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
 
             - name: Install PHP
               uses: shivammathur/setup-php@v2
@@ -78,7 +78,7 @@ jobs:
                   echo "MYSQL_DATABASE_PASSWORD=mysql" >> $GITHUB_ENV
                   echo "MYSQL_DATABASE_NAME=access_test_db" >> $GITHUB_ENV
 
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
 
             - name: Install PHP
               uses: shivammathur/setup-php@v2
