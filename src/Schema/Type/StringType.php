@@ -20,11 +20,13 @@ abstract class StringType extends Type
 {
     public function fromDatabaseFormatValue(mixed $value): string
     {
-        if (!is_string($value)) {
+        // cleanly castable to string without information loss,
+        // floats are weird..
+        if (!is_string($value) && !is_int($value)) {
             throw new InvalidValueException('Invalid string type: ' . gettype($value));
         }
 
-        return $value;
+        return (string) $value;
     }
 
     public function toDatabaseFormatValue(mixed $value): string
