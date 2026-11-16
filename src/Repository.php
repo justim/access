@@ -771,8 +771,9 @@ class Repository
      *
      * @return static Version of the repository with the new setting
      */
-    public function withIncludeSoftDeleted(IncludeSoftDeletedFilter|bool $includeSoftDeleted): static
-    {
+    public function withIncludeSoftDeleted(
+        IncludeSoftDeletedFilter|bool $includeSoftDeleted,
+    ): static {
         if (is_bool($includeSoftDeleted)) {
             $includeSoftDeleted = $includeSoftDeleted
                 ? IncludeSoftDeletedFilter::Include

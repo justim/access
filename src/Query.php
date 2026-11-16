@@ -876,8 +876,9 @@ abstract class Query
      *
      * @return IncludeSoftDeletedFilter The old value
      */
-    public function setIncludeSoftDeleted(IncludeSoftDeletedFilter|bool $includeSoftDeleted): IncludeSoftDeletedFilter
-    {
+    public function setIncludeSoftDeleted(
+        IncludeSoftDeletedFilter|bool $includeSoftDeleted,
+    ): IncludeSoftDeletedFilter {
         $oldValue = $this->includeSoftDeletedFilter;
 
         if (is_bool($includeSoftDeleted)) {

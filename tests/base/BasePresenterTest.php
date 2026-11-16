@@ -154,8 +154,9 @@ abstract class BasePresenterTest extends TestCase implements DatabaseBuilderInte
 
     public function testPresenterCollectionWithDependency(): void
     {
-        [$db, $userOne, $projectOne, $projectTwo, $userTwo] =
-            $this->createAndSetupEntities(self::OPTION_EXTRA_USER);
+        [$db, $userOne, $projectOne, $projectTwo, $userTwo] = $this->createAndSetupEntities(
+            self::OPTION_EXTRA_USER,
+        );
 
         $projects = $db->getRepository(Project::class)->findAllCollection();
 

@@ -21,7 +21,7 @@
         "vimeo/psalm": "^6.5",
         "symfony/var-dumper": "^6.4",
         "psalm/plugin-phpunit": "^0.19.2",
-        "carthage-software/mago": "^1.29"
+        "carthage-software/mago": "^1.60"
     },
     "autoload-dev": {
         "psr-4": {
