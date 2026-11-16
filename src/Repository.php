@@ -664,10 +664,12 @@ class Repository
     /**
      * Select with an entity provider
      *
-     * @psalm-return \Generator<int|null, Entity, mixed, void> - yields Entity
+     * @psalm-template TProvidedEntity of Entity
+     * @psalm-return \Generator<int|null, TProvidedEntity, mixed, void> - yields Entity
      *
      * @param Query\Select $query Select query to be executed
      * @param EntityProvider $entityProvider Entity provider to create base entities
+     * @psalm-param EntityProvider<TProvidedEntity> $entityProvider
      * @return \Generator Generator with entities
      */
     public function selectWithEntityProvider(
@@ -690,10 +692,13 @@ class Repository
     /**
      * Select with an entity provider
      *
+     * @psalm-template TProvidedEntity of Entity
+     * @psalm-param EntityProvider<TProvidedEntity> $entityProvider
+     *
      * @param Query\Select $query Select query to be executed
      * @param EntityProvider $entityProvider Entity provider to create base entities
      * @return Collection Collection with entities
-     * @psalm-return Collection<Entity> Collection with entities
+     * @psalm-return Collection<TProvidedEntity> Collection with entities
      */
     public function selectWithEntityProviderCollection(
         Query\Select $query,
